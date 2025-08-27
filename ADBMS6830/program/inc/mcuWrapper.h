@@ -29,11 +29,12 @@ and its licensor.
 #include "stm32g4xx_hal.h"
 #include "stm32g4xx_it.h"
 
+
 extern ADC_HandleTypeDef hadc1;         /* Mcu dependent ADC handler */
 extern I2C_HandleTypeDef hi2c1;         /* Mcu dependent I2C handler */
 extern I2C_HandleTypeDef hi2c3;         /* Mcu dependent I2C handler */
 extern SPI_HandleTypeDef hspi1;         /* Mcu dependent SPI handler */
-extern SPI_HandleTypeDef hspi5;         /* Mcu dependent SPI handler */
+extern SPI_HandleTypeDef hspi3;         /* Mcu dependent SPI handler */
 extern UART_HandleTypeDef huart4;       /* Mcu dependent UART handler */
 extern UART_HandleTypeDef huart5;       /* Mcu dependent UART handler */
 

@@ -406,6 +406,8 @@ void adBmsReadData(uint8_t tIC, cell_asic *ic, uint8_t cmd_arg[2], TYPE type, GR
       {							
         ic[cic].cccrc.cell_pec = pec_error[cic];
         ic[cic].cccrc.cmd_cntr = cmd_count[cic];
+//        printf("%X \n", pec_error[cic]);
+//        printf("%X \n", cmd_count[cic]);
       }
       break;
       

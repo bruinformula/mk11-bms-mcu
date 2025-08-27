@@ -1,0 +1,4 @@
+../Core/Src/can.c:4:19:CANTransmitMinion	3
+../Core/Src/can.c:16:6:init_FDCAN_header	1
+../Core/Src/can.c:28:6:init_FDCAN_header_EXTENDED	1
+../Core/Src/can.c:46:6:FDCAN_BMS_Mailman	13

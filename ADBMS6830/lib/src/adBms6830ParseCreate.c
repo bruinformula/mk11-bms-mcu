@@ -170,6 +170,40 @@ uint16_t ConfigB_DccBit(DCC dcc, DCC_BIT dccbit)
 
 /**
  *******************************************************************************
+ * Function: ConfigB_DccBits
+ * @brief Build a mask to set or clear multiple DCC bits at once.
+ *
+ * @details Provide a bit-mask where each bit position corresponds to one cell’s
+ *          DCC bit (bit-0 ⇒ Cell 1, bit-1 ⇒ Cell 2, …, bit-15 ⇒ Cell 16).  When
+ *          `dccbit` is `DCC_BIT_SET` the mask is returned unchanged, ready to be
+ *          OR’ed into `tx_cfgb.dcc`.  When `dccbit` is `DCC_BIT_CLR` the helper
+ *          returns `0`; callers typically clear bits by AND’ing the existing
+ *          field with the bitwise-NOT of their mask.
+ *
+ * Parameters:
+ * @param [in]  mask     16-bit mask indicating which DCC bits to modify.
+ * @param [in]  dccbit   `DCC_BIT_SET` to enable, `DCC_BIT_CLR` to disable.
+ *
+ * @return uint16_t      Value suitable for the `dcc` field in Config-B.
+ *
+ *******************************************************************************
+ */
+uint16_t ConfigB_DccBits(uint16_t mask, DCC_BIT dccbit)
+{
+    if (dccbit == DCC_BIT_SET)
+    {
+        /* Enable the requested DCC bits */
+        return mask;
+    }
+    else
+    {
+        /* Clearing: caller should clear these bits with AND & ~mask */
+        return 0;
+    }
+}
+
+/**
+ *******************************************************************************
  * Function: SetConfig_B_DischargeTimeOutValue
  * @brief Set Config B Discharge Time Out Value.
  *
