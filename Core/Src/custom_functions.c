@@ -88,6 +88,23 @@ typedef struct {
 cell_fault_entry_t fault_log[MAX_FAULT_ENTRIES];
 uint8_t num_active_faults = 0;
 
+
+/* ==== SOC vs. Voltage ==== */
+const int SOC_LUT_SIZE = 9;
+const float SOC_LUT_VOLTAGES[] = {2.5f, 3.15f, 3.41f, 3.53f, 3.66f, 3.77f, 3.88f, 3.98f, 4.10f};
+const float SOC_LUT_PERCENT[]  = {0.0f, 12.0f, 25.0f, 37.0f, 50.0f, 62.0f, 75.0f, 87.0f, 100.0f};
+
+/* ==== DCL vs. Temperature ==== */
+const int DCL_LUT_SIZE = 8;
+const float DCL_LUT_TEMP[]     = {0.0f, 5.0f, 10.0f, 15.0f, 45.0f, 50.0f, 55.0f, 60.0f};
+const float DCL_LUT_CURRENT[]  = {0.0f, 40.0f, 100.0f, 180.0f, 180.0f, 70.0f, 10.0f, 0.0f};
+
+/* ==== CCL vs. Temperature ==== */
+const int CCL_LUT_SIZE = 11;
+const float CCL_LUT_TEMP[]     = {0.0f, 5.0f, 10.0f, 15.0f, 20.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f};
+const float CCL_LUT_CURRENT[]  = {0.0f, 0.0f, 10.0f, 20.0f, 30.0f, 30.0f, 20.0f, 10.0f, 5.0f,  0.0f,  0.0f};
+
+
 /* === Functions ==== */
 /**
  * @brief Add a new fault to the fault log or update existing one
@@ -732,130 +749,51 @@ void fanPWMControl(float max_temp, TIM_HandleTypeDef *htimPWM) {
 			max_temp, error, pid_output, fan_status, pwm_value);
 }
 
-float voltagetoSOC(float voltage) {
-	if (voltage <= 2.5f)
-		return 0.0f;
-	else if (voltage < 3.15f)
-		return (voltage - 2.5f) * (12.0f - 0.0f) / (3.15f - 2.5f);
-	else if (voltage < 3.41f)
-		return 12.0f + (voltage - 3.15f) * (25.0f - 12.0f) / (3.41f - 3.15f);
-	else if (voltage < 3.53f)
-		return 25.0f + (voltage - 3.41f) * (37.0f - 25.0f) / (3.53f - 3.41f);
-	else if (voltage < 3.66f)
-		return 37.0f + (voltage - 3.53f) * (50.0f - 37.0f) / (3.66f - 3.53f);
-	else if (voltage < 3.77f)
-		return 50.0f + (voltage - 3.66f) * (62.0f - 50.0f) / (3.77f - 3.66f);
-	else if (voltage < 3.88f)
-		return 62.0f + (voltage - 3.77f) * (75.0f - 62.0f) / (3.88f - 3.77f);
-	else if (voltage < 3.98f)
-		return 75.0f + (voltage - 3.88f) * (87.0f - 75.0f) / (3.98f - 3.88f);
-	else if (voltage < 4.10f)
-		return 87.0f + (voltage - 3.98f) * (100.0f - 87.0f) / (4.10f - 3.98f);
-	else
-		return 100.0f;
+float interpolate(float x, const float x_points[], const float y_points[], int num_points) {
+    if (x <= x_points[0]) {
+        return y_points[0];
+    }
+
+    if (x >= x_points[num_points - 1]) {
+        return y_points[num_points - 1];
+    }
+
+    for (int i = 0; i < num_points - 1; i++) {
+        if (x >= x_points[i] && x <= x_points[i + 1]) {
+            float x1 = x_points[i];
+            float y1 = y_points[i];
+            float x2 = x_points[i + 1];
+            float y2 = y_points[i + 1];
+
+            if (x1 == x2) {
+                return y1;
+            }
+
+            // y = y1 + (x - x1) * (slope)
+            return y1 + (x - x1) * (y2 - y1) / (x2 - x1);
+        }
+    }
+
+
+    return y_points[num_points - 1];
 }
+
+
+float voltagetoSOC(float voltage) {
+    return interpolate(voltage, SOC_LUT_VOLTAGES, SOC_LUT_PERCENT, SOC_LUT_SIZE);
+}
+
 
 float SOCtoVoltage(float soc) {
-	if (soc <= 0.0f)
-		return 2.5f;
-	else if (soc < 12.0f)
-		return 2.5f + (soc - 0.0f) * (3.15f - 2.5f) / (12.0f - 0.0f);
-	else if (soc < 25.0f)
-		return 3.15f + (soc - 12.0f) * (3.41f - 3.15f) / (25.0f - 12.0f);
-	else if (soc < 37.0f)
-		return 3.41f + (soc - 25.0f) * (3.53f - 3.41f) / (37.0f - 25.0f);
-	else if (soc < 50.0f)
-		return 3.53f + (soc - 37.0f) * (3.66f - 3.53f) / (50.0f - 37.0f);
-	else if (soc < 62.0f)
-		return 3.66f + (soc - 50.0f) * (3.77f - 3.66f) / (62.0f - 50.0f);
-	else if (soc < 75.0f)
-		return 3.77f + (soc - 62.0f) * (3.88f - 3.77f) / (75.0f - 62.0f);
-	else if (soc < 87.0f)
-		return 3.88f + (soc - 75.0f) * (3.98f - 3.88f) / (87.0f - 75.0f);
-	else if (soc < 100.0f)
-		return 3.98f + (soc - 87.0f) * (4.10f - 3.98f) / (100.0f - 87.0f);
-	else
-		return 4.10f;
+    return interpolate(soc, SOC_LUT_PERCENT, SOC_LUT_VOLTAGES, SOC_LUT_SIZE);
 }
 
 
-// todo: make stuff like this like, normal and not stupid (make a map of constants instead of whatever the shit this is
 float calcDCL() {
-	if (highest_temp <= 0.0f)
-		return 0.0f;
-	else if (highest_temp < 5.0f)
-		return 0.0f + (highest_temp - 0.0f) * (40.0f - 0.0f) / (5.0f - 0.0f);
-	else if (highest_temp < 10.0f)
-		return 40.0f + (highest_temp - 5.0f) * (100.0f - 40.0f) / (10.0f - 5.0f);
-	else if (highest_temp < 15.0f)
-		return 100.0f
-				+ (highest_temp - 10.0f) * (180.0f - 100.0f) / (15.0f - 10.0f);
-	else if (highest_temp < 20.0f)
-		return 180.0f
-				+ (highest_temp - 15.0f) * (180.0f - 180.0f) / (20.0f - 15.0f);
-	else if (highest_temp < 25.0f)
-		return 180.0f
-				+ (highest_temp - 20.0f) * (180.0f - 180.0f) / (25.0f - 20.0f);
-	else if (highest_temp < 30.0f)
-		return 180.0f
-				+ (highest_temp - 25.0f) * (180.0f - 180.0f) / (30.0f - 25.0f);
-	else if (highest_temp < 35.0f)
-		return 180.0f
-				+ (highest_temp - 30.0f) * (180.0f - 180.0f) / (35.0f - 30.0f);
-	else if (highest_temp < 40.0f)
-		return 180.0f
-				+ (highest_temp - 35.0f) * (180.0f - 180.0f) / (40.0f - 35.0f);
-	else if (highest_temp < 45.0f)
-		return 180.0f
-				+ (highest_temp - 40.0f) * (180.0f - 180.0f) / (45.0f - 40.0f);
-	else if (highest_temp < 50.0f)
-		return 180.0f
-				+ (highest_temp - 45.0f) * (70.0f - 180.0f) / (50.0f - 45.0f);
-	else if (highest_temp < 55.0f)
-		return 70.0f
-				+ (highest_temp - 50.0f) * (10.0f - 70.0f) / (55.00f - 50.0f);
-	else if (highest_temp < 60.0f)
-		return 10.0f + (highest_temp - 55.0f) * (0.0f - 10.0f) / (60.0f - 55.0f);
-
-	else
-		return 0.0f;
+    return interpolate(highest_temp, DCL_LUT_TEMP, DCL_LUT_CURRENT, DCL_LUT_SIZE);
 }
+
 
 float calcCCL() {
-	if (highest_temp <= 0.0f)
-		return 0.0f;
-	else if (highest_temp < 5.0f)
-		return 0.0f + (highest_temp - 0.0f) * (0.0f - 0.0f) / (5.0f - 0.0f);
-	else if (highest_temp < 10.0f)
-		return 0.0f + (highest_temp - 5.0f) * (10.0f - 0.0f) / (10.0f - 5.0f);
-	else if (highest_temp < 15.0f)
-		return 10.0f
-				+ (highest_temp - 10.0f) * (20.0f - 10.0f) / (15.0f - 10.0f);
-	else if (highest_temp < 20.0f)
-		return 20.0f
-				+ (highest_temp - 15.0f) * (30.0f - 20.0f) / (20.0f - 15.0f);
-	else if (highest_temp < 25.0f)
-		return 30.0f
-				+ (highest_temp - 20.0f) * (30.0f - 30.0f) / (25.0f - 20.0f);
-	else if (highest_temp < 30.0f)
-		return 30.0f
-				+ (highest_temp - 25.0f) * (30.0f - 30.0f) / (30.0f - 25.0f);
-	else if (highest_temp < 35.0f)
-		return 30.0f
-				+ (highest_temp - 30.0f) * (30.0f - 30.0f) / (35.0f - 30.0f);
-	else if (highest_temp < 40.0f)
-		return 30.0f
-				+ (highest_temp - 35.0f) * (20.0f - 30.0f) / (40.0f - 35.0f);
-	else if (highest_temp < 45.0f)
-		return 20.0f
-				+ (highest_temp - 40.0f) * (10.0f - 20.0f) / (45.0f - 40.0f);
-	else if (highest_temp < 50.0f)
-		return 10.0f + (highest_temp - 45.0f) * (5.0f - 10.0f) / (50.0f - 45.0f);
-	else if (highest_temp < 55.0f)
-		return 5.0f + (highest_temp - 50.0f) * (0.0f - 5.0f) / (55.00f - 50.0f);
-	else if (highest_temp < 60.0f)
-		return 0.0f + (highest_temp - 55.0f) * (0.0f - 0.0f) / (60.0f - 55.0f);
-
-	else
-		return 0.0f;
+    return interpolate(highest_temp, CCL_LUT_TEMP, CCL_LUT_CURRENT, CCL_LUT_SIZE);
 }
