@@ -51,10 +51,36 @@ extern float dcl;
 extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 
+/* ==== Fault Categories ==== */
+typedef enum {
+    FAULT_CATEGORY_VOLTAGE = 0,
+    FAULT_CATEGORY_TEMP = 1,
+    FAULT_CATEGORY_CURRENT = 2,
+    FAULT_CATEGORY_COMMUNICATION = 3,
+    FAULT_CATEGORY_HARDWARE = 4,
+    FAULT_CATEGORY_COUNT
+} FaultCategory_t;
+
+typedef enum {
+    FAULT_SEVERITY_WARNING = 0,
+    FAULT_SEVERITY_ERROR = 1,
+    FAULT_SEVERITY_CRITICAL = 2
+} FaultSeverity_t;
+
+
+
+
 /* ==== Function Prototypes ==== */
+void BMS_InitFaultSystem(void);
+void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type, FaultSeverity_t severity);
+void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type);
+bool BMS_HasActiveFaults(void);
+uint8_t BMS_GetFaultCount(FaultCategory_t category);
+void print_fault_summary(void);
+
 int user_adBms6830_cellFault(uint8_t tIC, cell_asic *IC);
+int user_adBms6830_checkHardwareVoltageFaults(uint8_t tIC, cell_asic *IC);
 int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC);
-void user_adBms6830_setFaults(void);
 void user_adBms6830_getAccyStatus(void);
 uint8_t getCurrentSensorData(void);
 float getCurrentVoltage(int value);
@@ -67,7 +93,11 @@ void populateIC(cell_asic *IC, uint8_t tIC);
 void print_fault_summary(void);
 float calcCCL(void);
 float calcDCL(void);
+float interpolate(float x, const float x_points[], const float y_points[], int num_points);
+float voltagetoSOC(float voltage);
 float SOCtoVoltage(float soc);
+
+
 #define PRINT_ON 1
 
 #endif // CUSTOM_FUNCTIONS_H

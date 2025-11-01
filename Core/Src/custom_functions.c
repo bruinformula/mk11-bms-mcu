@@ -1,6 +1,7 @@
 #include "custom_functions.h"
 #include "serialPrintResult.h"
 #include "adBms_Application.h"
+#include "adBms6830Data.h"
 #include <math.h>
 #include <stdio.h>
 #include <string.h> // for memset used in balanceCells
@@ -8,8 +9,10 @@
 /* ==== Constants ==== */
 const float TEMP_LIMIT = 60.0;
 const float LOWER_TEMP_LIMIT = -10.0;
+
 const float OV_THRESHOLD = 4.2;
 const float UV_THRESHOLD = 2.5;
+
 const int OWC_Threshold = 2000;
 const int OWA_Threshold = 50000;
 const uint32_t LOOP_MEASUREMENT_COUNT = 1;
@@ -17,7 +20,8 @@ const uint16_t MEASUREMENT_LOOP_TIME = 2;
 const uint8_t CELL_UV_FAULT = 0x01;
 const uint8_t CELL_OV_FAULT = 0x02;
 const uint8_t CELL_TEMP_FAULT = 0x03;
-const uint8_t CURRENT_SENSOR_FAULT = 0x04;
+const uint8_t CELL_VOLTAGE_FAULT = 0x04;
+const uint8_t CURRENT_SENSOR_FAULT = 0x05;
 const uint8_t READY_POWER = 0x01;
 const uint8_t CHARGE_POWER = 0x02;
 const uint16_t PRECHARGE_MAX_TIME = 5000;
@@ -25,13 +29,13 @@ const float TEMP_LIMIT_HIGH = 55.0;
 const float TEMP_LIMIT_MED = 48.0;
 const float TEMP_LIMIT_LOW = 40.0;
 
-const float BATTERY_CAPACITY_Ah = 18.0f; // As per your notes: 18 Ah
-const float BATTERY_CAPACITY_COULOMBS = BATTERY_CAPACITY_Ah * 3600.0f; // Total capacity in Amp-seconds
-const float REST_CURRENT_THRESHOLD = 0.5f;   // 0.5 Amps: considered 'at rest'
-const uint32_t REST_DURATION_MS = 180000;
+const float BATTERY_CAPACITY_Ah = 1800.0f;
+const float BATTERY_CAPACITY_COULOMBS = BATTERY_CAPACITY_Ah * 3600.0f; // total capacity in Amp-seconds
+const float REST_CURRENT_THRESHOLD = 0.5f;   // 0.5 Amps
+const uint32_t REST_DURATION_MS = 30000;
 
 /* ==== Globals ==== */
-uint8_t cell_count = 10; //per IC i think?
+uint8_t cell_count = 10; //per IC
 uint8_t cell_fault = 0;
 uint8_t temp_fault = 0;
 uint8_t current_sensor_fault = 0;
@@ -72,6 +76,34 @@ extern ADC_HandleTypeDef hadc2;
 
 float voltagetoSOC(float voltage);
 
+
+
+typedef struct {
+    uint8_t uv_active : 1;
+    uint8_t ov_active : 1;
+    uint8_t ot_active : 1;
+    uint8_t ut_active : 1;
+    uint8_t hw_fault : 1;
+    uint8_t reserved : 3;
+    uint32_t last_fault_time;
+    uint16_t fault_count;
+} CellFaultStatus_t;
+
+
+typedef struct {
+    CellFaultStatus_t cell_status[100];  // 5 ICs × 20 cells
+    uint8_t active_faults[FAULT_CATEGORY_COUNT];
+    FaultSeverity_t highest_severity;
+    bool system_fault_active;
+    uint32_t first_fault_time;
+    uint32_t last_fault_clear_time;
+    uint16_t hw_ov_flags[5];  // Hardware OV flags per IC
+    uint16_t hw_uv_flags[5];  // Hardware UV flags per IC
+} BMS_FaultSystem_t;
+
+BMS_FaultSystem_t BMS_Faults;
+
+
 /* ==== Fault tracking ==== */
 #define MAX_FAULT_ENTRIES 20 // Maximum number of faults to track
 #define FAULT_TYPE_UV 1      // Under-voltage fault
@@ -104,299 +136,325 @@ const int CCL_LUT_SIZE = 11;
 const float CCL_LUT_TEMP[]     = {0.0f, 5.0f, 10.0f, 15.0f, 20.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f};
 const float CCL_LUT_CURRENT[]  = {0.0f, 0.0f, 10.0f, 20.0f, 30.0f, 30.0f, 20.0f, 10.0f, 5.0f,  0.0f,  0.0f};
 
-
-/* === Functions ==== */
 /**
- * @brief Add a new fault to the fault log or update existing one
- *
- * @param ic_num IC number (0-based)
- * @param cell_num Cell number (0-based)
- * @param fault_type Type of fault (UV, OV, TEMP)
- * @param fault_value Value that caused the fault
- * @return index of the fault entry in the array
+ * @brief Initialize fault system
  */
-int add_fault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
-		float fault_value) {
-	uint16_t cell_id = ic_num * 10 + cell_num;
+void BMS_InitFaultSystem(void) {
+    memset(&BMS_Faults, 0, sizeof(BMS_FaultSystem_t));
+    BMS_Faults.system_fault_active = false;
+    BMS_Faults.highest_severity = FAULT_SEVERITY_WARNING;
+}
 
-	// First check if this fault already exists
-	for (int i = 0; i < MAX_FAULT_ENTRIES; i++) {
-		if (fault_log[i].active && fault_log[i].cell_id == cell_id
-				&& fault_log[i].fault_type == fault_type) {
-			// Update existing fault entry
-			fault_log[i].fault_value = fault_value;
-			return i;
-		}
-	}
 
-	// Find an empty slot for a new fault
-	for (int i = 0; i < MAX_FAULT_ENTRIES; i++) {
-		if (!fault_log[i].active) {
-			fault_log[i].cell_id = cell_id;
-			fault_log[i].fault_type = fault_type;
-			fault_log[i].fault_value = fault_value;
-			fault_log[i].timestamp = HAL_GetTick();
-			fault_log[i].active = true;
-			num_active_faults++;
+void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
+                       FaultSeverity_t severity) {
+    if (ic_num >= 10 || cell_num >= 16) return;
 
-			// Print info about the new fault
-			if (PRINT_ON) printf("New fault: IC%d Cell%d Type:%d Value:", ic_num + 1,
-					cell_num + 1, fault_type);
-			if (PRINT_ON) printFloat(fault_value);
+    uint8_t cell_idx = (ic_num * 10) + cell_num;
+    CellFaultStatus_t *cell = &BMS_Faults.cell_status[cell_idx];
 
-			return i;
-		}
-	}
+    uint32_t now = HAL_GetTick();
+    bool new_fault = false;
 
-	// If we get here, the fault log is full - just return -1
-	if (PRINT_ON) printf("Fault log full! Cannot record new faults\n");
-	return -1;
+    switch (fault_type) {
+        case FAULT_TYPE_UV:
+            if (!cell->uv_active) {
+                new_fault = true;
+                cell->uv_active = 1;
+                BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]++;
+            }
+            break;
+
+        case FAULT_TYPE_OV:
+            if (!cell->ov_active) {
+                new_fault = true;
+                cell->ov_active = 1;
+                BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]++;
+            }
+            break;
+
+        case FAULT_TYPE_TEMP:
+            if (!cell->ot_active) {
+                new_fault = true;
+                cell->ot_active = 1;
+                BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]++;
+            }
+            break;
+    }
+
+    if (new_fault) {
+        cell->last_fault_time = now;
+        cell->fault_count++;
+
+        if (BMS_Faults.first_fault_time == 0) {
+            BMS_Faults.first_fault_time = now;
+        }
+
+        if (severity > BMS_Faults.highest_severity) {
+        	BMS_Faults.highest_severity = severity;
+        }
+
+        BMS_Faults.system_fault_active = true;
+
+        #if PRINT_ON
+        printf("FAULT: IC%d Cell%d Type:%d Sev:%d\n",
+        		ic_num, cell_num, fault_type, severity);
+        #endif
+    }
 }
 
 /**
- * @brief Clear a fault that is no longer active
- *
- * @param ic_num IC number (0-based)
- * @param cell_num Cell number (0-based)
- * @param fault_type Type of fault (UV, OV, TEMP)
+ * @brief Clear a specific fault for a cell
  */
-void clear_fault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
-	uint16_t cell_id = ic_num * 10 + cell_num;
+void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
+    if (ic_num >= 5 || cell_num >= 20) return;
 
-	for (int i = 0; i < MAX_FAULT_ENTRIES; i++) {
-		if (fault_log[i].active && fault_log[i].cell_id == cell_id
-				&& fault_log[i].fault_type == fault_type) {
+    uint8_t cell_idx = (ic_num * 20) + cell_num;
+    CellFaultStatus_t *cell = &BMS_Faults.cell_status[cell_idx];
 
-			if (PRINT_ON) printf("Cleared fault: IC%d Cell%d Type:%d Value:", ic_num + 1,
-					cell_num + 1, fault_type + 1);
-			if (PRINT_ON) printFloat(fault_log[i].fault_value);
+    bool fault_cleared = false;
 
-			fault_log[i].active = false;
-			num_active_faults--;
-			return;
-		}
-	}
+    switch (fault_type) {
+        case FAULT_TYPE_UV:
+            if (cell->uv_active) {
+                cell->uv_active = 0;
+                BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]--;
+                fault_cleared = true;
+            }
+            break;
+
+        case FAULT_TYPE_OV:
+            if (cell->ov_active) {
+                cell->ov_active = 0;
+                BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]--;
+                fault_cleared = true;
+            }
+            break;
+
+        case FAULT_TYPE_TEMP:
+            if (cell->ot_active) {
+                cell->ot_active = 0;
+                BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]--;
+                fault_cleared = true;
+            }
+            break;
+    }
+
+    if (fault_cleared) {
+        BMS_Faults.last_fault_clear_time = HAL_GetTick();
+
+        // Check if all faults cleared
+        uint8_t total_faults = 0;
+        for (int i = 0; i < FAULT_CATEGORY_COUNT; i++) {
+            total_faults += BMS_Faults.active_faults[i];
+        }
+
+        if (total_faults == 0) {
+            BMS_Faults.system_fault_active = false;
+            BMS_Faults.highest_severity = FAULT_SEVERITY_WARNING;
+        }
+    }
 }
 
-/**
- * @brief Initialize the fault log
- */
-void init_fault_log(void) {
-	for (int i = 0; i < MAX_FAULT_ENTRIES; i++) {
-		fault_log[i].active = false;
-	}
-	num_active_faults = 0;
-}
 
-/**
- * @brief Print a summary of all active faults in a concise format
- *
- * This function prints all active faults in a compact format showing:
- * - Cell ID (IC# * 10 + Cell#)
- * - Value that caused the fault
- * - Type of fault (V for voltage, T for temperature)
- */
-void print_fault_summary(void) {
-	if (PRINT_ON) {
-	if (num_active_faults == 0) {
-		printf("No active faults\n");
-		return;
-	}
 
-	printf("Faulted cells:\n");
 
-	int count = 0;
-	for (int i = 0; i < MAX_FAULT_ENTRIES; i++) {
-		if (fault_log[i].active) {
-			uint8_t ic_num = fault_log[i].cell_id / 10;
-			uint8_t cell_num = fault_log[i].cell_id % 10;
 
-			// Print cell information
-			printf("IC%d Cell%d: ", ic_num + 1, cell_num + 1);
-
-			// Print fault value with appropriate units
-			switch (fault_log[i].fault_type) {
-			case FAULT_TYPE_UV:
-			case FAULT_TYPE_OV:
-				printf("%.2fV", fault_log[i].fault_value);
-				break;
-			case FAULT_TYPE_TEMP:
-				printf("%.1fC", fault_log[i].fault_value);
-				break;
-			default:
-				printf("%.2f?", fault_log[i].fault_value);
-			}
-
-			// Add separator or newline
-			count++;
-			if (count % 4 == 0) { // Four entries per line
-				printf("\n");
-			} else {
-				printf("; ");
-			}
-		}
-	}
-
-	// Ensure we end with a newline
-	if (count % 4 != 0) {
-		printf("\n");
-	}
-	}
-}
 
 void populateIC(cell_asic *IC, uint8_t tIC) {
-	uint32_t timingshits = HAL_GetTick();
+	uint32_t start_time = HAL_GetTick();
 	adBms6830_start_adc_cell_voltage_measurment(tIC);
-	if (PRINT_ON) printf("time to read once: %d", HAL_GetTick() - timingshits);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
 
 	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
-	timingshits = HAL_GetTick();
+	start_time = HAL_GetTick();
 	adBms6830_read_cell_voltages(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %d", HAL_GetTick() - timingshits);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
 
 	int c_fault = user_adBms6830_cellFault(tIC, &IC[0]);
 	if (c_fault != 0) {
 		cell_fault = c_fault;
 	}
 	Delay_ms(8);
-	timingshits = HAL_GetTick();
+	start_time = HAL_GetTick();
 	adBms6830_start_aux_voltage_measurment(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %d", HAL_GetTick() - timingshits);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
 
 	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
-	timingshits = HAL_GetTick();
+	start_time = HAL_GetTick();
 
 	adBms6830_read_aux_voltages(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %d", HAL_GetTick() - timingshits);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
 
 	int t_fault = user_adBms6830_tempFault(tIC, &IC[0]);
 	if (t_fault == 1) {
 		temp_fault = CELL_TEMP_FAULT;
 	}
 
-	timingshits = HAL_GetTick();
+	start_time = HAL_GetTick();
 	// Current sensor data + fault
 	uint8_t current_fault = getCurrentSensorData();
 	if (current_fault != 0) {
 		current_sensor_fault = CURRENT_SENSOR_FAULT;
 		// printf("Current sensor fault detected\n");
 	}
-	if (PRINT_ON) printf("time to read once: %d", HAL_GetTick() - timingshits);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+}
+
+int user_adBms6830_checkHardwareVoltageFaults(uint8_t tIC, cell_asic *IC) {
+	int total_faults = 0;
+
+//	adBmsWakeupIc(tIC);
+//	adBmsReadData(tIC, &IC[0], RDSTATD, Status, D);
+
+	for (uint8_t ic = 0; ic < tIC; ic++) {
+		uint16_t ov_flags = 0;
+		uint16_t uv_flags = 0;
+		float voltage;
+		for (uint8_t cell_num = 0; cell_num < 10; cell_num++) {
+			if (IC[ic].statd.c_uv[cell_num]) {
+				uv_flags |= (1 << cell_num);
+				voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
+				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, FAULT_SEVERITY_CRITICAL);
+				cell_fault = CELL_OV_FAULT;
+
+				total_faults++;
+				#if PRINT_ON
+				printf("HW UV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+				#endif
+			}
+
+			if (IC[ic].statd.c_ov[cell_num]) {
+				ov_flags |= (1 << cell_num);
+				voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
+				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, FAULT_SEVERITY_CRITICAL);
+				cell_fault = CELL_OV_FAULT;
+
+				total_faults++;
+				#if PRINT_ON
+				printf("HW OV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+				#endif
+			}
+		}
+
+
+		// Store hardware flags for reference
+		BMS_Faults.hw_ov_flags[ic] = ov_flags;
+		BMS_Faults.hw_uv_flags[ic] = uv_flags;
+	}
+    return total_faults;
 }
 
 int user_adBms6830_cellFault(uint8_t tIC, cell_asic *IC) {
-	int error = 0;
-	int16_t temp;
-	float voltage;
-	float adjusted_voltage;
+    int error = 0;
+    user_adBms6830_checkHardwareVoltageFaults(tIC, IC);
 
-	lowest_cell = 100.0; // Initialize to a high value
-	highest_cell = 0.0;  // Initialize to a low value
+    lowest_cell = 100.0;
+    highest_cell = 0.0;
+    float sum = 0.0;
+    int cell_total = 0;
 
-	for (uint8_t ic = 0; ic < tIC; ic++) {
-		for (uint8_t index = 0; index < cell_count; index++) {
-			temp = IC[ic].cell.c_codes[index];
-			voltage = getVoltage(temp);
+    for (uint8_t ic = 0; ic < tIC; ic++) {
+        for (uint8_t index = 0; index < cell_count; index++) {
+            float voltage = IC[ic].cell.c_codes[index] * 0.0001f; // LSB is 100uV
+            float adjusted_voltage = voltage;
 
-			// Adjust voltage based on current if current sensor is not faulted
-			if (current_sensor_fault == 0) {
-				if (accy_status == READY_POWER) {
-					// When discharging, actual cell voltage is higher than measured
-					adjusted_voltage = voltage + (current * cell_resistance);
-				} else if (accy_status == CHARGE_POWER) {
-					// When charging, actual cell voltage is lower than measured
-					adjusted_voltage = voltage - (current * cell_resistance);
-				} else {
-					adjusted_voltage = voltage; // No adjustment needed
-				}
-			} else {
-				adjusted_voltage = voltage; // No adjustment if current sensor is faulted
-			}
+            if (current_sensor_fault == 0) {
+                if (accy_status == READY_POWER) {
+                    adjusted_voltage = voltage + (current * cell_resistance);
+                } else if (accy_status == CHARGE_POWER) {
+                    adjusted_voltage = voltage - (current * cell_resistance);
+                }
+            }
 
-			if (adjusted_voltage < lowest_cell) {
-				lowest_cell = adjusted_voltage;
-			}
-			if (adjusted_voltage > highest_cell) {
-				highest_cell = adjusted_voltage;
-			}
+            if (adjusted_voltage < lowest_cell) {
+                lowest_cell = adjusted_voltage;
+            }
+            if (adjusted_voltage > highest_cell) {
+                highest_cell = adjusted_voltage;
+            }
+            sum += adjusted_voltage;
+            cell_total++;
 
-			// Check for under-voltage faults using adjusted voltage
-			if (adjusted_voltage < UV_THRESHOLD) {
-				error = CELL_UV_FAULT;
-				add_fault(ic, index, FAULT_TYPE_UV, adjusted_voltage);
-			} else {
-				// Clear the UV fault if it exists
-				clear_fault(ic, index, FAULT_TYPE_UV);
-			}
+            if (adjusted_voltage < UV_THRESHOLD) {
+                error = CELL_UV_FAULT;
+                BMS_SetCellFault(ic, index, FAULT_TYPE_UV, FAULT_SEVERITY_ERROR);
+            } else {
+                BMS_ClearCellFault(ic, index, FAULT_TYPE_UV);
+            }
 
-			// Check for over-voltage faults using adjusted voltage
-			if (adjusted_voltage > OV_THRESHOLD) {
-				error = CELL_OV_FAULT;
-				add_fault(ic, index, FAULT_TYPE_OV, adjusted_voltage);
-			} else {
-				// Clear the OV fault if it exists
-				clear_fault(ic, index, FAULT_TYPE_OV);
-			}
-		}
-	}
+            if (adjusted_voltage > OV_THRESHOLD) {
+                error = CELL_OV_FAULT;
+                BMS_SetCellFault(ic, index, FAULT_TYPE_OV, FAULT_SEVERITY_ERROR);
+            } else {
+                BMS_ClearCellFault(ic, index, FAULT_TYPE_OV);
+            }
+        }
+    }
+    avg_cell = (cell_total > 0) ? (sum / cell_total) : 0.0f;
+    delta_cell = highest_cell - lowest_cell;
 
-	delta_cell = highest_cell - lowest_cell;
-	return error;
+    if (BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE] > 0) {
+    	return (error != 0) ? error : CELL_VOLTAGE_FAULT;
+    }
+
+    return 0;
 }
+
 
 int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
 	int error = 0;
-	int16_t temp;
-	float temperature;
-	float V;
 
-	lowest_temp = 1000.0; // Initialize to a high value
-	highest_temp = 0.0;   // Initialize to a low value
+	lowest_temp = 1000.0;
+	highest_temp = -100.0;
 	float temp_sum = 0.0;
-	int faulted_cell_count = 0;
+	int valid_temp_count = 0;
+	int faulted_count = 0;
 
 	for (uint8_t ic = 0; ic < tIC; ic++) {
-		for (uint8_t index = 0; index < cell_count; index++) {
-			if (ic * 10 + index + 1 == 55) {
+		for (uint8_t index = 0; index < 10; index++) {
+			// Skip known bad sensors
+			uint16_t sensor_id = ic * 10 + index + 1;
+			if (sensor_id == 55 || sensor_id == 11 || sensor_id == 45) {
 				continue;
 			}
 
-			temp = IC[ic].aux.a_codes[index];
-			V = getVoltage(temp);
-			temperature = -225.6985 * (V * V * V) + 1310.5937 * (V * V)
-																+ -2594.7697 * V + 1767.8260;
+			// Read and convert temperature
+			int16_t temp_code = IC[ic].aux.a_codes[index];
+			float V = getVoltage(temp_code);
+			float temperature = -225.6985f * (V * V * V) +
+					1310.5937f * (V * V) -
+					2594.7697f * V +
+					1767.8260f;
 
-			// Check for temperature faults
+			// Check for faults
 			if (temperature > TEMP_LIMIT || temperature < LOWER_TEMP_LIMIT) {
-				faulted_cell_count++;
-				if (faulted_cell_count > MAX_ALLOWED_TEMP_FAULTS) {
+				faulted_count++;
+				if (faulted_count > MAX_ALLOWED_TEMP_FAULTS) {
 					error = 1;
-					add_fault(ic, index, FAULT_TYPE_TEMP, temperature);
+					BMS_SetCellFault(ic, index, FAULT_TYPE_TEMP, FAULT_SEVERITY_ERROR);
 				}
 			} else {
-
-
+				// Valid temperature - track min/max/avg
 				if (temperature < lowest_temp) {
-					lowest_temp_ID = ic * 10 + index + 1;
-					if (lowest_temp_ID != 11)
-						lowest_temp = temperature;
+					lowest_temp = temperature;
+					lowest_temp_ID = sensor_id;
 				}
 				if (temperature > highest_temp) {
-					highest_temp_ID = ic * 10 + index + 1;
-					if (highest_temp_ID != 45)
-						highest_temp = temperature;
+					highest_temp = temperature;
+					highest_temp_ID = sensor_id;
 				}
+				temp_sum += temperature;
+				valid_temp_count++;
 
-				avg_temp += temperature;
-
-
-				// Clear the temperature fault if it exists
-				clear_fault(ic, index, FAULT_TYPE_TEMP);
+				BMS_ClearCellFault(ic, index, FAULT_TYPE_TEMP);
 			}
 		}
 	}
 
-	avg_temp /= (tIC * cell_count) - faulted_cell_count;
+	avg_temp = (valid_temp_count > 0) ? (temp_sum / valid_temp_count) : 0.0f;
+	delta_temp = highest_temp - lowest_temp;
+
 	return error;
 }
 
@@ -449,6 +507,59 @@ void user_adBms6830_getAccyStatus(void) {
 	} else {
 		accy_status = 0;
 	}
+}
+
+/**
+ * @brief Get system fault status for precharge integration
+ */
+bool BMS_HasActiveFaults(void) {
+    return BMS_Faults.system_fault_active;
+}
+
+/**
+ * @brief Get fault count for specific category
+ */
+uint8_t BMS_GetFaultCount(FaultCategory_t category) {
+    if (category < FAULT_CATEGORY_COUNT) {
+        return BMS_Faults.active_faults[category];
+    }
+    return 0;
+}
+
+/**
+ * @brief Print concise fault summary
+ */
+void print_fault_summary(void) {
+    if (!PRINT_ON) return;
+
+    if (!BMS_Faults.system_fault_active) {
+        printf("No active faults\n");
+        return;
+    }
+
+    printf("Faults: V=%d T=%d C=%d\n",
+           BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE],
+           BMS_Faults.active_faults[FAULT_CATEGORY_TEMP],
+           BMS_Faults.active_faults[FAULT_CATEGORY_CURRENT]);
+
+    // Print faulted cells
+    int count = 0;
+    for (uint8_t i = 0; i < 100; i++) {
+        CellFaultStatus_t *cell = &BMS_Faults.cell_status[i];
+        if (cell->uv_active || cell->ov_active || cell->ot_active) {
+            uint8_t ic = i / 10;
+            uint8_t cell_num = i % 10;
+            printf("IC%d C%d:", ic, cell_num);
+            if (cell->uv_active) printf(" UV");
+            if (cell->ov_active) printf(" OV");
+            if (cell->ot_active) printf(" OT");
+
+            count++;
+            if (count % 4 == 0) printf("\n");
+            else printf("; ");
+        }
+    }
+    if (count % 4 != 0) printf("\n");
 }
 
 /**
@@ -573,13 +684,6 @@ float updateSOC() {
 	}
 
 
-	soc = voltagetoSOC(avg_cell);
-	if (soc > 50) {
-		soc = voltagetoSOC(highest_cell);
-	} else if (soc < 50) {
-		soc = voltagetoSOC(lowest_cell);
-	}
-
 	uint32_t current_time = HAL_GetTick();
 
 	if (fabs(current) < REST_CURRENT_THRESHOLD) {
@@ -600,8 +704,7 @@ float updateSOC() {
 
 		rest_start_time = current_time;
 	}
-
-	// coloumb counting
+	// Coulomb counting
 	else {
 		if (initial_soc < 0.0f) {
 			initial_soc = voltagetoSOC(avg_cell);

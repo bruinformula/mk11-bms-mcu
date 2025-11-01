@@ -13,4 +13,4 @@
 ../ADBMS6830/program/src/serialPrintResult.c:2038:6:openWireResultPrint	16	static
 ../ADBMS6830/program/src/serialPrintResult.c:2061:6:printPollAdcConvTime	16	static
 ../ADBMS6830/program/src/serialPrintResult.c:2077:6:printMenu	8	static
-../ADBMS6830/program/src/serialPrintResult.c:2124:7:getVoltage	24	static
+../ADBMS6830/program/src/serialPrintResult.c:2126:7:getVoltage	24	static

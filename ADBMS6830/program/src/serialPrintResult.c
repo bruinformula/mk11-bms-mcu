@@ -2105,6 +2105,8 @@ void printMenu()
   printf("\n\n");
 
 }
+
+
 #endif
 
 /**
@@ -2121,11 +2123,11 @@ void printMenu()
  *
  *******************************************************************************
 */
-float getVoltage(int data)
+float getVoltage(uint16_t data)
 {
 //	printf("%d", data);
     float voltage_float; //voltage in Volts
-    voltage_float = ((data + 10000) * 0.000150);
+    voltage_float = (data * 0.000150f) + 1.5f;
     return voltage_float;
 }
 

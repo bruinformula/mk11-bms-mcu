@@ -39,7 +39,7 @@ extern Serial pc;
 void fakeChargeParams(void);
 void fakeDriveParams(void);
 
-#define TOTAL_IC 10
+#define TOTAL_IC 5
 #define IC_CHUNK 1
 cell_asic IC[TOTAL_IC];
 cell_asic TEMP_IC[IC_CHUNK];
@@ -60,7 +60,7 @@ LOOP_MEASURMENT MEASURE_CELL = ENABLED; /*   This is ENABLED or DISABLED       *
 LOOP_MEASURMENT MEASURE_AVG_CELL = DISABLED; /*   This is ENABLED or DISABLED       */
 LOOP_MEASURMENT MEASURE_F_CELL = DISABLED; /*   This is ENABLED or DISABLED       */
 LOOP_MEASURMENT MEASURE_S_VOLTAGE = DISABLED; /*   This is ENABLED or DISABLED       */
-LOOP_MEASURMENT MEASURE_AUX = DISABLED; /*   This is ENABLED or DISABLED       */
+LOOP_MEASURMENT MEASURE_AUX = ENABLED; /*   This is ENABLED or DISABLED       */
 LOOP_MEASURMENT MEASURE_RAUX = DISABLED; /*   This is ENABLED or DISABLED       */
 LOOP_MEASURMENT MEASURE_STAT = DISABLED; /*   This is ENABLED or DISABLED       */
 
@@ -77,7 +77,7 @@ uint16_t tick = 0;
 void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 		FDCAN_BMS_CONTEXT *ctx, TIM_HandleTypeDef *htimPWM) {
 	// printMenu();
-	//   adBms6830_init_config(TOTAL_IC, &IC[0]);
+	adBms6830_init_config(TOTAL_IC, &IC[0]);
 	// #ifdef MBED
 	//   // pc.printf("Waiting for input... \n");
 	// #else
@@ -135,7 +135,7 @@ void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 		FDCAN_BMS_Mailman(hfdcan, ctx, now, 0);
 	} else if (accy_status == CHARGE_POWER && !cell_fault && !temp_fault) {
 		uint32_t timingshits = HAL_GetTick();
-		if (PRINT_ON) printf("time to read once: %.2f", HAL_GetTick() - timingshits);
+		if (PRINT_ON) printf("time to read once: %lu", HAL_GetTick() - timingshits);
 
 		user_adBms6830_setFaults(); // Check for faults and set GPIO pins accordingly
 		getPackVoltage(TOTAL_IC, &IC[0]); // Get the pack voltage
