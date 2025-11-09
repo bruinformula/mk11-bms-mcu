@@ -39,7 +39,7 @@ extern Serial pc;
 void fakeChargeParams(void);
 void fakeDriveParams(void);
 
-#define TOTAL_IC 5
+#define TOTAL_IC 10
 #define IC_CHUNK 1
 cell_asic IC[TOTAL_IC];
 cell_asic TEMP_IC[IC_CHUNK];
@@ -238,7 +238,7 @@ void run_command(int cmd) {
 	adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
 	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
 	adBms6830_read_cell_voltages(TOTAL_IC, &IC[0]);
-	int c_fault = user_adBms6830_cellFault(TOTAL_IC, &IC[0]);
+	int c_fault = user_adBms6830_cellVoltageFaults(TOTAL_IC, &IC[0]);
 	if (c_fault != 0) {
 		cell_fault = c_fault;
 	}

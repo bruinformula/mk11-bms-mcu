@@ -58,7 +58,7 @@ int lowest_temp_ID = 0;
 int highest_temp_ID = 0;
 float avg_temp = 0.0;
 float delta_temp = 0.0;
-#define MAX_ALLOWED_TEMP_FAULTS 10
+#define MAX_ALLOWED_TEMP_FAULTS 1
 
 uint32_t loop_count = 0;
 uint32_t pladc_count = 0;
@@ -84,7 +84,6 @@ typedef struct {
     uint8_t ot_active : 1;
     uint8_t ut_active : 1;
     uint8_t hw_fault : 1;
-    uint8_t reserved : 3;
     uint32_t last_fault_time;
     uint16_t fault_count;
 } CellFaultStatus_t;
@@ -97,8 +96,8 @@ typedef struct {
     bool system_fault_active;
     uint32_t first_fault_time;
     uint32_t last_fault_clear_time;
-    uint16_t hw_ov_flags[5];  // Hardware OV flags per IC
-    uint16_t hw_uv_flags[5];  // Hardware UV flags per IC
+    uint16_t hw_ov_flags[10];  // Hardware OV flags per IC
+    uint16_t hw_uv_flags[10];  // Hardware UV flags per IC
 } BMS_FaultSystem_t;
 
 BMS_FaultSystem_t BMS_Faults;
@@ -109,6 +108,7 @@ BMS_FaultSystem_t BMS_Faults;
 #define FAULT_TYPE_UV 1      // Under-voltage fault
 #define FAULT_TYPE_OV 2      // Over-voltage fault
 #define FAULT_TYPE_TEMP 3    // Temperature fault
+#define FAULT_TYPE_DELTA 4
 typedef struct {
 	uint16_t cell_id;   // IC# * 10 + Cell# (e.g. 0*10+5 = 5 for IC0, Cell5)
 	uint8_t fault_type; // Type of fault (UV, OV, TEMP)
@@ -180,6 +180,14 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
                 BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]++;
             }
             break;
+
+        case FAULT_TYPE_DELTA:
+        	if (!cell->ov_active) {
+        		new_fault = true;
+        		cell->ov_active = 1;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]++;
+        	}
+        	break;
     }
 
     if (new_fault) {
@@ -256,266 +264,6 @@ void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
     }
 }
 
-
-
-
-
-
-void populateIC(cell_asic *IC, uint8_t tIC) {
-	uint32_t start_time = HAL_GetTick();
-	adBms6830_start_adc_cell_voltage_measurment(tIC);
-	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
-
-	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
-	start_time = HAL_GetTick();
-	adBms6830_read_cell_voltages(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
-
-	int c_fault = user_adBms6830_cellFault(tIC, &IC[0]);
-	if (c_fault != 0) {
-		cell_fault = c_fault;
-	}
-	Delay_ms(8);
-	start_time = HAL_GetTick();
-	adBms6830_start_aux_voltage_measurment(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
-
-	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
-	start_time = HAL_GetTick();
-
-	adBms6830_read_aux_voltages(tIC, &IC[0]);
-	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
-
-	int t_fault = user_adBms6830_tempFault(tIC, &IC[0]);
-	if (t_fault == 1) {
-		temp_fault = CELL_TEMP_FAULT;
-	}
-
-	start_time = HAL_GetTick();
-	// Current sensor data + fault
-	uint8_t current_fault = getCurrentSensorData();
-	if (current_fault != 0) {
-		current_sensor_fault = CURRENT_SENSOR_FAULT;
-		// printf("Current sensor fault detected\n");
-	}
-	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
-}
-
-int user_adBms6830_checkHardwareVoltageFaults(uint8_t tIC, cell_asic *IC) {
-	int total_faults = 0;
-
-//	adBmsWakeupIc(tIC);
-//	adBmsReadData(tIC, &IC[0], RDSTATD, Status, D);
-
-	for (uint8_t ic = 0; ic < tIC; ic++) {
-		uint16_t ov_flags = 0;
-		uint16_t uv_flags = 0;
-		float voltage;
-		for (uint8_t cell_num = 0; cell_num < 10; cell_num++) {
-			if (IC[ic].statd.c_uv[cell_num]) {
-				uv_flags |= (1 << cell_num);
-				voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
-				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, FAULT_SEVERITY_CRITICAL);
-				cell_fault = CELL_OV_FAULT;
-
-				total_faults++;
-				#if PRINT_ON
-				printf("HW UV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
-				#endif
-			}
-
-			if (IC[ic].statd.c_ov[cell_num]) {
-				ov_flags |= (1 << cell_num);
-				voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
-				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, FAULT_SEVERITY_CRITICAL);
-				cell_fault = CELL_OV_FAULT;
-
-				total_faults++;
-				#if PRINT_ON
-				printf("HW OV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
-				#endif
-			}
-		}
-
-
-		// Store hardware flags for reference
-		BMS_Faults.hw_ov_flags[ic] = ov_flags;
-		BMS_Faults.hw_uv_flags[ic] = uv_flags;
-	}
-    return total_faults;
-}
-
-int user_adBms6830_cellFault(uint8_t tIC, cell_asic *IC) {
-    int error = 0;
-    user_adBms6830_checkHardwareVoltageFaults(tIC, IC);
-
-    lowest_cell = 100.0;
-    highest_cell = 0.0;
-    float sum = 0.0;
-    int cell_total = 0;
-
-    for (uint8_t ic = 0; ic < tIC; ic++) {
-        for (uint8_t index = 0; index < cell_count; index++) {
-            float voltage = IC[ic].cell.c_codes[index] * 0.0001f; // LSB is 100uV
-            float adjusted_voltage = voltage;
-
-            if (current_sensor_fault == 0) {
-                if (accy_status == READY_POWER) {
-                    adjusted_voltage = voltage + (current * cell_resistance);
-                } else if (accy_status == CHARGE_POWER) {
-                    adjusted_voltage = voltage - (current * cell_resistance);
-                }
-            }
-
-            if (adjusted_voltage < lowest_cell) {
-                lowest_cell = adjusted_voltage;
-            }
-            if (adjusted_voltage > highest_cell) {
-                highest_cell = adjusted_voltage;
-            }
-            sum += adjusted_voltage;
-            cell_total++;
-
-            if (adjusted_voltage < UV_THRESHOLD) {
-                error = CELL_UV_FAULT;
-                BMS_SetCellFault(ic, index, FAULT_TYPE_UV, FAULT_SEVERITY_ERROR);
-            } else {
-                BMS_ClearCellFault(ic, index, FAULT_TYPE_UV);
-            }
-
-            if (adjusted_voltage > OV_THRESHOLD) {
-                error = CELL_OV_FAULT;
-                BMS_SetCellFault(ic, index, FAULT_TYPE_OV, FAULT_SEVERITY_ERROR);
-            } else {
-                BMS_ClearCellFault(ic, index, FAULT_TYPE_OV);
-            }
-        }
-    }
-    avg_cell = (cell_total > 0) ? (sum / cell_total) : 0.0f;
-    delta_cell = highest_cell - lowest_cell;
-
-    if (BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE] > 0) {
-    	return (error != 0) ? error : CELL_VOLTAGE_FAULT;
-    }
-
-    return 0;
-}
-
-
-int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
-	int error = 0;
-
-	lowest_temp = 1000.0;
-	highest_temp = -100.0;
-	float temp_sum = 0.0;
-	int valid_temp_count = 0;
-	int faulted_count = 0;
-
-	for (uint8_t ic = 0; ic < tIC; ic++) {
-		for (uint8_t index = 0; index < 10; index++) {
-			// Skip known bad sensors
-			uint16_t sensor_id = ic * 10 + index + 1;
-			if (sensor_id == 55 || sensor_id == 11 || sensor_id == 45) {
-				continue;
-			}
-
-			// Read and convert temperature
-			int16_t temp_code = IC[ic].aux.a_codes[index];
-			float V = getVoltage(temp_code);
-			float temperature = -225.6985f * (V * V * V) +
-					1310.5937f * (V * V) -
-					2594.7697f * V +
-					1767.8260f;
-
-			// Check for faults
-			if (temperature > TEMP_LIMIT || temperature < LOWER_TEMP_LIMIT) {
-				faulted_count++;
-				if (faulted_count > MAX_ALLOWED_TEMP_FAULTS) {
-					error = 1;
-					BMS_SetCellFault(ic, index, FAULT_TYPE_TEMP, FAULT_SEVERITY_ERROR);
-				}
-			} else {
-				// Valid temperature - track min/max/avg
-				if (temperature < lowest_temp) {
-					lowest_temp = temperature;
-					lowest_temp_ID = sensor_id;
-				}
-				if (temperature > highest_temp) {
-					highest_temp = temperature;
-					highest_temp_ID = sensor_id;
-				}
-				temp_sum += temperature;
-				valid_temp_count++;
-
-				BMS_ClearCellFault(ic, index, FAULT_TYPE_TEMP);
-			}
-		}
-	}
-
-	avg_temp = (valid_temp_count > 0) ? (temp_sum / valid_temp_count) : 0.0f;
-	delta_temp = highest_temp - lowest_temp;
-
-	return error;
-}
-
-void user_adBms6830_setFaults(void) {
-	if (cell_fault == CELL_UV_FAULT || cell_fault == CELL_OV_FAULT) {
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
-
-		if (accy_status == CHARGE_POWER) {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
-			is_charging = 0;
-		}
-	} else {
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
-		if (accy_status == CHARGE_POWER) {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
-			is_charging = 1;
-		}
-	}
-
-	if (temp_fault == CELL_TEMP_FAULT) {
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
-
-		if (accy_status == CHARGE_POWER) {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
-			is_charging = 0;
-		}
-	} else {
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
-		if (accy_status == CHARGE_POWER) {
-			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
-			is_charging = 1;
-		}
-	}
-}
-
-void user_adBms6830_getAccyStatus(void) {
-	GPIO_PinState charge_power = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5);
-	GPIO_PinState ready_power = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6);
-
-	if (charge_power == GPIO_PIN_SET && ready_power == GPIO_PIN_SET) {
-		accy_status = -1;
-	} else if (charge_power == GPIO_PIN_SET) {
-		accy_status = CHARGE_POWER;
-	} else if (ready_power == GPIO_PIN_SET) {
-		accy_status = READY_POWER;
-	} else {
-		accy_status = 0;
-	}
-}
-
-/**
- * @brief Get system fault status for precharge integration
- */
-bool BMS_HasActiveFaults(void) {
-    return BMS_Faults.system_fault_active;
-}
-
 /**
  * @brief Get fault count for specific category
  */
@@ -524,6 +272,13 @@ uint8_t BMS_GetFaultCount(FaultCategory_t category) {
         return BMS_Faults.active_faults[category];
     }
     return 0;
+}
+
+/**
+ * @brief Get system fault status for precharge integration
+ */
+bool BMS_HasActiveFaults(void) {
+    return BMS_Faults.system_fault_active;
 }
 
 /**
@@ -561,6 +316,249 @@ void print_fault_summary(void) {
     }
     if (count % 4 != 0) printf("\n");
 }
+
+
+void populateIC(cell_asic *IC, uint8_t tIC) {
+	uint32_t start_time = HAL_GetTick();
+	adBms6830_start_adc_cell_voltage_measurment(tIC);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+
+	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
+	start_time = HAL_GetTick();
+	adBms6830_read_cell_voltages(tIC, &IC[0]);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+
+	user_adBms6830_cellVoltageFaults(tIC, &IC[0]);
+	int c_fault = BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE);
+	if (c_fault > 0) {
+		cell_fault = CELL_VOLTAGE_FAULT;
+	}
+	Delay_ms(8);
+	start_time = HAL_GetTick();
+	adBms6830_start_aux_voltage_measurment(tIC, &IC[0]);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+
+	Delay_ms(8); // ADCs are updated at their conversion rate is 8ms
+	start_time = HAL_GetTick();
+
+	adBms6830_read_aux_voltages(tIC, &IC[0]);
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+
+	user_adBms6830_tempFault(tIC, &IC[0]);
+	int t_fault = BMS_GetFaultCount(FAULT_CATEGORY_TEMP);
+	if (t_fault >= 1) {
+		temp_fault = CELL_TEMP_FAULT;
+	}
+
+	start_time = HAL_GetTick();
+	// Current sensor data + fault
+	uint8_t current_fault = getCurrentSensorData();
+	if (current_fault > 0) {
+		current_sensor_fault = CURRENT_SENSOR_FAULT;
+		// printf("Current sensor fault detected\n");
+	}
+	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
+}
+
+int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
+	int total_faults = 0;
+
+//	adBmsWakeupIc(tIC);
+//	adBmsReadData(tIC, &IC[0], RDSTATD, Status, D);
+
+	lowest_cell = 100.0;
+	int lowest_cell_ind = 0;
+
+	highest_cell = 0.0;
+	int highest_cell_ind = 0;
+
+	float sum = 0.0;
+	int cell_total = 0;
+	for (uint8_t ic = 0; ic < tIC; ic++) {
+		uint16_t ov_flags = 0;
+		uint16_t uv_flags = 0;
+		float voltage;
+		for (uint8_t cell_num = 0; cell_num < cell_count; cell_num++) {
+			voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
+
+			if (current_sensor_fault == 0) {
+				if (accy_status == READY_POWER) {
+					voltage += (current * cell_resistance);
+				} else if (accy_status == CHARGE_POWER) {
+					voltage -= (current * cell_resistance);
+				}
+			}
+
+			if (voltage < lowest_cell) {
+				lowest_cell = voltage;
+				lowest_cell_ind = tIC*ic + cell_num*cell_count;
+			}
+			if (voltage > highest_cell) {
+				highest_cell = voltage;
+				highest_cell_ind = tIC*ic + cell_num*cell_count;
+			}
+			sum += voltage;
+			cell_total++;
+
+
+			if (IC[ic].statd.c_uv[cell_num] || voltage < UV_THRESHOLD) {
+				uv_flags |= (1 << cell_num);
+				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, FAULT_SEVERITY_CRITICAL);
+				cell_fault = CELL_OV_FAULT;
+
+				total_faults++;
+				#if PRINT_ON
+				printf("HW UV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+				#endif
+			} else {
+				BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_UV);
+			}
+
+			if (IC[ic].statd.c_ov[cell_num] || voltage > OV_THRESHOLD) {
+				ov_flags |= (1 << cell_num);
+				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, FAULT_SEVERITY_CRITICAL);
+				cell_fault = CELL_OV_FAULT;
+
+				total_faults++;
+				#if PRINT_ON
+				printf("HW OV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+				#endif
+			} else {
+				BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_OV);
+			}
+
+		}
+
+
+		// Store hardware flags for reference
+		BMS_Faults.hw_ov_flags[ic] = ov_flags;
+		BMS_Faults.hw_uv_flags[ic] = uv_flags;
+	}
+
+	avg_cell = (cell_total > 0) ? (sum / cell_total) : 0.0f;
+	delta_cell = highest_cell - lowest_cell;
+	if (abs(((sum - highest_cell)/cell_total) - highest_cell)) {
+		BMS_SetCellFault(highest_cell_ind/10, highest_cell_ind%10, FAULT_TYPE_DELTA, FAULT_SEVERITY_WARNING);
+		total_faults++;
+	}
+
+
+	if (abs(((sum - lowest_cell)/cell_total) - lowest_cell)) {
+		BMS_SetCellFault(lowest_cell_ind/10, lowest_cell_ind%10, FAULT_TYPE_DELTA, FAULT_SEVERITY_WARNING);
+		total_faults++;
+	}
+
+	if (BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE) == 0) cell_fault = 0;
+
+    return total_faults;
+}
+
+
+
+int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
+	int error = 0;
+
+	lowest_temp = 1000.0;
+	highest_temp = -100.0;
+	float temp_sum = 0.0;
+	int valid_temp_count = 0;
+	int faulted_count = 0;
+
+	for (uint8_t ic = 0; ic < tIC; ic++) {
+		for (uint8_t index = 0; index < cell_count; index++) {
+
+			// Read and convert temperature
+			int16_t temp_code = IC[ic].aux.a_codes[index];
+			float V = getVoltage(temp_code);
+
+			float temperature = -225.6985f * (V * V * V) // polynomial function from Voltage -> Temperature
+								+1310.5937f * (V * V)
+								-2594.7697f * V
+								+1767.8260f;
+
+			// Check for faults
+			if (temperature > TEMP_LIMIT || temperature < LOWER_TEMP_LIMIT) {
+				faulted_count++;
+				if (faulted_count > MAX_ALLOWED_TEMP_FAULTS) {
+					error = 1;
+				}
+				BMS_SetCellFault(ic, index, FAULT_TYPE_TEMP, FAULT_SEVERITY_ERROR);
+			} else {
+				// Valid temperature - track min/max/avg
+				if (temperature < lowest_temp) {
+					lowest_temp = temperature;
+					lowest_temp_ID = tIC*ic + index*cell_count;
+				}
+				if (temperature > highest_temp) {
+					highest_temp = temperature;
+					highest_temp_ID = tIC*ic + index*cell_count;
+				}
+				temp_sum += temperature;
+				valid_temp_count++;
+
+				BMS_ClearCellFault(ic, index, FAULT_TYPE_TEMP);
+			}
+		}
+	}
+
+	avg_temp = (valid_temp_count > 0) ? (temp_sum / valid_temp_count) : 0.0f;
+	delta_temp = highest_temp - lowest_temp;
+
+	return error;
+}
+
+void user_adBms6830_setFaults(void) {
+	if (BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE) > 0) {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+
+		if (accy_status == CHARGE_POWER) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+			is_charging = 0;
+		}
+	} else {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
+		if (accy_status == CHARGE_POWER) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
+			is_charging = 1;
+		}
+	}
+
+	if (BMS_GetFaultCount(FAULT_CATEGORY_TEMP)) {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+
+		if (accy_status == CHARGE_POWER) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+			is_charging = 0;
+		}
+	} else {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_1, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
+		if (accy_status == CHARGE_POWER) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_SET); // TODO: Change to PB3 on next iteration
+			is_charging = 1;
+		}
+	}
+}
+
+void user_adBms6830_getAccyStatus(void) {
+	GPIO_PinState charge_power = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_5);
+	GPIO_PinState ready_power = HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_6);
+
+	if (charge_power == GPIO_PIN_SET && ready_power == GPIO_PIN_SET) {
+		accy_status = -1;
+	} else if (charge_power == GPIO_PIN_SET) {
+		accy_status = CHARGE_POWER;
+	} else if (ready_power == GPIO_PIN_SET) {
+		accy_status = READY_POWER;
+	} else {
+		accy_status = 0;
+	}
+}
+
+
 
 /**
  * @brief Get current sensor data with hysteresis to prevent jumps between ranges

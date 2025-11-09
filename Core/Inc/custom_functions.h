@@ -78,8 +78,7 @@ bool BMS_HasActiveFaults(void);
 uint8_t BMS_GetFaultCount(FaultCategory_t category);
 void print_fault_summary(void);
 
-int user_adBms6830_cellFault(uint8_t tIC, cell_asic *IC);
-int user_adBms6830_checkHardwareVoltageFaults(uint8_t tIC, cell_asic *IC);
+int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC);
 int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC);
 void user_adBms6830_getAccyStatus(void);
 uint8_t getCurrentSensorData(void);
