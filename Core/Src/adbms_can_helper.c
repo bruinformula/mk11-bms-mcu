@@ -96,7 +96,7 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
 void populate_CAN3(CAN3_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
     float min_voltage = 1e6f;  // large initial value for comparison
     float max_voltage = -1e6f; // small initial value for comparison
-
+    int cell_count = 0;
     // for (int i = 0; i < totalIC; i++) {
     //     for (int j = 0; j < NUM_CELLS_PER_IC; j++) {
     //         float voltage = getVoltage(ICs[i].cell.c_codes[j]);

@@ -841,7 +841,7 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
 			// Start with all balance switches off
 			ic[dev].tx_cfgb.dcc = 0;
 
-			for (uint8_t ch = 0; ch < cell_count; ++ch) {
+			for (uint8_t ch = 0; ch < NUM_CELLS_PER_IC; ++ch) {
 				float v = getVoltage(ic[dev].cell.c_codes[ch]);
 
 				// Improved logic: Balance cells above target with a small hysteresis
@@ -886,7 +886,7 @@ void stopBalancing(uint8_t tIC, cell_asic *ic) {
 		ic[dev].tx_cfgb.dcc = 0;
 
 		// Also ensure all PWM settings are zero
-		for (uint8_t ch = 0; ch < cell_count; ++ch) {
+		for (uint8_t ch = 0; ch < NUM_CELLS_PER_IC; ++ch) {
 			ic[dev].PwmA.pwma[ch] = PWM_0_0_PCT;
 		}
 	}

@@ -35,7 +35,6 @@ const float REST_CURRENT_THRESHOLD = 0.5f;   // 0.5 Amps
 const uint32_t REST_DURATION_MS = 30000;
 
 /* ==== Globals ==== */
-uint8_t cell_count = 10; //per IC
 uint8_t cell_fault = 0;
 uint8_t temp_fault = 0;
 uint8_t current_sensor_fault = 0;
@@ -58,6 +57,8 @@ int lowest_temp_ID = 0;
 int highest_temp_ID = 0;
 float avg_temp = 0.0;
 float delta_temp = 0.0;
+#define MAX_ALLOWED_OT_FAULTS 1
+#define MAX_ALLOWED_UT_FAULTS 1
 #define MAX_ALLOWED_TEMP_FAULTS 1
 
 uint32_t loop_count = 0;
@@ -83,6 +84,7 @@ typedef struct {
     uint8_t ov_active : 1;
     uint8_t ot_active : 1;
     uint8_t ut_active : 1;
+    uint8_t comm_active: 1;
     uint8_t hw_fault : 1;
     uint32_t last_fault_time;
     uint16_t fault_count;
@@ -90,7 +92,7 @@ typedef struct {
 
 
 typedef struct {
-    CellFaultStatus_t cell_status[100];  // 5 ICs × 20 cells
+    CellFaultStatus_t cell_status[100];  // 10 ICs × 10 cells
     uint8_t active_faults[FAULT_CATEGORY_COUNT];
     FaultSeverity_t highest_severity;
     bool system_fault_active;
@@ -107,8 +109,10 @@ BMS_FaultSystem_t BMS_Faults;
 #define MAX_FAULT_ENTRIES 20 // Maximum number of faults to track
 #define FAULT_TYPE_UV 1      // Under-voltage fault
 #define FAULT_TYPE_OV 2      // Over-voltage fault
-#define FAULT_TYPE_TEMP 3    // Temperature fault
-#define FAULT_TYPE_DELTA 4
+#define FAULT_TYPE_OT 3    // Temperature fault
+#define FAULT_TYPE_UT 4
+#define FAULT_TYPE_DELTA 5
+#define FAULT_TYPE_COMM 6
 typedef struct {
 	uint16_t cell_id;   // IC# * 10 + Cell# (e.g. 0*10+5 = 5 for IC0, Cell5)
 	uint8_t fault_type; // Type of fault (UV, OV, TEMP)
@@ -173,7 +177,7 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
             }
             break;
 
-        case FAULT_TYPE_TEMP:
+        case FAULT_TYPE_OT:
             if (!cell->ot_active) {
                 new_fault = true;
                 cell->ot_active = 1;
@@ -181,11 +185,27 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
             }
             break;
 
+        case FAULT_TYPE_UT:
+        	if (!cell->ut_active) {
+        		new_fault = true;
+        		cell->ut_active = 1;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]++;
+        	}
+        	break;
+
         case FAULT_TYPE_DELTA:
         	if (!cell->ov_active) {
         		new_fault = true;
         		cell->ov_active = 1;
         		BMS_Faults.active_faults[FAULT_CATEGORY_VOLTAGE]++;
+        	}
+        	break;
+
+        case FAULT_TYPE_COMM:
+        	if (!cell->comm_active) {
+        		new_fault = true;
+        		cell->comm_active = 1;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_COMMUNICATION]++;
         	}
         	break;
     }
@@ -239,13 +259,29 @@ void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
             }
             break;
 
-        case FAULT_TYPE_TEMP:
+        case FAULT_TYPE_OT:
             if (cell->ot_active) {
                 cell->ot_active = 0;
                 BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]--;
                 fault_cleared = true;
             }
             break;
+
+        case FAULT_TYPE_UT:
+        	if (cell->ut_active) {
+        		cell->ut_active = 0;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]--;
+        		fault_cleared = true;
+        	}
+        	break;
+
+        case FAULT_TYPE_COMM:
+        	if (cell->comm_active) {
+        		cell->comm_active = 0;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_COMMUNICATION]--;
+        		fault_cleared = true;
+        	}
+        	break;
     }
 
     if (fault_cleared) {
@@ -378,7 +414,7 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 		uint16_t ov_flags = 0;
 		uint16_t uv_flags = 0;
 		float voltage;
-		for (uint8_t cell_num = 0; cell_num < cell_count; cell_num++) {
+		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
 			voltage = getVoltage(IC[ic].cell.c_codes[cell_num]);
 
 			if (current_sensor_fault == 0) {
@@ -391,11 +427,11 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 
 			if (voltage < lowest_cell) {
 				lowest_cell = voltage;
-				lowest_cell_ind = tIC*ic + cell_num*cell_count;
+				lowest_cell_ind = tIC*ic + cell_num*NUM_CELLS_PER_IC;
 			}
 			if (voltage > highest_cell) {
 				highest_cell = voltage;
-				highest_cell_ind = tIC*ic + cell_num*cell_count;
+				highest_cell_ind = tIC*ic + cell_num*NUM_CELLS_PER_IC;
 			}
 			sum += voltage;
 			cell_total++;
@@ -404,7 +440,7 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 			if (IC[ic].statd.c_uv[cell_num] || voltage < UV_THRESHOLD) {
 				uv_flags |= (1 << cell_num);
 				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, FAULT_SEVERITY_CRITICAL);
-				cell_fault = CELL_OV_FAULT;
+//				cell_fault = CELL_UV_FAULT;
 
 				total_faults++;
 				#if PRINT_ON
@@ -417,7 +453,7 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 			if (IC[ic].statd.c_ov[cell_num] || voltage > OV_THRESHOLD) {
 				ov_flags |= (1 << cell_num);
 				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, FAULT_SEVERITY_CRITICAL);
-				cell_fault = CELL_OV_FAULT;
+//				cell_fault = CELL_OV_FAULT;
 
 				total_faults++;
 				#if PRINT_ON
@@ -456,8 +492,6 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 
 
 int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
-	int error = 0;
-
 	lowest_temp = 1000.0;
 	highest_temp = -100.0;
 	float temp_sum = 0.0;
@@ -465,7 +499,7 @@ int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
 	int faulted_count = 0;
 
 	for (uint8_t ic = 0; ic < tIC; ic++) {
-		for (uint8_t index = 0; index < cell_count; index++) {
+		for (uint8_t index = 0; index < NUM_CELLS_PER_IC; index++) {
 
 			// Read and convert temperature
 			int16_t temp_code = IC[ic].aux.a_codes[index];
@@ -480,23 +514,24 @@ int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
 			if (temperature > TEMP_LIMIT || temperature < LOWER_TEMP_LIMIT) {
 				faulted_count++;
 				if (faulted_count > MAX_ALLOWED_TEMP_FAULTS) {
-					error = 1;
+					if (temperature > TEMP_LIMIT) BMS_SetCellFault(ic, index, FAULT_TYPE_OT, FAULT_SEVERITY_ERROR);
+					else BMS_SetCellFault(ic, index, FAULT_TYPE_UV, FAULT_SEVERITY_ERROR);
 				}
-				BMS_SetCellFault(ic, index, FAULT_TYPE_TEMP, FAULT_SEVERITY_ERROR);
 			} else {
 				// Valid temperature - track min/max/avg
 				if (temperature < lowest_temp) {
 					lowest_temp = temperature;
-					lowest_temp_ID = tIC*ic + index*cell_count;
+					lowest_temp_ID = tIC*ic + index*NUM_CELLS_PER_IC;
 				}
 				if (temperature > highest_temp) {
 					highest_temp = temperature;
-					highest_temp_ID = tIC*ic + index*cell_count;
+					highest_temp_ID = tIC*ic + index*NUM_CELLS_PER_IC;
 				}
 				temp_sum += temperature;
 				valid_temp_count++;
 
-				BMS_ClearCellFault(ic, index, FAULT_TYPE_TEMP);
+				BMS_ClearCellFault(ic, index, FAULT_TYPE_OT);
+				BMS_ClearCellFault(ic, index, FAULT_TYPE_UT);
 			}
 		}
 	}
@@ -504,10 +539,42 @@ int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
 	avg_temp = (valid_temp_count > 0) ? (temp_sum / valid_temp_count) : 0.0f;
 	delta_temp = highest_temp - lowest_temp;
 
-	return error;
+	return faulted_count;
+}
+
+
+int user_adBms6830_commFault(uint8_t tIC, cell_asic *IC) {
+	int fault_count = 0;
+
+	for (uint8_t ic = 0; ic < tIC; ic++) {
+		uint8_t spiflt = (IC[ic].statc.spiflt);
+		if (spiflt) {
+			fault_count++;
+			BMS_SetCellFault(ic, 0, FAULT_TYPE_COMM,
+					FAULT_SEVERITY_CRITICAL);
+
+			#if PRINT_ON
+			printf("SPIFLT: IC%d internal SPI error detected\n", ic);
+			#endif
+		} else {
+			BMS_ClearCellFault(ic, 0, FAULT_TYPE_COMM);
+		}
+	}
+
+	return fault_count;
 }
 
 void user_adBms6830_setFaults(void) {
+	if (BMS_GetFaultCount(FAULT_CATEGORY_COMMUNICATION) > 0) {
+		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+
+		if (accy_status == CHARGE_POWER) {
+			HAL_GPIO_WritePin(GPIOC, GPIO_PIN_2, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
+			is_charging = 0;
+		}
+	}
+
 	if (BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE) > 0) {
 		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_15, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(GPIOC, GPIO_PIN_3, GPIO_PIN_RESET); // TODO: Change to PB3 on next iteration
@@ -650,13 +717,13 @@ void printFloat(float num) {
 }
 
 // Function to get pack voltage and update lowest, highest, and average cell voltages
-float getPackVoltage(int totalIC, cell_asic *ICs) {
+float getPackVoltage(int totalIC, cell_asic *IC) {
 	float pack_voltage_sum = 0.0f;
 	lowest_cell = 100.0f; // Initialize to a high value
 	highest_cell = 0.0f;  // Initialize to a low value
 	for (int i = 0; i < totalIC; i++) {
 		for (int j = 0; j < NUM_CELLS_PER_IC; j++) {
-			float cell_voltage = getVoltage(ICs[i].cell.c_codes[j]);
+			float cell_voltage = getVoltage(IC[i].cell.c_codes[j]);
 			pack_voltage_sum += cell_voltage;
 			if (cell_voltage < lowest_cell) {
 				lowest_cell = cell_voltage;
