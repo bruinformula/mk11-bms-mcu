@@ -73,35 +73,44 @@ uint8_t readSegment = 0;
 uint16_t multiMask = 0;
 uint16_t tick = 0;
 
+typedef enum {
+    BMS_STATE_INIT,
+    BMS_STATE_IDLE,
+    BMS_STATE_PRECHARGE,
+    BMS_STATE_READY,
+    BMS_STATE_CHARGING,
+    BMS_STATE_FAULT
+} BMS_State_t;
 
+typedef struct {
+    BMS_State_t current_state;
+    uint32_t precharge_start_time;
+    float inverter_voltage;
+    float initial_accy_voltage;
+    bool precharge_complete;
+    bool shutdown_clear;
+} BMS_StateManager_t;
+
+BMS_StateManager_t BMS_State = {
+    .current_state = BMS_STATE_INIT,
+    .precharge_complete = false,
+    .shutdown_clear = false
+};
+
+//TODO: implement
+bool BMS_ExecutePrecharge() {
+	return true;
+}
+
+//TODO: implement
+void BMS_PrechargeAbort() {
+	return;
+}
 void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 		FDCAN_BMS_CONTEXT *ctx, TIM_HandleTypeDef *htimPWM) {
 	// printMenu();
 	adBms6830_init_config(TOTAL_IC, &IC[0]);
-	// #ifdef MBED
-	//   // pc.printf("Waiting for input... \n");
-	// #else
-	//   // printf("Waiting for input... \n");
-	// #endif
-	//   while(1)
-	//   {
-	//     uint8_t user_command;
-	// // #ifdef MBED
-	// //   pc.printf("Inside the while loop! \n");
-	// // #else
-	// //   printf("Hello... \n");
-	// // #endif
-	// #ifdef MBED
-	//     // pc.scanf("%d", &user_command);
-	//     // pc.printf("Enter cmd:%d\n", user_command);
-	// #else
-	//     // printf("Scanning... \n");
-	//     fflush(stdout);
-	//     user_command = command;
-	//     // printf("Received: %c\n", user_command);
-	//     // printf("Enter cmd:%d\n", user_command);
-	// #endif
-	// run_command(user_command);
+
 	if (accy_status == -1 || accy_status == 0) {
 		// If the accessory is not in charge or ready state, set the accumulator status
 		user_adBms6830_getAccyStatus(); // Determine whether the accy is in charge or ready state
@@ -111,97 +120,132 @@ void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 	if (readSegment >= TOTAL_IC) {
 		readSegment = 0;
 	}
+	populateIC(&IC[readSegment], IC_CHUNK);
+	updateSOC();
+	getPackVoltage(TOTAL_IC, &IC[0]);
+	ccl = calcCCL();
+	dcl = calcDCL();
+
+
 	//	TEMP_IC[0] = IC[readSegment*2];
 	//	TEMP_IC[1] = IC[(readSegment*2)+1];
 
 //	    populateIC(TEMP_IC, 2);
 //	populateIC(&IC[0], TOTAL_IC);
 
-	populateIC(&IC[readSegment], IC_CHUNK);
 
-	if (accy_status == READY_POWER && !cell_fault && !temp_fault) {
-		user_adBms6830_setFaults(); // Check for faults and set GPIO pins accordingly
-		getPackVoltage(TOTAL_IC, &IC[0]); // Get the pack voltage
-		// getCurrentSensorData();               // Get the current sensor data  ==> moved into populateIC
-		updateSOC();  // Get the state of charge (SOC) based on the pack voltage
-		ccl = calcCCL();                      // get charge current limit
-		dcl = calcDCL();                      // get discharge current limit
-		fanPWMControl(highest_temp, htimPWM); // Control the fan based on the highest temperature
+    switch (BMS_State.current_state) {
+        case BMS_STATE_INIT:
+            user_adBms6830_getAccyStatus();
+            BMS_InitFaultSystem();
+            BMS_State.current_state = BMS_STATE_IDLE;
+            if (PRINT_ON) printf("BMS Initialized\n");
+            break;
 
-		populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC); // Populate CAN frames with data (TODO: check with justin)
-		populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-		populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-		uint32_t now = HAL_GetTick();
-		FDCAN_BMS_Mailman(hfdcan, ctx, now, 0);
-	} else if (accy_status == CHARGE_POWER && !cell_fault && !temp_fault) {
-		uint32_t timingshits = HAL_GetTick();
-		if (PRINT_ON) printf("time to read once: %lu", HAL_GetTick() - timingshits);
+        case BMS_STATE_IDLE:
+            // Check if ready power is requested
+            if (accy_status == READY_POWER && !BMS_HasActiveFaults()) {
+                BMS_State.current_state = BMS_STATE_IDLE; // Will attempt precharge
+                if (PRINT_ON) printf("Ready power requested\n");
+            } else if (accy_status == CHARGE_POWER && !BMS_HasActiveFaults()) {
+                BMS_State.current_state = BMS_STATE_CHARGING;
+                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_SET);
+                if (PRINT_ON) printf("Charge mode entered\n");
+            }
 
-		user_adBms6830_setFaults(); // Check for faults and set GPIO pins accordingly
-		getPackVoltage(TOTAL_IC, &IC[0]); // Get the pack voltage
-		// getCurrentSensorData();               // Get the current sensor data   ==> moved into populateIC
-		updateSOC();  // Get the state of charge (SOC) based on the pack voltage
-		ccl = calcCCL();                      // get charge current limit
-		dcl = calcDCL();                      // get discharge current limit
-		//    fanPWMControl(highest_temp, htimPWM); // Control the fan based on the highest temperature
+            // Allow balancing in idle if configured
+            if (balancing == 1 && !BMS_HasActiveFaults()) {
+                balanceCells(TOTAL_IC, IC, PWM_100_0_PCT);
+            }
+            break;
 
-		populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC); // Populate CAN frames with data (TODO: check with justin)
-		populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-		populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-		populate_charge_CAN(&ctx->CAN_CHGCONTEXT, &IC[0], TOTAL_IC);
-		uint32_t now = HAL_GetTick();
-		FDCAN_BMS_Mailman(hfdcan, ctx, now, is_charging);
-	} else {
-		if (PRINT_ON) printf("Fan Status: %.2f\n", fan_status);
-		// fanPWMControl(42.0f, htimPWM);
-		ccl = calcCCL();                      // get charge current limit
-		dcl = calcDCL();
-		user_adBms6830_setFaults(); // Check for faults and set GPIO pins accordingly
-		getPackVoltage(TOTAL_IC, &IC[0]); // Get the pack voltage
-		// getCurrentSensorData();           // Get the current sensor data   ==> moved into populateIC
-		updateSOC(); // Get the state of charge (SOC) based on the pack voltage
+        case BMS_STATE_PRECHARGE:
+            if (!BMS_ExecutePrecharge()) {
+                // Precharge failed
+                BMS_State.current_state = BMS_STATE_FAULT;
+            }
+            break;
 
-		if (!cell_fault && !temp_fault && balancing == 1) {
-			// If there are no faults, balance the cells
-			balanceCells(TOTAL_IC, IC, PWM_100_0_PCT); // TODO: Set the duty cycle for balancing
-		} else if (balancing == 1) {
-			balancing = 0;               // Stop balancing if there are faults
-			stopBalancing(TOTAL_IC, IC); // Stop balancing if there are faults
-		}
+        case BMS_STATE_READY:
+            // Normal driving mode
+            if (BMS_HasActiveFaults()) {
+                if (PRINT_ON) printf("Fault detected in READY state\n");
+                BMS_PrechargeAbort();
+                BMS_State.current_state = BMS_STATE_FAULT;
+                break;
+            }
 
-		if (PRINT_ON) printReadPwmDutyCycle(TOTAL_IC, IC, PWMA, ALL_GRP);
-		if (PRINT_ON) printWritePwmDutyCycle(TOTAL_IC, IC, PWMA, ALL_GRP); // Print the PWM duty cycle for debugging
+            // Control outputs
+            user_adBms6830_setFaults();
+            fanPWMControl(highest_temp, htimPWM);
 
-		// printPwmRegisters(TOTAL_IC, IC); // Print the PWM registers for debugging
+            // Populate and send CAN messages
+            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
+            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
+            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
+            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), 0);
 
-		fanPWMControl(42.0f, htimPWM); // Control the fan based on the highest temperature
+            // Check for mode change
+            if (accy_status != READY_POWER) {
+                HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+                BMS_State.current_state = BMS_STATE_IDLE;
+            }
+            break;
 
-		tick++;
+        case BMS_STATE_CHARGING:
+            if (BMS_HasActiveFaults()) {
+                if (PRINT_ON) printf("Fault detected in CHARGING state\n");
+                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+                is_charging = 0;
+                BMS_State.current_state = BMS_STATE_FAULT;
+                break;
+            }
 
-		populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC); // Populate CAN frames with data (TODO: check with justin)
-		populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-		populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-		populate_charge_CAN(&ctx->CAN_CHGCONTEXT, &IC[0], TOTAL_IC);
+            user_adBms6830_setFaults();
 
-		uint32_t now = HAL_GetTick();
-		FDCAN_BMS_Mailman(hfdcan, ctx, now, 1);
-	}
+            // Populate and send CAN messages including charger control
+            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
+            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
+            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
+            populate_charge_CAN(&ctx->CAN_CHGCONTEXT, &IC[0], TOTAL_IC);
+            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), is_charging);
 
-	if (PRINT_ON) {
-		printVoltages(TOTAL_IC, &IC[0], Cell);
+            // Check for mode change
+            if (accy_status != CHARGE_POWER) {
+                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+                is_charging = 0;
+                BMS_State.current_state = BMS_STATE_IDLE;
+            }
+            break;
 
-		printf("accy_status: %d, balancing: %d\n", accy_status, balancing);
-		printf("Pack Voltage: %.2fV, SOC: %.2f\n",
-				getPackVoltage(TOTAL_IC, &IC[0]), soc);
-		printf("Lowest V: %.2fV, ", lowest_cell);
-		printf("Highest V: %.2fV, ", highest_cell);
-		printf("Average V: %.2fV, ", avg_cell);
-		printf("Target lowest V: %.2fV\n", target_lowest_cell);
-		printf("Lowest temp: %.2fC, ID: %d", lowest_temp, lowest_temp_ID);
-		printf("Highest temp: %.2fC, ID: %d", highest_temp, highest_temp_ID);
-		printf("Average temp: %.2fC\n\n", avg_temp);
-		print_fault_summary(); // Print the fault summary
-	}
+        case BMS_STATE_FAULT:
+            // Ensure all outputs are safe
+            HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOB, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+            HAL_GPIO_WritePin(GPIOC, Discharge_Enable_Pin, GPIO_PIN_RESET);
+
+            user_adBms6830_setFaults();
+            stopBalancing(TOTAL_IC, IC);
+
+            // Continue monitoring and reporting
+            user_adBms6830_setFaults();
+            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
+            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
+            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
+            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), 0);
+
+            // Check if faults cleared - require manual reset
+            if (!BMS_HasActiveFaults()) {
+                // Still stay in fault until system reset or explicit clear
+                if (PRINT_ON) printf("Faults cleared but manual reset required\n");
+            }
+            break;
+    }
+
+
+
 	// else {
 	//   populateIC(IC, TOTAL_IC);
 	//   user_adBms6830_setFaults(); // Check for faults and set GPIO pins accordingly
@@ -857,7 +901,7 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
 			}
 
 			// Apply the mask directly (cleaner than the previous approach)
-			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
+//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
 		}
 	}
 
