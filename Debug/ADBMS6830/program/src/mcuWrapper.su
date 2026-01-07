@@ -1,0 +1,9 @@
+../ADBMS6830/program/src/mcuWrapper.c:225:6:useTransceiver1	4	static
+../ADBMS6830/program/src/mcuWrapper.c:229:6:useTransceiver2	4	static
+../ADBMS6830/program/src/mcuWrapper.c:251:6:Delay_ms	16	static
+../ADBMS6830/program/src/mcuWrapper.c:267:6:adBmsCsLow	8	static
+../ADBMS6830/program/src/mcuWrapper.c:287:6:adBmsCsHigh	8	static
+../ADBMS6830/program/src/mcuWrapper.c:311:6:spiWriteBytes	16	static
+../ADBMS6830/program/src/mcuWrapper.c:336:6:spiWriteReadBytes	24	static
+../ADBMS6830/program/src/mcuWrapper.c:361:6:spiReadBytes	16	static
+../ADBMS6830/program/src/mcuWrapper.c:437:6:adBmsWakeupIc	24	static
