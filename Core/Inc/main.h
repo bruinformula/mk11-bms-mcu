@@ -73,8 +73,6 @@ void Error_Handler(void);
 #define LPUART1_TX_GPIO_Port GPIOA
 #define LPUART1_RX_Pin GPIO_PIN_3
 #define LPUART1_RX_GPIO_Port GPIOA
-#define Current_Sensor_High_Pin GPIO_PIN_4
-#define Current_Sensor_High_GPIO_Port GPIOA
 #define POS_AIR_GND_Pin GPIO_PIN_4
 #define POS_AIR_GND_GPIO_Port GPIOC
 #define Charge_Power_Pin GPIO_PIN_5
