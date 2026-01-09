@@ -1,8 +1,8 @@
 Core/Src/adbms_can_helper.o: ../Core/Src/adbms_can_helper.c \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/adbms_can_helper.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/dataframes.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/adbms_can_helper.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -40,25 +40,25 @@ Core/Src/adbms_can_helper.o: ../Core/Src/adbms_can_helper.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/can.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/custom_functions.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/adbms_can_helper.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/dataframes.h:
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/adbms_can_helper.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -96,18 +96,18 @@ Core/Src/adbms_can_helper.o: ../Core/Src/adbms_can_helper.c \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/can.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/custom_functions.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
