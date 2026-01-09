@@ -3,7 +3,7 @@
   ******************************************************************************
   * @file           : main.h
   * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * This file contains the common defines of the application.
   ******************************************************************************
   * @attention
   *
@@ -87,8 +87,6 @@ void Error_Handler(void);
 #define W1_GPIO_Port GPIOB
 #define NEG_AIR_GND_Pin GPIO_PIN_11
 #define NEG_AIR_GND_GPIO_Port GPIOB
-#define Cell_Fault_Pin GPIO_PIN_15
-#define Cell_Fault_GPIO_Port GPIOB
 #define Ready_Power_Pin GPIO_PIN_6
 #define Ready_Power_GPIO_Port GPIOC
 #define CSB_2_Pin GPIO_PIN_7
