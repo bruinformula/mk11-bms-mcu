@@ -1,5 +1,5 @@
-Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.o: \
- ../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.c \
+Core/Src/mcuWrapper.o: ../Core/Src/mcuWrapper.c \
+ C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
  C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
@@ -34,7 +34,10 @@ Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
+ C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/mcuWrapper.h \
+ C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/main.h
+C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
@@ -70,3 +73,5 @@ C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/In
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
+C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/mcuWrapper.h:
+C:/Users/Ratch/OneDrive/Documents/Projects/BroadMarket_Support_ADBMS6830/Core/Inc/main.h:

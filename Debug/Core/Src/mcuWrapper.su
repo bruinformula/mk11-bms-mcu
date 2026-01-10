@@ -1,0 +1,5 @@
+../Core/Src/mcuWrapper.c:8:6:adBmsCsLow	16	static
+../Core/Src/mcuWrapper.c:17:6:adBmsCsHigh	16	static
+../Core/Src/mcuWrapper.c:26:6:adBmsWriteReadSPI	32	static
+../Core/Src/mcuWrapper.c:35:6:adBmsWaitUs	24	static
+../Core/Src/mcuWrapper.c:42:6:adBmsWaitMs	16	static

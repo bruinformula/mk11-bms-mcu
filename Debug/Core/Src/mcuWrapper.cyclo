@@ -1,0 +1,5 @@
+../Core/Src/mcuWrapper.c:8:6:adBmsCsLow	2
+../Core/Src/mcuWrapper.c:17:6:adBmsCsHigh	2
+../Core/Src/mcuWrapper.c:26:6:adBmsWriteReadSPI	2
+../Core/Src/mcuWrapper.c:35:6:adBmsWaitUs	2
+../Core/Src/mcuWrapper.c:42:6:adBmsWaitMs	1
