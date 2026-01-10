@@ -1,7 +1,7 @@
 Core/Src/can.o: ../Core/Src/can.c \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/can.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -39,14 +39,14 @@ Core/Src/can.o: ../Core/Src/can.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h:
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/dataframes.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/custom_functions.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/can.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -84,8 +84,8 @@ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/dataframes.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/custom_functions.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h:

@@ -145,59 +145,59 @@ int main(void)
 	/* ========== FDCAN1 TEST SETUP FOR VCU COMMUNICATION ========== */
 
 	/* Configure FDCAN filter to accept all standard IDs to RX FIFO0 */
-	FDCAN_FilterTypeDef sFilterConfig = {0};
-	sFilterConfig.IdType = FDCAN_STANDARD_ID;
-	sFilterConfig.FilterIndex = 0;
-	sFilterConfig.FilterType = FDCAN_FILTER_RANGE;
-	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID1 = 0x000;  /* Accept from ID 0x000 */
-	sFilterConfig.FilterID2 = 0x7FF;  /* Accept up to ID 0x7FF */
-	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  FDCAN_FilterTypeDef sFilterConfig = {0};
+  sFilterConfig.IdType = FDCAN_STANDARD_ID;
+  sFilterConfig.FilterIndex = 0;
+  sFilterConfig.FilterType = FDCAN_FILTER_RANGE;
+  sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sFilterConfig.FilterID1 = 0x000;  /* Accept from ID 0x000 */
+  sFilterConfig.FilterID2 = 0x7FF;  /* Accept up to ID 0x7FF */
+  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
+	  Error_Handler();
+  }
 
-	/* Configure global filter to reject non-matching frames */
-	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
-	                                  FDCAN_REJECT,  /* Reject non-matching standard IDs */
-	                                  FDCAN_REJECT,  /* Reject non-matching extended IDs */
-	                                  DISABLE,       /* Don't filter remote frames (standard) */
-	                                  DISABLE) != HAL_OK) { /* Don't filter remote frames (extended) */
-		Error_Handler();
-	}
+  /* Configure global filter to reject non-matching frames */
+  if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
+		  FDCAN_REJECT,  /* Reject non-matching standard IDs */
+		  FDCAN_REJECT,  /* Reject non-matching extended IDs */
+		  DISABLE,       /* Don't filter remote frames (standard) */
+		  DISABLE) != HAL_OK) { /* Don't filter remote frames (extended) */
+	  Error_Handler();
+  }
 
-	/* Start FDCAN1 */
-	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
-		Error_Handler();
-	}
+  /* Start FDCAN1 */
+  if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
+	  Error_Handler();
+  }
 
-	/* Activate RX FIFO0 new message notification */
-	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-		Error_Handler();
-	}
+  /* Activate RX FIFO0 new message notification */
+  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+	  Error_Handler();
+  }
 
-	/* Configure TX header for response messages (if needed) */
-	TxHeader.Identifier = 0x22;  /* Response message ID */
-	TxHeader.IdType = FDCAN_STANDARD_ID;
-	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-	TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	TxHeader.MessageMarker = 0;
+  /* Configure TX header for response messages (if needed) */
+  TxHeader.Identifier = 0x22;  /* Response message ID */
+  TxHeader.IdType = FDCAN_STANDARD_ID;
+  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+  TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
+  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
+  TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
+  TxHeader.MessageMarker = 0;
 
-	/* ========== ORIGINAL BMS CODE (COMMENTED OUT FOR FDCAN TEST) ========== */
-	// user_adBms6830_getAccyStatus();
-	//
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b0, FDCAN_MSG_ID_6B0);
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b1, FDCAN_MSG_ID_6B1);
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b2, FDCAN_MSG_ID_6B2);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E7F4, 0x1806E7F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E5F4, 0x1806E5F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E9F4, 0x1806E9F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_18FF50E5, 0x18FF50E5);
+  /* ========== ORIGINAL BMS CODE (COMMENTED OUT FOR FDCAN TEST) ========== */
+  // user_adBms6830_getAccyStatus();
+  //
+  // init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b0, FDCAN_MSG_ID_6B0);
+  // init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b1, FDCAN_MSG_ID_6B1);
+  // init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b2, FDCAN_MSG_ID_6B2);
+  // init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E7F4, 0x1806E7F4);
+  // init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E5F4, 0x1806E5F4);
+  // init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E9F4, 0x1806E9F4);
+  // init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_18FF50E5, 0x18FF50E5);
 
-	/* if (accy_status == CHARGE_POWER) {
+  /* if (accy_status == CHARGE_POWER) {
 		/* UPDATED: Logic ported to FDCAN1
 		HAL_FDCAN_DeInit(&hfdcan1);
 
@@ -227,72 +227,72 @@ int main(void)
 			Error_Handler();
 		}
 	}
-*/
+   */
   /* USER CODE BEGIN 2 - Hardware Verification Data */
   // uint8_t testData[] = {0xAA, 0x55, 0x00, 0xFF};  /* Commented out - not used for FDCAN test */
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  // 1. RE-INITIALIZE SPI to clear the "Blinky" GPIO config
-//    MX_SPI2_Init();
-//    MX_SPI3_Init();
+  //  // 1. RE-INITIALIZE SPI to clear the "Blinky" GPIO config
+  //    MX_SPI2_Init();
+  //    MX_SPI3_Init();
 
-    // uint8_t test_data = 0xAA; // 10101010 pattern  /* Commented out - SPI test disabled */
-    // uint8_t test_data2 = 0xAA; // 10101010 pattern /* Commented out - SPI test disabled */
+  // uint8_t test_data = 0xAA; // 10101010 pattern  /* Commented out - SPI test disabled */
+  // uint8_t test_data2 = 0xAA; // 10101010 pattern /* Commented out - SPI test disabled */
 
-    // HAL_StatusTypeDef status;  /* Commented out - SPI test disabled */
+  // HAL_StatusTypeDef status;  /* Commented out - SPI test disabled */
 
-    /* ========== FDCAN TEST MAIN LOOP ========== */
-    /* The RX callback (HAL_FDCAN_RxFifo0Callback) will handle incoming messages.
-     * This loop just keeps the MCU running and can be used for debugging.
-     * Set breakpoints or watch the RxData/RxHeader variables to verify reception.
-     */
+  /* ========== FDCAN TEST MAIN LOOP ========== */
+  /* The RX callback (HAL_FDCAN_RxFifo0Callback) will handle incoming messages.
+   * This loop just keeps the MCU running and can be used for debugging.
+   * Set breakpoints or watch the RxData/RxHeader variables to verify reception.
+   */
 
-    while (1)
-    {
-        /* ========== FDCAN RX TEST (ACTIVE) ========== */
-        /* Messages from mk11-vcu (ID 0x11) will be received via interrupt callback.
-         * Check RxData[] and RxHeader in debugger to verify reception.
-         * The callback will echo received data back (ID 0x22).
-         */
+  while (1)
+  {
+	  /* ========== FDCAN RX TEST (ACTIVE) ========== */
+	  /* Messages from mk11-vcu (ID 0x11) will be received via interrupt callback.
+	   * Check RxData[] and RxHeader in debugger to verify reception.
+	   * The callback will echo received data back (ID 0x22).
+	   */
 
-        /* Simple heartbeat - toggle or do nothing */
-        HAL_Delay(100);
+	  /* Simple heartbeat - toggle or do nothing */
+	  HAL_Delay(100);
 
-        /* ========== ORIGINAL SPI TEST CODE (COMMENTED OUT) ========== */
-        // // --- SPI 2 TEST ---
-        // // This sends 8 clock pulses on PB13
-        // status = HAL_SPI_Transmit(&hspi2, &test_data, 1, 100);
-        //
-        // // ERROR TRAP: If this hits, the peripheral is refusing to start
-        // if (status != HAL_OK) {
-        //     // Put a breakpoint here to see why!
-        //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
-        //     __NOP();
-        // }
-        //
-        // HAL_Delay(10);
-        //
-        // // --- SPI 3 TEST ---
-        // // This sends 8 clock pulses on PC10
-        //
-        //
-        // status = HAL_SPI_Transmit(&hspi3, &test_data2, 1, 100);
-        //
-        // // ERROR TRAP: If this hits, the peripheral is refusing to start
-        // if (status != HAL_OK) {
-        //     // Put a breakpoint here to see why!
-        //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
-        //     __NOP();
-        // }
-        //
-        // // Delay 10ms (plenty of time to capture on scope)
-        // HAL_Delay(10);
-    }
-    /* USER CODE END WHILE */
+	  /* ========== ORIGINAL SPI TEST CODE (COMMENTED OUT) ========== */
+	  // // --- SPI 2 TEST ---
+	  // // This sends 8 clock pulses on PB13
+	  // status = HAL_SPI_Transmit(&hspi2, &test_data, 1, 100);
+	  //
+	  // // ERROR TRAP: If this hits, the peripheral is refusing to start
+	  // if (status != HAL_OK) {
+	  //     // Put a breakpoint here to see why!
+	  //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
+	  //     __NOP();
+	  // }
+	  //
+	  // HAL_Delay(10);
+	  //
+	  // // --- SPI 3 TEST ---
+	  // // This sends 8 clock pulses on PC10
+	  //
+	  //
+	  // status = HAL_SPI_Transmit(&hspi3, &test_data2, 1, 100);
+	  //
+	  // // ERROR TRAP: If this hits, the peripheral is refusing to start
+	  // if (status != HAL_OK) {
+	  //     // Put a breakpoint here to see why!
+	  //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
+	  //     __NOP();
+	  // }
+	  //
+	  // // Delay 10ms (plenty of time to capture on scope)
+	  // HAL_Delay(10);
+  }
+  /* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+  /* USER CODE BEGIN 3 */
   /* USER CODE END 3 */
 }
 

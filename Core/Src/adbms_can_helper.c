@@ -18,7 +18,7 @@ void populate_CAN1(CAN1_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
     frame->data.pack_voltage = (uint16_t)(pack_voltage_sum * 10.0f); // *0.1 V for CAN
 
     // --- STATE OF CHARGE (SOC) ---
-    // soc = (pack_voltage_sum - 280.0f) / (420.0f - 280.0f); // scale 280V–420V
+    soc = updateSOC(); // (pack_voltage_sum - 280.0f) / (420.0f - 280.0f); // scale 280V–420V
 
     frame->data.pack_soc = (uint8_t)(soc); // *0.5% for 0–100% (0–200 steps)
 

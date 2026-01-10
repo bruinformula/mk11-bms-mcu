@@ -99,6 +99,20 @@ BMS_StateManager_t BMS_State = {
 
 //TODO: implement
 bool BMS_ExecutePrecharge() {
+	HAL_GPIO_WritePin(GPIOC, Precharge_Enable_Pin, GPIO_PIN_SET);
+	float initPackVoltage = getPackVoltage(TOTAL_IC, &IC[0]);
+	uint32_t start = HAL_GetTick();
+	float RC = 1.0f; // TODO: actual value
+	float expCurve = 0.0f;
+	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10.) {
+		//TODO: Burst reads of inverter voltage
+		float time = (float) ((HAL_GetTick() - start) * 0.001f);
+		expCurve = initPackVoltage * (1.0f - expf(-(time / RC)));
+		if ((fabsf(expCurve - BMS_State.inverter_voltage) / expCurve) > 0.10) {
+			return false;
+			break;
+		}
+	}
 	return true;
 }
 
@@ -160,7 +174,22 @@ void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
             break;
 
         case BMS_STATE_PRECHARGE:
+        	if (BMS_HasActiveFaults()) {
+        		if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
+        		BMS_PrechargeAbort();
+        		BMS_State.current_state = BMS_STATE_FAULT;
+        		break;
+        	}
+
+        	if (BMS_State.inverter_voltage > 10.0 || current > 0 || calcDCL() == 0 || accy_status != READY_POWER) {
+        		if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
+        		BMS_State.current_state = BMS_STATE_FAULT;
+        	}
+
+
+        	//BMS_State.inverter_voltage =
             if (!BMS_ExecutePrecharge()) {
+
                 // Precharge failed
                 BMS_State.current_state = BMS_STATE_FAULT;
             }

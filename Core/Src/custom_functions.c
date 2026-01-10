@@ -12,6 +12,7 @@ const float LOWER_TEMP_LIMIT = -10.0;
 
 const float OV_THRESHOLD = 4.2;
 const float UV_THRESHOLD = 2.5;
+const float MAX_VOLTAGE_DELTA = 0.3;
 
 const int OWC_Threshold = 2000;
 const int OWA_Threshold = 50000;
@@ -473,13 +474,13 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 
 	avg_cell = (cell_total > 0) ? (sum / cell_total) : 0.0f;
 	delta_cell = highest_cell - lowest_cell;
-	if (abs(((sum - highest_cell)/cell_total) - highest_cell)) {
+	if (abs(((sum - highest_cell)/cell_total) - highest_cell) > MAX_VOLTAGE_DELTA) {
 		BMS_SetCellFault(highest_cell_ind/10, highest_cell_ind%10, FAULT_TYPE_DELTA, FAULT_SEVERITY_WARNING);
 		total_faults++;
 	}
 
 
-	if (abs(((sum - lowest_cell)/cell_total) - lowest_cell)) {
+	if (abs(((sum - lowest_cell)/cell_total) - lowest_cell) > MAX_VOLTAGE_DELTA) {
 		BMS_SetCellFault(lowest_cell_ind/10, lowest_cell_ind%10, FAULT_TYPE_DELTA, FAULT_SEVERITY_WARNING);
 		total_faults++;
 	}
@@ -913,7 +914,8 @@ void fanPWMControl(float max_temp, TIM_HandleTypeDef *htimPWM) {
 	fan_status = pid_output * 100.0f;
 
 // Debug output
-	if (PRINT_ON) printf("Temp: %.1f°C, Error: %.1f, PID: %.2f, Fan: %.0f%%, PWM: %lu\r\n",
+	if (PRINT_ON)
+		printf("Temp: %.1f°C, Error: %.1f, PID: %.2f, Fan: %.0f%%, PWM: %lu\r\n",
 			max_temp, error, pid_output, fan_status, pwm_value);
 }
 

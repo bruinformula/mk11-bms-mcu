@@ -62,8 +62,8 @@ all: main-build
 main-build: BroadMarket_Support_ADBMS6830.elf secondary-outputs
 
 # Tool invocations
-BroadMarket_Support_ADBMS6830.elf BroadMarket_Support_ADBMS6830.map: $(OBJS) $(USER_OBJS) C:\Users\antho\STM32CubeIDE\workspace_1.18.1\Formula\mk11-bms-mcu\STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "BroadMarket_Support_ADBMS6830.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"C:\Users\antho\STM32CubeIDE\workspace_1.18.1\Formula\mk11-bms-mcu\STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BroadMarket_Support_ADBMS6830.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+BroadMarket_Support_ADBMS6830.elf BroadMarket_Support_ADBMS6830.map: $(OBJS) $(USER_OBJS) /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "BroadMarket_Support_ADBMS6830.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BroadMarket_Support_ADBMS6830.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
