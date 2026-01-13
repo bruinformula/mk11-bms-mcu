@@ -1,7 +1,7 @@
 Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/kevin/Desktop/BFR/Software/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -40,7 +40,7 @@ Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_dma_ex.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/kevin/Desktop/BFR/Software/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:

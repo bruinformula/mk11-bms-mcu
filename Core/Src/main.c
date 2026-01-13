@@ -60,11 +60,16 @@ FDCAN_RxHeaderTypeDef RxHeader;
 uint8_t RxData[8];
 FDCAN_BMS_CONTEXT FDCAN_BMS_CONTEXT_INSTANCE;
 
+/** TEST MODE SELECTION **/
+/* Set to 1 for BMS transmit mode, 0 for BMS receive mode */
+#define BMS_TRANSMIT_MODE 1
+
 /* FDCAN Test Debug Variables */
 volatile uint32_t fdcan_rx_count = 0;          /* Counter for received messages */
 volatile uint32_t fdcan_last_rx_id = 0;        /* Last received message ID */
 volatile uint8_t fdcan_last_rx_data[8] = {0};  /* Last received data */
 volatile uint32_t fdcan_rx_error_count = 0;    /* RX error counter */
+volatile uint32_t fdcan_tx_count = 0;          /* Counter for transmitted messages */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -175,8 +180,8 @@ int main(void)
 		Error_Handler();
 	}
 
-	/* Configure TX header for response messages (if needed) */
-	TxHeader.Identifier = 0x22;  /* Response message ID */
+	/* Configure TX header */
+	TxHeader.Identifier = 0x696;  /* BMS ID: 0x696 (alternating 6 and 9 in hex pattern) */
 	TxHeader.IdType = FDCAN_STANDARD_ID;
 	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
@@ -185,6 +190,16 @@ int main(void)
 	TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
 	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	TxHeader.MessageMarker = 0;
+
+	/* Initialize TX data pattern (BMS pattern: alternating 96 and 99 in decimal) */
+	TxData[0] = 96;
+	TxData[1] = 99;
+	TxData[2] = 96;
+	TxData[3] = 99;
+	TxData[4] = 96;
+	TxData[5] = 99;
+	TxData[6] = 96;
+	TxData[7] = 99;
 
 	/* ========== ORIGINAL BMS CODE (COMMENTED OUT FOR FDCAN TEST) ========== */
 	// user_adBms6830_getAccyStatus();
@@ -244,21 +259,22 @@ int main(void)
     // HAL_StatusTypeDef status;  /* Commented out - SPI test disabled */
 
     /* ========== FDCAN TEST MAIN LOOP ========== */
-    /* The RX callback (HAL_FDCAN_RxFifo0Callback) will handle incoming messages.
-     * This loop just keeps the MCU running and can be used for debugging.
-     * Set breakpoints or watch the RxData/RxHeader variables to verify reception.
-     */
-
     while (1)
     {
-        /* ========== FDCAN RX TEST (ACTIVE) ========== */
-        /* Messages from mk11-vcu (ID 0x11) will be received via interrupt callback.
-         * Check RxData[] and RxHeader in debugger to verify reception.
-         * The callback will echo received data back (ID 0x22).
-         */
-
-        /* Simple heartbeat - toggle or do nothing */
+#if BMS_TRANSMIT_MODE
+        /* ========== BMS TRANSMIT MODE ========== */
+        /* BMS transmits ID 0x555 to VCU every 1 second */
+        /* VCU should receive and log the message */
+        if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) == HAL_OK) {
+            fdcan_tx_count++;  /* Increment on successful TX */
+        }
+        HAL_Delay(1000);
+#else
+        /* ========== BMS RECEIVE MODE ========== */
+        /* BMS receives messages from VCU (ID 0x555) via interrupt callback */
+        /* Check fdcan_rx_count, fdcan_last_rx_data[], fdcan_last_rx_id in debugger */
         HAL_Delay(100);
+#endif
 
         /* ========== ORIGINAL SPI TEST CODE (COMMENTED OUT) ========== */
         // // --- SPI 2 TEST ---
@@ -429,7 +445,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Instance = FDCAN1;
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
-  hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
+  hfdcan1.Init.Mode = FDCAN_MODE_EXTERNAL_LOOPBACK;
   hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
@@ -1030,13 +1046,9 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			RxData[i] = localRxData[i];
 		}
 
-		/* Echo received data back with response ID (0x22) */
-		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &TxHeader, localRxData) != HAL_OK)
-		{
-			/* TX failed - don't call Error_Handler to avoid halting on TX issues */
-			fdcan_rx_error_count++;
-			return;
-		}
+		/* Echo is disabled in both test modes */
+		/* In BMS_TRANSMIT_MODE: BMS is transmitting, not echoing */
+		/* In BMS_RECEIVE_MODE: We just log received data, no echo needed */
 	}
 }
 
