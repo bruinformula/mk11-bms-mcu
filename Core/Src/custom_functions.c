@@ -86,6 +86,7 @@ typedef struct {
     uint8_t ut_active : 1;
     uint8_t comm_active: 1;
     uint8_t hw_fault : 1;
+    uint8_t ccl_dcl_active : 1;
     uint32_t last_fault_time;
     uint16_t fault_count;
 } CellFaultStatus_t;
@@ -113,6 +114,8 @@ BMS_FaultSystem_t BMS_Faults;
 #define FAULT_TYPE_UT 4
 #define FAULT_TYPE_DELTA 5
 #define FAULT_TYPE_COMM 6
+// CCL/DCL Fault
+#define FAULT_TYPE_CCL_DCL 7
 typedef struct {
 	uint16_t cell_id;   // IC# * 10 + Cell# (e.g. 0*10+5 = 5 for IC0, Cell5)
 	uint8_t fault_type; // Type of fault (UV, OV, TEMP)
@@ -208,6 +211,14 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
         		BMS_Faults.active_faults[FAULT_CATEGORY_COMMUNICATION]++;
         	}
         	break;
+        case FAULT_TYPE_CCL_DCL:
+        	if (!cell->ccl_dcl_active) {
+        		new_fault = true;
+        		cell->ccl_dcl_active = 1;
+        		// CCL/DCL is a part of temps
+        		BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]++;
+        	}
+
     }
 
     if (new_fault) {
@@ -515,7 +526,7 @@ int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC) {
 				faulted_count++;
 				if (faulted_count > MAX_ALLOWED_TEMP_FAULTS) {
 					if (temperature > TEMP_LIMIT) BMS_SetCellFault(ic, index, FAULT_TYPE_OT, FAULT_SEVERITY_ERROR);
-					else BMS_SetCellFault(ic, index, FAULT_TYPE_UV, FAULT_SEVERITY_ERROR);
+					else BMS_SetCellFault(ic, index, FAULT_TYPE_UT, FAULT_SEVERITY_ERROR);
 				}
 			} else {
 				// Valid temperature - track min/max/avg
@@ -964,4 +975,58 @@ float calcDCL() {
 
 float calcCCL() {
     return interpolate(highest_temp, CCL_LUT_TEMP, CCL_LUT_CURRENT, CCL_LUT_SIZE);
+}
+
+// CCL/DCL Control
+
+#define DCL_ZERO_EPS 1.0f   // A "near zero" threshold in amps
+#define CCL_ZERO_EPS 1.0f
+
+// determine a grace across certain (ms)
+// can change this LIMIT_VIOLATION_GRACE_MS value
+// accordingly if we want to do more testing here
+#define LIMIT_VIOLATION_GRACE_MS 200
+static uint32_t limit_violation_start = 0;
+
+void BMS_ApplyTempCurrentLimits(void)
+{
+    dcl = calcDCL();
+    ccl = calcCCL();
+
+    bool discharging = (accy_status == READY_POWER);
+    bool charging    = (accy_status == CHARGE_POWER);
+
+    float abs_current = fabsf(current);
+
+    if (!discharging && !charging) {
+        limit_violation_start = 0;
+        return;
+    }
+
+    float limit = discharging ? dcl : ccl;
+
+
+    // HARD KILL CONDITION:
+    // If LUT says near 0 AND you still have non-trivial current flow (or request),
+    // then fault + kill.
+    bool should_kill = (limit <= (discharging ? DCL_ZERO_EPS : CCL_ZERO_EPS)) && (abs_current > 2.0f);
+
+    if (should_kill) {
+        uint32_t now = HAL_GetTick();
+
+        if (limit_violation_start == 0) {
+        	limit_violation_start = now;
+        }
+
+        // optional debounce so you don't trip on a 1-sample spike
+        if ((now - limit_violation_start) >= LIMIT_VIOLATION_GRACE_MS) {
+            // Flag a fault so your existing setFaults() kills via GPIO
+            // We log it on "cell 0" of IC0 as a system-level fault placeholder.
+            BMS_SetCellFault(0, 0, FAULT_TYPE_CCL_DCL, FAULT_SEVERITY_CRITICAL);
+        }
+    } else {
+        limit_violation_start = 0;
+        // If we want it to go back to normal, then we would uncomment this code
+        // BMS_ClearCellFault(0, 0, FAULT_TYPE_CCL_DCL);
+    }
 }
