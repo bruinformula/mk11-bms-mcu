@@ -98,7 +98,14 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+/* Debug variables for FDCAN initialization and status */
+volatile HAL_StatusTypeDef filter_status = HAL_ERROR;
+volatile HAL_StatusTypeDef global_filter_status = HAL_ERROR;
+volatile HAL_StatusTypeDef start_status = HAL_ERROR;
+volatile HAL_StatusTypeDef notify_status = HAL_ERROR;
+volatile uint32_t fdcan_psr_register = 0;   /* Protocol Status Register */
+volatile uint32_t fdcan_ecr_register = 0;   /* Error Counter Register */
+volatile uint32_t fdcan_rxf0s_register = 0; /* RX FIFO 0 Status */
 /* USER CODE END 0 */
 
 /**
@@ -152,26 +159,30 @@ int main(void)
 	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
 	sFilterConfig.FilterID1 = 0x000;  /* Accept from ID 0x000 */
 	sFilterConfig.FilterID2 = 0x7FF;  /* Accept up to ID 0x7FF */
-	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
+	filter_status = HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
+	if (filter_status != HAL_OK) {
 		Error_Handler();
 	}
 
 	/* Configure global filter to reject non-matching frames */
-	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
+	global_filter_status = HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
 	                                  FDCAN_REJECT,  /* Reject non-matching standard IDs */
 	                                  FDCAN_REJECT,  /* Reject non-matching extended IDs */
 	                                  DISABLE,       /* Don't filter remote frames (standard) */
-	                                  DISABLE) != HAL_OK) { /* Don't filter remote frames (extended) */
+	                                  DISABLE);      /* Don't filter remote frames (extended) */
+	if (global_filter_status != HAL_OK) {
 		Error_Handler();
 	}
 
 	/* Start FDCAN1 */
-	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
+	start_status = HAL_FDCAN_Start(&hfdcan1);
+	if (start_status != HAL_OK) {
 		Error_Handler();
 	}
 
 	/* Activate RX FIFO0 new message notification */
-	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+	notify_status = HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+	if (notify_status != HAL_OK) {
 		Error_Handler();
 	}
 
@@ -256,6 +267,11 @@ int main(void)
          * Check RxData[] and RxHeader in debugger to verify reception.
          * The callback will echo received data back (ID 0x22).
          */
+
+        /* Read FDCAN status registers for debugging */
+        fdcan_psr_register = hfdcan1.Instance->PSR;     /* Protocol Status */
+        fdcan_ecr_register = hfdcan1.Instance->ECR;     /* Error Counters */
+        fdcan_rxf0s_register = hfdcan1.Instance->RXF0S; /* RX FIFO 0 Status */
 
         /* Simple heartbeat - toggle or do nothing */
         HAL_Delay(100);
@@ -443,7 +459,17 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Init.DataTimeSeg2 = 3;
   hfdcan1.Init.StdFiltersNbr = 1;
   hfdcan1.Init.ExtFiltersNbr = 0;
+  hfdcan1.Init.RxFifo0ElmtsNbr = 3;              /* CRITICAL: RX FIFO 0 elements */
+  hfdcan1.Init.RxFifo0ElmtSize = FDCAN_DATA_BYTES_8;
+  hfdcan1.Init.RxFifo1ElmtsNbr = 0;
+  hfdcan1.Init.RxFifo1ElmtSize = FDCAN_DATA_BYTES_8;
+  hfdcan1.Init.RxBuffersNbr = 0;
+  hfdcan1.Init.RxBufferSize = FDCAN_DATA_BYTES_8;
+  hfdcan1.Init.TxEventsNbr = 0;
+  hfdcan1.Init.TxBuffersNbr = 0;
+  hfdcan1.Init.TxFifoQueueElmtsNbr = 3;          /* CRITICAL: TX FIFO elements */
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
+  hfdcan1.Init.TxElmtSize = FDCAN_DATA_BYTES_8;
   if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
   {
     Error_Handler();
@@ -1006,6 +1032,9 @@ GETCHAR_PROTOTYPE
 /* FDCAN RX Callback - Receives messages from mk11-vcu and echoes back */
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
+	static volatile uint32_t callback_entry_count = 0;
+	callback_entry_count++;  /* Increment to verify callback is called */
+
 	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
 	{
 		FDCAN_RxHeaderTypeDef localRxHeader;

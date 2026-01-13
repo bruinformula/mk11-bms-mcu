@@ -51,7 +51,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+volatile uint32_t fdcan_irq_count = 0;  /* Counter to verify interrupt fires */
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
@@ -204,7 +204,7 @@ void SysTick_Handler(void)
 void FDCAN1_IT0_IRQHandler(void)
 {
   /* USER CODE BEGIN FDCAN1_IT0_IRQn 0 */
-
+  fdcan_irq_count++;  /* Increment to verify IRQ fires */
   /* USER CODE END FDCAN1_IT0_IRQn 0 */
   HAL_FDCAN_IRQHandler(&hfdcan1);
   /* USER CODE BEGIN FDCAN1_IT0_IRQn 1 */
