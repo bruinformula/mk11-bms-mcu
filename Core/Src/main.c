@@ -55,14 +55,18 @@ TIM_HandleTypeDef htim8;
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
 FDCAN_TxHeaderTypeDef TxHeader;
-uint8_t TxData[8];
+uint8_t TxData[8] = {44, 22, 44, 22, 44, 22, 44, 22};  /* BMS TX pattern */
 FDCAN_RxHeaderTypeDef RxHeader;
-uint8_t RxData[8];
+uint8_t RxData[8] = {11, 77, 11, 77, 11, 77, 11, 77};  /* BMS RX pattern */
 FDCAN_BMS_CONTEXT FDCAN_BMS_CONTEXT_INSTANCE;
 
 /** TEST MODE SELECTION **/
 /* Set to 1 for BMS transmit mode, 0 for BMS receive mode */
 #define BMS_TRANSMIT_MODE 1
+
+/* Set to 1 to echo received messages back (for normal mode testing) */
+/* Set to 0 to disable echo (for external loopback testing) */
+#define BMS_ECHO_ENABLE 0
 
 /* FDCAN Test Debug Variables */
 volatile uint32_t fdcan_rx_count = 0;          /* Counter for received messages */
@@ -70,6 +74,11 @@ volatile uint32_t fdcan_last_rx_id = 0;        /* Last received message ID */
 volatile uint8_t fdcan_last_rx_data[8] = {0};  /* Last received data */
 volatile uint32_t fdcan_rx_error_count = 0;    /* RX error counter */
 volatile uint32_t fdcan_tx_count = 0;          /* Counter for transmitted messages */
+
+/* FDCAN Status Registers for debugging */
+volatile uint32_t fdcan_psr_register = 0;      /* Protocol Status Register */
+volatile uint32_t fdcan_ecr_register = 0;      /* Error Counter Register */
+volatile uint32_t fdcan_txfqs_register = 0;    /* TX FIFO/Queue Status */
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -181,7 +190,7 @@ int main(void)
 	}
 
 	/* Configure TX header */
-	TxHeader.Identifier = 0x696;  /* BMS ID: 0x696 (alternating 6 and 9 in hex pattern) */
+	TxHeader.Identifier = 0x17;  /* BMS TX ID */
 	TxHeader.IdType = FDCAN_STANDARD_ID;
 	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
 	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
@@ -191,15 +200,7 @@ int main(void)
 	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
 	TxHeader.MessageMarker = 0;
 
-	/* Initialize TX data pattern (BMS pattern: alternating 96 and 99 in decimal) */
-	TxData[0] = 96;
-	TxData[1] = 99;
-	TxData[2] = 96;
-	TxData[3] = 99;
-	TxData[4] = 96;
-	TxData[5] = 99;
-	TxData[6] = 96;
-	TxData[7] = 99;
+	/* TxData initialized at declaration: {44, 22, 44, 22, 44, 22, 44, 22} */
 
 	/* ========== ORIGINAL BMS CODE (COMMENTED OUT FOR FDCAN TEST) ========== */
 	// user_adBms6830_getAccyStatus();
@@ -263,7 +264,7 @@ int main(void)
     {
 #if BMS_TRANSMIT_MODE
         /* ========== BMS TRANSMIT MODE ========== */
-        /* BMS transmits ID 0x555 to VCU every 1 second */
+        /* BMS transmits ID 0x696 to VCU every 1 second */
         /* VCU should receive and log the message */
         if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) == HAL_OK) {
             fdcan_tx_count++;  /* Increment on successful TX */
@@ -271,10 +272,15 @@ int main(void)
         HAL_Delay(1000);
 #else
         /* ========== BMS RECEIVE MODE ========== */
-        /* BMS receives messages from VCU (ID 0x555) via interrupt callback */
+        /* BMS receives messages from VCU via interrupt callback */
         /* Check fdcan_rx_count, fdcan_last_rx_data[], fdcan_last_rx_id in debugger */
         HAL_Delay(100);
 #endif
+
+        /* Read status registers for debugging */
+        fdcan_psr_register = hfdcan1.Instance->PSR;     /* Protocol Status */
+        fdcan_ecr_register = hfdcan1.Instance->ECR;     /* Error Counters (TEC[15:8], REC[7:0]) */
+        fdcan_txfqs_register = hfdcan1.Instance->TXFQS; /* TX FIFO Status */
 
         /* ========== ORIGINAL SPI TEST CODE (COMMENTED OUT) ========== */
         // // --- SPI 2 TEST ---
@@ -445,7 +451,7 @@ static void MX_FDCAN1_Init(void)
   hfdcan1.Instance = FDCAN1;
   hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
   hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
-  hfdcan1.Init.Mode = FDCAN_MODE_EXTERNAL_LOOPBACK;
+  hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
   hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
@@ -1046,9 +1052,12 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 			RxData[i] = localRxData[i];
 		}
 
-		/* Echo is disabled in both test modes */
-		/* In BMS_TRANSMIT_MODE: BMS is transmitting, not echoing */
-		/* In BMS_RECEIVE_MODE: We just log received data, no echo needed */
+#if BMS_ECHO_ENABLE
+		/* Echo received message back on FDCAN1 */
+		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, localRxData) == HAL_OK) {
+			fdcan_tx_count++;
+		}
+#endif
 	}
 }
 
