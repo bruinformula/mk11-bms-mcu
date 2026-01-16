@@ -87,6 +87,11 @@ typedef struct {
     uint8_t comm_active: 1;
     uint8_t hw_fault : 1;
     uint8_t ccl_dcl_active : 1;
+
+	// Debounce start times
+    uint32_t uv_start_time;
+    uint32_t ov_start_time;
+
     uint32_t last_fault_time;
     uint16_t fault_count;
 } CellFaultStatus_t;
@@ -116,6 +121,9 @@ BMS_FaultSystem_t BMS_Faults;
 #define FAULT_TYPE_COMM 6
 // CCL/DCL Fault
 #define FAULT_TYPE_CCL_DCL 7
+
+#define CELL_VOLT_GRACE_MS 200
+
 typedef struct {
 	uint16_t cell_id;   // IC# * 10 + Cell# (e.g. 0*10+5 = 5 for IC0, Cell5)
 	uint8_t fault_type; // Type of fault (UV, OV, TEMP)
@@ -155,6 +163,9 @@ void BMS_InitFaultSystem(void) {
 
 void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
                        FaultSeverity_t severity) {
+
+	// UNSURE FIX 2
+	// should probably change this to make sense with BMS_SetCellFault?
     if (ic_num >= 10 || cell_num >= 16) return;
 
     uint8_t cell_idx = (ic_num * 10) + cell_num;
@@ -196,6 +207,8 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
         	}
         	break;
 
+		// UNSURE FIX 1
+		// what is this and why does it use ov_active?
         case FAULT_TYPE_DELTA:
         	if (!cell->ov_active) {
         		new_fault = true;
@@ -211,6 +224,7 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
         		BMS_Faults.active_faults[FAULT_CATEGORY_COMMUNICATION]++;
         	}
         	break;
+
         case FAULT_TYPE_CCL_DCL:
         	if (!cell->ccl_dcl_active) {
         		new_fault = true;
@@ -246,6 +260,9 @@ void BMS_SetCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type,
  * @brief Clear a specific fault for a cell
  */
 void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
+
+	// UNSURE FIX 2
+	// should probably change this?
     if (ic_num >= 5 || cell_num >= 20) return;
 
     uint8_t cell_idx = (ic_num * 20) + cell_num;
@@ -293,6 +310,13 @@ void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
         		fault_cleared = true;
         	}
         	break;
+	    case FAULT_TYPE_CCL_DCL:
+        	if (cell->ccl_dcl_active) {
+        		cell->ccl_dcl_active = 0;
+        		BMS_Faults.active_faults[FAULT_CATEGORY_TEMP]--;
+				fault_cleared = true;
+        	}
+			break;
     }
 
     if (fault_cleared) {
@@ -327,6 +351,65 @@ uint8_t BMS_GetFaultCount(FaultCategory_t category) {
 bool BMS_HasActiveFaults(void) {
     return BMS_Faults.system_fault_active;
 }
+
+static void BMS_DebounceUVOV(uint8_t ic, uint8_t cell_num,
+                             uint8_t fault_type,
+                             FaultSeverity_t severity,
+                             bool condition_active,
+                             uint32_t grace_ms)
+{
+    // Bounds check (match your BMS_SetCellFault limits)
+    if (ic >= 10 || cell_num >= 16) return;
+
+    // Indexing must match BMS_SetCellFault (ic*10 + cell)
+    uint8_t cell_idx = (ic * 10) + cell_num;
+    CellFaultStatus_t *cell = &BMS_Faults.cell_status[cell_idx];
+
+    uint32_t now = HAL_GetTick();
+
+    if (fault_type == FAULT_TYPE_UV) {
+
+        if (condition_active) {
+            if (cell->uv_start_time == 0) {
+                cell->uv_start_time = now;  // start timing
+            }
+
+            if ((now - cell->uv_start_time) >= grace_ms) {
+                if (!cell->uv_active) {
+                    BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, severity);
+                }
+            }
+        } else {
+            cell->uv_start_time = 0; // reset timing
+            if (cell->uv_active) {
+                BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_UV);
+            }
+        }
+
+    } else if (fault_type == FAULT_TYPE_OV) {
+
+        if (condition_active) {
+            if (cell->ov_start_time == 0) {
+                cell->ov_start_time = now;  // start timing
+            }
+
+            if ((now - cell->ov_start_time) >= grace_ms) {
+                if (!cell->ov_active) {
+                    BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, severity);
+                }
+            }
+        } else {
+            cell->ov_start_time = 0; // reset timing
+            if (cell->ov_active) {
+                BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_OV);
+            }
+        }
+
+    } else {
+        return; // only UV/OV supported here
+    }
+}
+
 
 /**
  * @brief Print concise fault summary
@@ -363,6 +446,9 @@ void print_fault_summary(void) {
     }
     if (count % 4 != 0) printf("\n");
 }
+
+
+
 
 
 void populateIC(cell_asic *IC, uint8_t tIC) {
@@ -407,6 +493,9 @@ void populateIC(cell_asic *IC, uint8_t tIC) {
 	if (PRINT_ON) printf("time to read once: %lu", (unsigned long) (HAL_GetTick() - start_time));
 }
 
+// add a general latency to make sure that there is some 200ms gap
+// instead of having it fault immediately
+// add in the precharge sequence from mk10 vcu
 int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 	int total_faults = 0;
 
@@ -447,32 +536,43 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 			sum += voltage;
 			cell_total++;
 
-
-			if (IC[ic].statd.c_uv[cell_num] || voltage < UV_THRESHOLD) {
+			// added Debounce Methods
+			// --- UV debounce ---
+			bool uv_condition = (IC[ic].statd.c_uv[cell_num] || voltage < UV_THRESHOLD);
+			if (uv_condition) {
 				uv_flags |= (1 << cell_num);
-				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_UV, FAULT_SEVERITY_CRITICAL);
-//				cell_fault = CELL_UV_FAULT;
-
-				total_faults++;
-				#if PRINT_ON
-				printf("HW UV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
-				#endif
-			} else {
-				BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_UV);
 			}
 
-			if (IC[ic].statd.c_ov[cell_num] || voltage > OV_THRESHOLD) {
+			BMS_DebounceUVOV(ic, cell_num,
+							FAULT_TYPE_UV,
+							FAULT_SEVERITY_CRITICAL,
+							uv_condition,
+							CELL_VOLT_GRACE_MS);
+
+			#if PRINT_ON
+			if (uv_condition) {
+				printf("HW UV (pending/debounced): IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+			}
+			#endif
+
+
+			// --- OV debounce ---
+			bool ov_condition = (IC[ic].statd.c_ov[cell_num] || voltage > OV_THRESHOLD);
+			if (ov_condition) {
 				ov_flags |= (1 << cell_num);
-				BMS_SetCellFault(ic, cell_num, FAULT_TYPE_OV, FAULT_SEVERITY_CRITICAL);
-//				cell_fault = CELL_OV_FAULT;
-
-				total_faults++;
-				#if PRINT_ON
-				printf("HW OV: IC%d C%d = %.3fV\n", ic, cell_num, voltage);
-				#endif
-			} else {
-				BMS_ClearCellFault(ic, cell_num, FAULT_TYPE_OV);
 			}
+
+			BMS_DebounceUVOV(ic, cell_num,
+							FAULT_TYPE_OV,
+							FAULT_SEVERITY_CRITICAL,
+							ov_condition,
+							CELL_VOLT_GRACE_MS);
+
+			#if PRINT_ON
+			if (ov_condition) {
+				printf("HW OV (pending/debounced): IC%d C%d = %.3fV\n", ic, cell_num, voltage);
+			}
+			#endif
 
 		}
 
@@ -495,7 +595,11 @@ int user_adBms6830_cellVoltageFaults(uint8_t tIC, cell_asic *IC) {
 		total_faults++;
 	}
 
-	if (BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE) == 0) cell_fault = 0;
+	total_faults = BMS_GetFaultCount(FAULT_CATEGORY_VOLTAGE);
+
+	if (total_faults == 0) {
+		cell_fault = 0;
+	}
 
     return total_faults;
 }
