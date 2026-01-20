@@ -42,6 +42,20 @@ void fakeDriveParams(void);
 #define TOTAL_IC 10
 #define IC_CHUNK 1
 cell_asic IC[TOTAL_IC];
+cell_asic testIC[TOTAL_IC];
+
+//filling in test values;
+void insertingTestDataVoltage(cell_asic *IC)
+{
+	for (uint8_t ic = 0; ic < TOTAL_IC; ic++) {
+		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
+			IC[ic].cell.c_codes[cell_num] = 2 + (ic * 0.2) + (cell_num * 0.05);
+		}
+	}
+	return;
+}
+//
+
 cell_asic TEMP_IC[IC_CHUNK];
 
 /* ADC Command Configurations */
@@ -117,7 +131,7 @@ void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 	}
 
 	readSegment += IC_CHUNK;
-	if (readSegment >= TOTAL_IC) {
+	if (readSegment >= IC) {
 		readSegment = 0;
 	}
 	populateIC(&IC[readSegment], IC_CHUNK);
