@@ -45,7 +45,7 @@ cell_asic IC[TOTAL_IC];
 cell_asic testIC[TOTAL_IC];
 
 //filling in test values;
-void insertingTestDataVoltage(cell_asic *IC)
+void insertingTestDataVoltage(cell_asic *IC) //call function before actually trying to extract data.
 {
 	for (uint8_t ic = 0; ic < TOTAL_IC; ic++) {
 		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
