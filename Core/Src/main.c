@@ -19,6 +19,9 @@
 #include "adBms6830GenericType.h"
 #include "adBms6830ParseCreate.h"
 #include "serialPrintResult.h"
+#include "math.h"
+#include "common.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -64,7 +67,8 @@ FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[8] = {44, 22, 44, 22, 44, 22, 44, 22};
 FDCAN_RxHeaderTypeDef RxHeader;
 uint8_t RxData[8] = {0};
-FDCAN_BMS_CONTEXT FDCAN_BMS_CONTEXT_INSTANCE;
+FDCAN_BMS_CONTEXT *FDCAN_BMS_CONTEXT_INSTANCE;
+int8_t balancing = 0; // 0: No balancing, 1: Balancing
 
 /** TEST MODE SELECTION **/
 #define BMS_TRANSMIT_MODE 1
@@ -109,7 +113,40 @@ static void MX_FDCAN1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+typedef enum {
+    BMS_STATE_INIT,
+    BMS_STATE_IDLE,
+    BMS_STATE_PRECHARGE,
+    BMS_STATE_READY,
+    BMS_STATE_CHARGING,
+    BMS_STATE_FAULT
+} BMS_State_t;
 
+typedef struct {
+    BMS_State_t current_state;
+    uint32_t precharge_start_time;
+    float inverter_voltage;
+    float initial_accy_voltage;
+    bool precharge_complete;
+    bool shutdown_clear;
+} BMS_StateManager_t;
+
+BMS_StateManager_t BMS_State = {
+    .current_state = BMS_STATE_INIT,
+    .precharge_complete = false,
+    .shutdown_clear = false
+};
+
+typedef struct {
+    float dc_bus_voltage;      // Main DC link voltage for precharge
+    float output_voltage;      // AC output voltage
+    float vab_vd_voltage;      // Phase voltages
+    float vbc_vq_voltage;
+    uint32_t last_update_time;
+    bool data_valid;
+} InverterVoltages_t;
+
+InverterVoltages_t inverter_voltages = {0};
 /* USER CODE END 0 */
 
 /**
@@ -188,6 +225,129 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  switch (BMS_State.current_state) {
+		  case BMS_STATE_INIT:
+			  user_adBms6830_getAccyStatus();
+			  BMS_InitFaultSystem();
+			  BMS_State.current_state = BMS_STATE_IDLE;
+			  if (PRINT_ON) printf("BMS Initialized\n");
+			  break;
+		  case BMS_STATE_IDLE:
+			  // Check if ready power is requested
+			  if (accy_status == READY_POWER && !BMS_HasActiveFaults()) {
+				  BMS_State.current_state = BMS_STATE_IDLE; // Will attempt precharge
+				  if (PRINT_ON) printf("Ready power requested\n");
+			  } else if (accy_status == CHARGE_POWER && !BMS_HasActiveFaults()) {
+				  BMS_State.current_state = BMS_STATE_CHARGING;
+				  HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_SET);
+				  if (PRINT_ON) printf("Charge mode entered\n");
+			  }
+
+			  // Allow balancing in idle if configured
+			  if (balancing == 1 && !BMS_HasActiveFaults()) {
+				  balanceCells(TOTAL_IC, IC, PWM_100_0_PCT);
+			  }
+			  break;
+
+		  case BMS_STATE_PRECHARGE:
+			if (BMS_HasActiveFaults()) {
+				if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
+				BMS_PrechargeAbort();
+				BMS_State.current_state = BMS_STATE_FAULT;
+				break;
+			}
+
+			if (BMS_State.inverter_voltage > 10.0 || current > 0 || calcDCL() == 0 || accy_status != READY_POWER) {
+				if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
+				BMS_State.current_state = BMS_STATE_FAULT;
+			}
+
+
+			  if (!BMS_ExecutePrecharge()) {
+
+				  // Precharge failed
+				  BMS_State.current_state = BMS_STATE_FAULT;
+			  }
+			  break;
+
+		  case BMS_STATE_READY:
+			  // Normal driving mode
+			  if (BMS_HasActiveFaults()) {
+				  if (PRINT_ON) printf("Fault detected in READY state\n");
+				  BMS_PrechargeAbort();
+				  BMS_State.current_state = BMS_STATE_FAULT;
+				  break;
+			  }
+
+			  // Control outputs
+			  user_adBms6830_setFaults();
+			  fanPWMControl(highest_temp, &htim1);
+
+			  // Populate and send CAN messages
+			  populate_CAN1(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b0, &IC[0], TOTAL_IC);
+			  populate_CAN2(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b1, &IC[0], TOTAL_IC);
+			  populate_CAN3(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b2, &IC[0], TOTAL_IC);
+			  FDCAN_BMS_Mailman(&hfdcan1, FDCAN_BMS_CONTEXT_INSTANCE, HAL_GetTick(), 0);
+
+			  // Check for mode change
+			  if (accy_status != READY_POWER) {
+				  HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+				  BMS_State.current_state = BMS_STATE_IDLE;
+			  }
+			  break;
+
+		  case BMS_STATE_CHARGING:
+			  if (BMS_HasActiveFaults()) {
+				  if (PRINT_ON) printf("Fault detected in CHARGING state\n");
+				  HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+				  is_charging = 0;
+				  BMS_State.current_state = BMS_STATE_FAULT;
+				  break;
+			  }
+
+			  user_adBms6830_setFaults();
+
+			  // Populate and send CAN messages including charger control
+			  populate_CAN1(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b0, &IC[0], TOTAL_IC);
+			  populate_CAN2(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b1, &IC[0], TOTAL_IC);
+			  populate_CAN3(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b2, &IC[0], TOTAL_IC);
+			  populate_charge_CAN(&FDCAN_BMS_CONTEXT_INSTANCE->CAN_CHGCONTEXT, &IC[0], TOTAL_IC);
+			  FDCAN_BMS_Mailman(&hfdcan1, FDCAN_BMS_CONTEXT_INSTANCE, HAL_GetTick(), is_charging);
+
+			  // Check for mode change
+			  if (accy_status != CHARGE_POWER) {
+				  HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+				  is_charging = 0;
+				  BMS_State.current_state = BMS_STATE_IDLE;
+			  }
+			  break;
+
+		  case BMS_STATE_FAULT:
+			  // Ensure all outputs are safe
+			  HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(GPIOB, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
+			  HAL_GPIO_WritePin(GPIOC, Discharge_Enable_Pin, GPIO_PIN_RESET);
+
+			  user_adBms6830_setFaults();
+			  stopBalancing(TOTAL_IC, IC);
+
+			  // Continue monitoring and reporting
+			  user_adBms6830_setFaults();
+			  populate_CAN1(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b0, &IC[0], TOTAL_IC);
+			  populate_CAN2(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b1, &IC[0], TOTAL_IC);
+			  populate_CAN3(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b2, &IC[0], TOTAL_IC);
+			  FDCAN_BMS_Mailman(&hfdcan1, FDCAN_BMS_CONTEXT_INSTANCE, HAL_GetTick(), 0);
+
+			  // Check if faults cleared - require manual reset
+			  if (!BMS_HasActiveFaults()) {
+				  // Still stay in fault until system reset or explicit clear
+				  if (PRINT_ON) printf("Faults cleared but manual reset required\n");
+			  }
+			  break;
+	      }
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -859,6 +1019,104 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+//TODO: implement
+bool BMS_ExecutePrecharge() {
+	HAL_GPIO_WritePin(GPIOC, Precharge_Enable_Pin, GPIO_PIN_SET);
+	float initPackVoltage = getPackVoltage(TOTAL_IC, &IC[0]);
+	uint32_t start = HAL_GetTick();
+	float RC = 1.0f; // TODO: actual value
+	float expCurve = 0.0f;
+	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10.) {
+		//TODO: Burst reads of inverter voltage
+		float time = (float) ((HAL_GetTick() - start) * 0.001f);
+		expCurve = initPackVoltage * (1.0f - expf(-(time / RC)));
+		if ((fabsf(expCurve - BMS_State.inverter_voltage) / expCurve) > 0.10) {
+			return false;
+			break;
+		}
+	}
+	return true;
+}
+
+//TODO: implement
+bool BMS_PrechargeAbort() {
+	return true;
+}
+/**
+  * @brief  FDCAN RX FIFO 0 callback - called automatically when message arrives
+  * @param  hfdcan pointer to FDCAN handle
+  * @param  RxFifo0ITs interrupt flags
+  * @retval None
+  */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != 0)
+    {
+        FDCAN_RxHeaderTypeDef RxHeader;
+        uint8_t RxData[8] = {0};
+
+        // Read message from FIFO0
+        if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &RxHeader, RxData) == HAL_OK)
+        {
+            // Update debug counters
+            fdcan_rx_count++;
+            fdcan_last_rx_id = RxHeader.Identifier;
+            memcpy((void*)fdcan_last_rx_data, RxData, 8);
+
+            // Process based on CAN ID
+            switch (RxHeader.Identifier)
+            {
+                case 0xA7:  // Inverter_Voltage_Info ID
+                {
+
+                	// INV_DC_Bus_Voltage: bits 0-15 (bytes 0-1)
+                	int16_t dc_bus_raw = (int16_t)((RxData[1] << 8) | RxData[0]);
+                	inverter_voltages.dc_bus_voltage = dc_bus_raw * 0.1f;
+
+                	// INV_Output_Voltage: bits 16-31 (bytes 2-3)
+                	int16_t output_raw = (int16_t)((RxData[3] << 8) | RxData[2]);
+                	inverter_voltages.output_voltage = output_raw * 0.1f;
+
+                	// INV_VAB_Vd_Voltage: bits 32-47 (bytes 4-5)
+                	int16_t vab_raw = (int16_t)((RxData[5] << 8) | RxData[4]);
+                	inverter_voltages.vab_vd_voltage = vab_raw * 0.1f;
+
+                	// INV_VBC_Vq_Voltage: bits 48-63 (bytes 6-7)
+                	int16_t vbc_raw = (int16_t)((RxData[7] << 8) | RxData[6]);
+                	inverter_voltages.vbc_vq_voltage = vbc_raw * 0.1f;
+
+                	// Mark as valid and update timestamp
+                	inverter_voltages.data_valid = true;
+                	inverter_voltages.last_update_time = HAL_GetTick();
+                	BMS_State.inverter_voltage = dc_bus_raw;
+                }
+
+
+                default:
+                    printf("Unknown CAN ID: 0x%03lX\n", RxHeader.Identifier);
+                    break;
+            }
+        }
+        else
+        {
+            fdcan_rx_error_count++;
+        }
+    }
+
+    // Handle FIFO0 full condition
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_FULL) != 0)
+    {
+        printf("WARNING: FIFO0 full!\n");
+    }
+
+    // Handle message lost (overflow)
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_MESSAGE_LOST) != 0)
+    {
+        printf("ERROR: CAN messages lost!\n");
+        fdcan_rx_error_count++;
+    }
+}
 
 /* USER CODE END 4 */
 

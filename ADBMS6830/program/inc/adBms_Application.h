@@ -26,7 +26,11 @@ and its licensor.
 #include "adbms_main.h"
 #include "can.h"
 
+#define TOTAL_IC 1             //How many ICs are daisy chained together
+#define IC_CHUNK 1             //How many ICs are being processed each time
 
+extern cell_asic IC[TOTAL_IC];
+extern cell_asic TEMP_IC[IC_CHUNK];
 void app_main(void);
 void run_command(int cmd);
 void adBms6830_init_config(uint8_t tIC, cell_asic *ic);

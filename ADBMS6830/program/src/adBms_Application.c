@@ -39,10 +39,9 @@ extern Serial pc;
 void fakeChargeParams(void);
 void fakeDriveParams(void);
 
-#define TOTAL_IC 1             //How many ICs are daisy chained together
-#define IC_CHUNK 1             //How many ICs are being processed each time
 cell_asic IC[TOTAL_IC];        //Array of IC with all information about the IC in cell_asic format
 cell_asic TEMP_IC[IC_CHUNK];   //Buffer array of the IC that only stored the information temporarily and check
+
 //temp acts as a buffer and put data buffer if invalid then does not merge with the IC array. VCU can still read lastest measured voltage
 
 /* ADC Command Configurations */
@@ -66,7 +65,6 @@ LOOP_MEASURMENT MEASURE_RAUX = DISABLED; /*   This is ENABLED or DISABLED       
 LOOP_MEASURMENT MEASURE_STAT = DISABLED; /*   This is ENABLED or DISABLED       */
 
 /* ==== Balancing ==== */
-int8_t balancing = 0; // 0: No balancing, 1: Balancing
 float target_lowest_cell = -1;
 float internal_resistance = 0.42;
 uint8_t readSegment = 0; //represented in binary showing which IC is being read atm
@@ -83,53 +81,9 @@ Act: If balancing == 1, it sends the multiMask to the hardware to turn on the di
 Next: readSegment moves to the next chip for the next loop.
 */
 
-typedef enum {
-    BMS_STATE_INIT,
-    BMS_STATE_IDLE,
-    BMS_STATE_PRECHARGE,
-    BMS_STATE_READY,
-    BMS_STATE_CHARGING,
-    BMS_STATE_FAULT
-} BMS_State_t;
 
-typedef struct {
-    BMS_State_t current_state;
-    uint32_t precharge_start_time;
-    float inverter_voltage;
-    float initial_accy_voltage;
-    bool precharge_complete;
-    bool shutdown_clear;
-} BMS_StateManager_t;
 
-BMS_StateManager_t BMS_State = {
-    .current_state = BMS_STATE_INIT,
-    .precharge_complete = false,
-    .shutdown_clear = false
-};
 
-//TODO: implement
-bool BMS_ExecutePrecharge() {
-	HAL_GPIO_WritePin(GPIOC, Precharge_Enable_Pin, GPIO_PIN_SET);
-	float initPackVoltage = getPackVoltage(TOTAL_IC, &IC[0]);
-	uint32_t start = HAL_GetTick();
-	float RC = 1.0f; // TODO: actual value
-	float expCurve = 0.0f;
-	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10.) {
-		//TODO: Burst reads of inverter voltage
-		float time = (float) ((HAL_GetTick() - start) * 0.001f);
-		expCurve = initPackVoltage * (1.0f - expf(-(time / RC)));
-		if ((fabsf(expCurve - BMS_State.inverter_voltage) / expCurve) > 0.10) {
-			return false;
-			break;
-		}
-	}
-	return true;
-}
-
-//TODO: implement
-void BMS_PrechargeAbort() {
-	return;
-}
 void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 		FDCAN_BMS_CONTEXT *ctx, TIM_HandleTypeDef *htimPWM) {
 	// printMenu();
@@ -158,130 +112,7 @@ void adbms_main(int command, FDCAN_HandleTypeDef *hfdcan,
 //	populateIC(&IC[0], TOTAL_IC);
 
 
-    switch (BMS_State.current_state) {
-        case BMS_STATE_INIT:
-            user_adBms6830_getAccyStatus();
-            BMS_InitFaultSystem();
-            BMS_State.current_state = BMS_STATE_IDLE;
-            if (PRINT_ON) printf("BMS Initialized\n");
-            break;
 
-        case BMS_STATE_IDLE:
-            // Check if ready power is requested
-            if (accy_status == READY_POWER && !BMS_HasActiveFaults()) {
-                BMS_State.current_state = BMS_STATE_IDLE; // Will attempt precharge
-                if (PRINT_ON) printf("Ready power requested\n");
-            } else if (accy_status == CHARGE_POWER && !BMS_HasActiveFaults()) {
-                BMS_State.current_state = BMS_STATE_CHARGING;
-                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_SET);
-                if (PRINT_ON) printf("Charge mode entered\n");
-            }
-
-            // Allow balancing in idle if configured
-            if (balancing == 1 && !BMS_HasActiveFaults()) {
-                balanceCells(TOTAL_IC, IC, PWM_100_0_PCT);
-            }
-            break;
-
-        case BMS_STATE_PRECHARGE:
-        	if (BMS_HasActiveFaults()) {
-        		if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
-        		BMS_PrechargeAbort();
-        		BMS_State.current_state = BMS_STATE_FAULT;
-        		break;
-        	}
-
-        	if (BMS_State.inverter_voltage > 10.0 || current > 0 || calcDCL() == 0 || accy_status != READY_POWER) {
-        		if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
-        		BMS_State.current_state = BMS_STATE_FAULT;
-        	}
-
-
-        	//BMS_State.inverter_voltage =
-            if (!BMS_ExecutePrecharge()) {
-
-                // Precharge failed
-                BMS_State.current_state = BMS_STATE_FAULT;
-            }
-            break;
-
-        case BMS_STATE_READY:
-            // Normal driving mode
-            if (BMS_HasActiveFaults()) {
-                if (PRINT_ON) printf("Fault detected in READY state\n");
-                BMS_PrechargeAbort();
-                BMS_State.current_state = BMS_STATE_FAULT;
-                break;
-            }
-
-            // Control outputs
-            user_adBms6830_setFaults();
-            fanPWMControl(highest_temp, htimPWM);
-
-            // Populate and send CAN messages
-            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
-            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), 0);
-
-            // Check for mode change
-            if (accy_status != READY_POWER) {
-                HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
-                BMS_State.current_state = BMS_STATE_IDLE;
-            }
-            break;
-
-        case BMS_STATE_CHARGING:
-            if (BMS_HasActiveFaults()) {
-                if (PRINT_ON) printf("Fault detected in CHARGING state\n");
-                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
-                is_charging = 0;
-                BMS_State.current_state = BMS_STATE_FAULT;
-                break;
-            }
-
-            user_adBms6830_setFaults();
-
-            // Populate and send CAN messages including charger control
-            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
-            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-            populate_charge_CAN(&ctx->CAN_CHGCONTEXT, &IC[0], TOTAL_IC);
-            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), is_charging);
-
-            // Check for mode change
-            if (accy_status != CHARGE_POWER) {
-                HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
-                is_charging = 0;
-                BMS_State.current_state = BMS_STATE_IDLE;
-            }
-            break;
-
-        case BMS_STATE_FAULT:
-            // Ensure all outputs are safe
-            HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOB, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOC, Charge_Enable_Pin, GPIO_PIN_RESET);
-            HAL_GPIO_WritePin(GPIOC, Discharge_Enable_Pin, GPIO_PIN_RESET);
-
-            user_adBms6830_setFaults();
-            stopBalancing(TOTAL_IC, IC);
-
-            // Continue monitoring and reporting
-            user_adBms6830_setFaults();
-            populate_CAN1(&ctx->msg_6b0, &IC[0], TOTAL_IC);
-            populate_CAN2(&ctx->msg_6b1, &IC[0], TOTAL_IC);
-            populate_CAN3(&ctx->msg_6b2, &IC[0], TOTAL_IC);
-            FDCAN_BMS_Mailman(hfdcan, ctx, HAL_GetTick(), 0);
-
-            // Check if faults cleared - require manual reset
-            if (!BMS_HasActiveFaults()) {
-                // Still stay in fault until system reset or explicit clear
-                if (PRINT_ON) printf("Faults cleared but manual reset required\n");
-            }
-            break;
-    }
 
 
 
