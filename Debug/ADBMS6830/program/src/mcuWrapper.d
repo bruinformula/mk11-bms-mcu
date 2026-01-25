@@ -1,10 +1,10 @@
 ADBMS6830/program/src/mcuWrapper.o: ../ADBMS6830/program/src/mcuWrapper.c \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -42,13 +42,13 @@ ADBMS6830/program/src/mcuWrapper.o: ../ADBMS6830/program/src/mcuWrapper.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- /Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/main.h:
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -86,4 +86,4 @@ ADBMS6830/program/src/mcuWrapper.o: ../ADBMS6830/program/src/mcuWrapper.c \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-/Users/ronitbarman/Programming/BFR/ADBMS6830_Free_Source_Code-Rel1.0.3/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
