@@ -15,6 +15,10 @@
 #include "adbms_can_helper.h"
 #include "adBms_Application.h"
 #include "custom_functions.h"
+#include "adBms6830Data.h"
+#include "adBms6830GenericType.h"
+#include "adBms6830ParseCreate.h"
+#include "serialPrintResult.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,33 +56,31 @@ TIM_HandleTypeDef htim3;
 TIM_HandleTypeDef htim8;
 
 /* USER CODE BEGIN PV */
-uint8_t HeaderTxBuffer[] =
-		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
+/* BMS CONFIGURATION */
+#define TOTAL_IC 1
+cell_asic IC_DATA[TOTAL_IC];
+
 FDCAN_TxHeaderTypeDef TxHeader;
-uint8_t TxData[8] = {44, 22, 44, 22, 44, 22, 44, 22};  /* BMS TX pattern */
+uint8_t TxData[8] = {44, 22, 44, 22, 44, 22, 44, 22};
 FDCAN_RxHeaderTypeDef RxHeader;
-uint8_t RxData[8] = {11, 77, 11, 77, 11, 77, 11, 77};  /* BMS RX pattern */
+uint8_t RxData[8] = {0};
 FDCAN_BMS_CONTEXT FDCAN_BMS_CONTEXT_INSTANCE;
 
 /** TEST MODE SELECTION **/
-/* Set to 1 for BMS transmit mode, 0 for BMS receive mode */
 #define BMS_TRANSMIT_MODE 1
-
-/* Set to 1 to echo received messages back (for normal mode testing) */
-/* Set to 0 to disable echo (for external loopback testing) */
 #define BMS_ECHO_ENABLE 0
 
 /* FDCAN Test Debug Variables */
-volatile uint32_t fdcan_rx_count = 0;          /* Counter for received messages */
-volatile uint32_t fdcan_last_rx_id = 0;        /* Last received message ID */
-volatile uint8_t fdcan_last_rx_data[8] = {0};  /* Last received data */
-volatile uint32_t fdcan_rx_error_count = 0;    /* RX error counter */
-volatile uint32_t fdcan_tx_count = 0;          /* Counter for transmitted messages */
+volatile uint32_t fdcan_rx_count = 0;
+volatile uint32_t fdcan_last_rx_id = 0;
+volatile uint8_t fdcan_last_rx_data[8] = {0};
+volatile uint32_t fdcan_rx_error_count = 0;
+volatile uint32_t fdcan_tx_count = 0;
 
 /* FDCAN Status Registers for debugging */
-volatile uint32_t fdcan_psr_register = 0;      /* Protocol Status Register */
-volatile uint32_t fdcan_ecr_register = 0;      /* Error Counter Register */
-volatile uint32_t fdcan_txfqs_register = 0;    /* TX FIFO/Queue Status */
+volatile uint32_t fdcan_psr_register = 0;
+volatile uint32_t fdcan_ecr_register = 0;
+volatile uint32_t fdcan_txfqs_register = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -96,18 +98,13 @@ static void MX_SPI2_Init(void);
 static void MX_SPI3_Init(void);
 static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN PFP */
-#if defined(__ICCARM__)
-/* New definition from EWARM V9, compatible with EWARM8 */
-int iar_fputc(int ch);
-#define PUTCHAR_PROTOTYPE int iar_fputc(int ch)
-#elif defined(__CC_ARM) || defined(__ARMCC_VERSION)
-/* ARM Compiler 5/6*/
-#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
-#define GETCHAR_PROTOTYPE int fgetc(FILE *f)
-#elif defined(__GNUC__)
+#ifdef __GNUC__
 #define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
 #define GETCHAR_PROTOTYPE int __io_getchar(void)
-#endif /* __ICCARM__ */
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#define GETCHAR_PROTOTYPE int fgetc(FILE *f)
+#endif
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -156,165 +153,50 @@ int main(void)
   MX_SPI3_Init();
   MX_FDCAN1_Init();
   /* USER CODE BEGIN 2 */
-	/* ========== FDCAN1 TEST SETUP FOR VCU COMMUNICATION ========== */
+  /* ========== FDCAN1 SETUP ========== */
+  FDCAN_FilterTypeDef sFilterConfig = {0};
+  sFilterConfig.IdType = FDCAN_STANDARD_ID;
+  sFilterConfig.FilterIndex = 0;
+  sFilterConfig.FilterType = FDCAN_FILTER_RANGE;
+  sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sFilterConfig.FilterID1 = 0x000;
+  sFilterConfig.FilterID2 = 0x7FF;
+  HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig);
+  HAL_FDCAN_Start(&hfdcan1);
+  HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 
-	/* Configure FDCAN filter to accept all standard IDs to RX FIFO0 */
-	FDCAN_FilterTypeDef sFilterConfig = {0};
-	sFilterConfig.IdType = FDCAN_STANDARD_ID;
-	sFilterConfig.FilterIndex = 0;
-	sFilterConfig.FilterType = FDCAN_FILTER_RANGE;
-	sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-	sFilterConfig.FilterID1 = 0x000;  /* Accept from ID 0x000 */
-	sFilterConfig.FilterID2 = 0x7FF;  /* Accept up to ID 0x7FF */
-	if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sFilterConfig) != HAL_OK) {
-		Error_Handler();
-	}
+  TxHeader.Identifier = 0x17;
+  TxHeader.IdType = FDCAN_STANDARD_ID;
+  TxHeader.TxFrameType = FDCAN_DATA_FRAME;
+  TxHeader.DataLength = FDCAN_DLC_BYTES_8;
+  TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
 
-	/* Configure global filter to reject non-matching frames */
-	if (HAL_FDCAN_ConfigGlobalFilter(&hfdcan1,
-	                                  FDCAN_REJECT,  /* Reject non-matching standard IDs */
-	                                  FDCAN_REJECT,  /* Reject non-matching extended IDs */
-	                                  DISABLE,       /* Don't filter remote frames (standard) */
-	                                  DISABLE) != HAL_OK) { /* Don't filter remote frames (extended) */
-		Error_Handler();
-	}
+  /* ========== ADBMS6830 STARTUP ========== */
+  /*printf("\r\n--- BMS Terminal Monitor Init ---\r\n");
 
-	/* Start FDCAN1 */
-	if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK) {
-		Error_Handler();
-	}
+  adBmsWakeupIc(TOTAL_IC);
+  HAL_Delay(5); // Wait for the isoSPI to stabilize
+  adBms6830_init_config(TOTAL_IC, &IC_DATA[0]);*/
 
-	/* Activate RX FIFO0 new message notification */
-	if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-		Error_Handler();
-	}
+  uint8_t testmessage = 0xAA;
 
-	/* Configure TX header */
-	TxHeader.Identifier = 0x17;  /* BMS TX ID */
-	TxHeader.IdType = FDCAN_STANDARD_ID;
-	TxHeader.TxFrameType = FDCAN_DATA_FRAME;
-	TxHeader.DataLength = FDCAN_DLC_BYTES_8;
-	TxHeader.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-	TxHeader.BitRateSwitch = FDCAN_BRS_OFF;
-	TxHeader.FDFormat = FDCAN_CLASSIC_CAN;
-	TxHeader.TxEventFifoControl = FDCAN_NO_TX_EVENTS;
-	TxHeader.MessageMarker = 0;
 
-	/* TxData initialized at declaration: {44, 22, 44, 22, 44, 22, 44, 22} */
 
-	/* ========== ORIGINAL BMS CODE (COMMENTED OUT FOR FDCAN TEST) ========== */
-	// user_adBms6830_getAccyStatus();
-	//
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b0, FDCAN_MSG_ID_6B0);
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b1, FDCAN_MSG_ID_6B1);
-	// init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b2, FDCAN_MSG_ID_6B2);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E7F4, 0x1806E7F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E5F4, 0x1806E5F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E9F4, 0x1806E9F4);
-	// init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_18FF50E5, 0x18FF50E5);
-
-	/* if (accy_status == CHARGE_POWER) {
-		/* UPDATED: Logic ported to FDCAN1
-		HAL_FDCAN_DeInit(&hfdcan1);
-
-		hfdcan1.Instance = FDCAN1;
-		hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-		hfdcan1.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
-		hfdcan1.Init.Mode = FDCAN_MODE_NORMAL;
-		hfdcan1.Init.AutoRetransmission = DISABLE;
-		hfdcan1.Init.TransmitPause = DISABLE;
-		hfdcan1.Init.ProtocolException = DISABLE;
-		hfdcan1.Init.NominalPrescaler = 40;
-		hfdcan1.Init.NominalSyncJumpWidth = 1;
-		hfdcan1.Init.NominalTimeSeg1 = 14;
-		hfdcan1.Init.NominalTimeSeg2 = 2;
-		hfdcan1.Init.DataPrescaler = 1;
-		hfdcan1.Init.DataSyncJumpWidth = 1;
-		hfdcan1.Init.DataTimeSeg1 = 1;
-		hfdcan1.Init.DataTimeSeg2 = 1;
-		hfdcan1.Init.StdFiltersNbr = 1;
-		hfdcan1.Init.ExtFiltersNbr = 0;
-		hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
-		HAL_FDCAN_Init(&hfdcan1);
-
-		/* Start the FDCAN module
-		if (HAL_FDCAN_Start(&hfdcan1) != HAL_OK)
-		{
-			Error_Handler();
-		}
-	}
-*/
-  /* USER CODE BEGIN 2 - Hardware Verification Data */
-  // uint8_t testData[] = {0xAA, 0x55, 0x00, 0xFF};  /* Commented out - not used for FDCAN test */
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-//  // 1. RE-INITIALIZE SPI to clear the "Blinky" GPIO config
-//    MX_SPI2_Init();
-//    MX_SPI3_Init();
-
-    // uint8_t test_data = 0xAA; // 10101010 pattern  /* Commented out - SPI test disabled */
-    // uint8_t test_data2 = 0xAA; // 10101010 pattern /* Commented out - SPI test disabled */
-
-    // HAL_StatusTypeDef status;  /* Commented out - SPI test disabled */
-
-    /* ========== FDCAN TEST MAIN LOOP ========== */
-    while (1)
-    {
-#if BMS_TRANSMIT_MODE
-        /* ========== BMS TRANSMIT MODE ========== */
-        /* BMS transmits ID 0x696 to VCU every 1 second */
-        /* VCU should receive and log the message */
-        if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, TxData) == HAL_OK) {
-            fdcan_tx_count++;  /* Increment on successful TX */
-        }
-        HAL_Delay(1000);
-#else
-        /* ========== BMS RECEIVE MODE ========== */
-        /* BMS receives messages from VCU via interrupt callback */
-        /* Check fdcan_rx_count, fdcan_last_rx_data[], fdcan_last_rx_id in debugger */
-        HAL_Delay(100);
-#endif
-
-        /* Read status registers for debugging */
-        fdcan_psr_register = hfdcan1.Instance->PSR;     /* Protocol Status */
-        fdcan_ecr_register = hfdcan1.Instance->ECR;     /* Error Counters (TEC[15:8], REC[7:0]) */
-        fdcan_txfqs_register = hfdcan1.Instance->TXFQS; /* TX FIFO Status */
-
-        /* ========== ORIGINAL SPI TEST CODE (COMMENTED OUT) ========== */
-        // // --- SPI 2 TEST ---
-        // // This sends 8 clock pulses on PB13
-        // status = HAL_SPI_Transmit(&hspi2, &test_data, 1, 100);
-        //
-        // // ERROR TRAP: If this hits, the peripheral is refusing to start
-        // if (status != HAL_OK) {
-        //     // Put a breakpoint here to see why!
-        //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
-        //     __NOP();
-        // }
-        //
-        // HAL_Delay(10);
-        //
-        // // --- SPI 3 TEST ---
-        // // This sends 8 clock pulses on PC10
-        //
-        //
-        // status = HAL_SPI_Transmit(&hspi3, &test_data2, 1, 100);
-        //
-        // // ERROR TRAP: If this hits, the peripheral is refusing to start
-        // if (status != HAL_OK) {
-        //     // Put a breakpoint here to see why!
-        //     // status = HAL_BUSY (2) or HAL_ERROR (1) or HAL_TIMEOUT (3)
-        //     __NOP();
-        // }
-        //
-        // // Delay 10ms (plenty of time to capture on scope)
-        // HAL_Delay(10);
-    }
+  while (1)
+  {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
+	  //HAL_Delay(100);
+	  HAL_SPI_Transmit(&hspi2, &testmessage, 1, 100);
+	 // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
+	  HAL_Delay(100);
+  }
   /* USER CODE END 3 */
 }
 
@@ -630,14 +512,14 @@ static void MX_SPI2_Init(void)
   hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi2.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi2.Init.NSS = SPI_NSS_HARD_OUTPUT;
   hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_128;
   hspi2.Init.FirstBit = SPI_FIRSTBIT_LSB;
   hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
   hspi2.Init.CRCPolynomial = 7;
   hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
-  hspi2.Init.NSSPMode = SPI_NSS_PULSE_DISABLE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
   if (HAL_SPI_Init(&hspi2) != HAL_OK)
   {
     Error_Handler();
@@ -667,7 +549,7 @@ static void MX_SPI3_Init(void)
   hspi3.Instance = SPI3;
   hspi3.Init.Mode = SPI_MODE_MASTER;
   hspi3.Init.Direction = SPI_DIRECTION_2LINES;
-  hspi3.Init.DataSize = SPI_DATASIZE_4BIT;
+  hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
   hspi3.Init.NSS = SPI_NSS_SOFT;
@@ -977,99 +859,6 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-/**
- * @brief  Retargets the C library __write function to the IAR function iar_fputc.
- * @param  file: file descriptor.
- * @param  ptr: pointer to the buffer where the data is stored.
- * @param  len: length of the data to write in bytes.
- * @retval length of the written data in bytes.
- */
-#if defined(__ICCARM__)
-size_t __write(int file, unsigned char const *ptr, size_t len)
-{
-	size_t idx;
-	unsigned char const *pdata = ptr;
-
-	for (idx = 0; idx < len; idx++)
-	{
-		iar_fputc((int)*pdata);
-		pdata++;
-	}
-	return len;
-}
-#endif /* __ICCARM__ */
-
-/**
- * @brief  Retargets the C library printf function to the USART.
- */
-PUTCHAR_PROTOTYPE
-{
-	/* Place your implementation of fputc here */
-	/* e.g. write a character to the LPUART1 and Loop until the end of transmission */
-	HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 0xFFFF);
-
-	return ch;
-}
-
-GETCHAR_PROTOTYPE
-{
-	uint8_t ch = 0;
-
-	/* Clear the Overrun flag just before receiving the first character */
-	__HAL_UART_CLEAR_OREFLAG(&hlpuart1);
-
-	/* Wait for reception of a character on the USART RX line and echo this
-	 * character on console */
-	HAL_UART_Receive(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-	HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-	return ch;
-}
-
-/* FDCAN RX Callback - Receives messages from mk11-vcu and echoes back */
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
-{
-	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
-	{
-		FDCAN_RxHeaderTypeDef localRxHeader;
-		uint8_t localRxData[8];
-
-		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &localRxHeader, localRxData) != HAL_OK)
-		{
-			fdcan_rx_error_count++;
-			return;
-		}
-
-		/* Store received data for debugging */
-		fdcan_rx_count++;
-		fdcan_last_rx_id = localRxHeader.Identifier;
-		for (int i = 0; i < 8; i++) {
-			fdcan_last_rx_data[i] = localRxData[i];
-		}
-
-		/* Also copy to global RxData/RxHeader for debugger visibility */
-		RxHeader = localRxHeader;
-		for (int i = 0; i < 8; i++) {
-			RxData[i] = localRxData[i];
-		}
-
-#if BMS_ECHO_ENABLE
-		/* Echo received message back on FDCAN1 */
-		if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &TxHeader, localRxData) == HAL_OK) {
-			fdcan_tx_count++;
-		}
-#endif
-	}
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM2)
-	{
-		// This function is called every 1ms
-		// You can add periodic tasks here
-		updateSOC();
-	}
-}
 
 /* USER CODE END 4 */
 
@@ -1080,11 +869,16 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 void Error_Handler(void)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
-	/* User can add his own implementation to report the HAL error return state */
-	__disable_irq();
-	while (1)
-	{
-	}
+  /* User can add his own implementation to report the HAL error return state */
+  __disable_irq();
+
+  /* FSAE SAFETY: Force AIRs open if the code crashes */
+  HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+
+  while (1)
+  {
+  }
   /* USER CODE END Error_Handler_Debug */
 }
 
@@ -1099,7 +893,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-	/* User can add his own implementation to report the file name and line number,
+  /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }
