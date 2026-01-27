@@ -93,6 +93,7 @@ void populateIC(cell_asic *IC, uint8_t tIC);
 void print_fault_summary(void);
 float calcCCL(void);
 float calcDCL(void);
+void BMS_ApplyTempCurrentLimits(void);
 float interpolate(float x, const float x_points[], const float y_points[], int num_points);
 float voltagetoSOC(float voltage);
 float SOCtoVoltage(float soc);

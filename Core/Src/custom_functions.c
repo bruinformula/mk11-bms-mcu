@@ -1094,7 +1094,7 @@ float calcCCL() {
 #define LIMIT_VIOLATION_GRACE_MS 200
 static uint32_t limit_violation_start = 0;
 
-void BMS_ApplyTempCurrentLimits(void)
+void BMS_ApplyTempCurrentLimits()
 {
     dcl = calcDCL();
     ccl = calcCCL();

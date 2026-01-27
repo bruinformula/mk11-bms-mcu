@@ -236,7 +236,7 @@ int main(void)
 		  case BMS_STATE_IDLE:
 			  // Check if ready power is requested
 			  if (accy_status == READY_POWER && !BMS_HasActiveFaults()) {
-				  BMS_State.current_state = BMS_STATE_IDLE; // Will attempt precharge
+				  BMS_State.current_state = BMS_STATE_PRECHARGE; // Will attempt precharge
 				  if (PRINT_ON) printf("Ready power requested\n");
 			  } else if (accy_status == CHARGE_POWER && !BMS_HasActiveFaults()) {
 				  BMS_State.current_state = BMS_STATE_CHARGING;
@@ -251,23 +251,22 @@ int main(void)
 			  break;
 
 		  case BMS_STATE_PRECHARGE:
-			if (BMS_HasActiveFaults()) {
-				if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
-				BMS_PrechargeAbort();
-				BMS_State.current_state = BMS_STATE_FAULT;
-				break;
-			}
+				if (BMS_HasActiveFaults()) {
+					if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
+					BMS_PrechargeAbort();
+					BMS_State.current_state = BMS_STATE_FAULT;
+					break;
+				}
 
-			if (BMS_State.inverter_voltage > 10.0 || current == 0 || calcDCL() > 0 || accy_status != READY_POWER) {
-				if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
-				BMS_State.current_state = BMS_STATE_FAULT;
-			}
+				if (BMS_State.inverter_voltage > 10.0 || current == 0 || calcDCL() > 0 || accy_status != READY_POWER) {
+					if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
+					BMS_State.current_state = BMS_STATE_FAULT;
+				}
 
 
-			  if (!BMS_ExecutePrecharge()) {
-
-				  // Precharge failed
-				  BMS_State.current_state = BMS_STATE_FAULT;
+			  if (!BMS_ExecutePrecharge()) BMS_State.current_state = BMS_STATE_FAULT;
+			  else {
+				  BMS_State.current_state = BMS_STATE_IDLE;
 			  }
 			  break;
 
@@ -1041,6 +1040,10 @@ bool BMS_ExecutePrecharge() {
 		}
 		prevInvVoltage = BMS_State.inverter_voltage;
 	}
+	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(GPIOC, Precharge_Enable_Pin, GPIO_PIN_RESET);
+
+	BMS_ApplyTempCurrentLimits();
 	return true;
 }
 
