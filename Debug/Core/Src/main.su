@@ -13,6 +13,6 @@
 ../Core/Src/main.c:904:13:MX_TIM8_Init	40	static
 ../Core/Src/main.c:951:13:MX_GPIO_Init	48	static
 ../Core/Src/main.c:1024:6:BMS_ExecutePrecharge	40	static
-../Core/Src/main.c:1043:6:BMS_PrechargeAbort	4	static
-../Core/Src/main.c:1052:6:HAL_FDCAN_RxFifo0Callback	72	static
-../Core/Src/main.c:1127:6:Error_Handler	8	static,ignoring_inline_asm
+../Core/Src/main.c:1048:6:BMS_PrechargeAbort	4	static
+../Core/Src/main.c:1057:6:HAL_FDCAN_RxFifo0Callback	72	static
+../Core/Src/main.c:1132:6:Error_Handler	8	static,ignoring_inline_asm

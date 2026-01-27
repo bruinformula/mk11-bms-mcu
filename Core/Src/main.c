@@ -258,7 +258,7 @@ int main(void)
 				break;
 			}
 
-			if (BMS_State.inverter_voltage > 10.0 || current > 0 || calcDCL() == 0 || accy_status != READY_POWER) {
+			if (BMS_State.inverter_voltage > 10.0 || current == 0 || calcDCL() > 0 || accy_status != READY_POWER) {
 				if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
 				BMS_State.current_state = BMS_STATE_FAULT;
 			}
@@ -348,9 +348,9 @@ int main(void)
 			  }
 			  break;
 	      }
-    /* USER CODE END WHILE */
+	/* USER CODE END WHILE */
 
-    /* USER CODE BEGIN 3 */
+	/* USER CODE BEGIN 3 */
 	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
 	  //HAL_Delay(100);
 	  HAL_SPI_Transmit(&hspi2, &testmessage, 1, 100);
@@ -1027,14 +1027,19 @@ bool BMS_ExecutePrecharge() {
 	uint32_t start = HAL_GetTick();
 	float RC = 1.0f; // TODO: actual value
 	float expCurve = 0.0f;
-	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10.) {
-		//TODO: Burst reads of inverter voltage
+
+	float prevInvVoltage = 0.0f;
+	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10. &&
+			((HAL_GetTick() - start) > 1000) && fabsf(BMS_State.inverter_voltage - prevInvVoltage) <= 0.1) {
+
 		float time = (float) ((HAL_GetTick() - start) * 0.001f);
 		expCurve = initPackVoltage * (1.0f - expf(-(time / RC)));
+
+		// if curve doesn't match expected value by > 10%, fault BMS
 		if ((fabsf(expCurve - BMS_State.inverter_voltage) / expCurve) > 0.10) {
 			return false;
-			break;
 		}
+		prevInvVoltage = BMS_State.inverter_voltage;
 	}
 	return true;
 }

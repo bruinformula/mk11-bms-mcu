@@ -12,7 +12,7 @@
 ../Core/Src/main.c:855:13:MX_TIM3_Init	4
 ../Core/Src/main.c:904:13:MX_TIM8_Init	4
 ../Core/Src/main.c:951:13:MX_GPIO_Init	1
-../Core/Src/main.c:1024:6:BMS_ExecutePrecharge	3
-../Core/Src/main.c:1043:6:BMS_PrechargeAbort	1
-../Core/Src/main.c:1052:6:HAL_FDCAN_RxFifo0Callback	6
-../Core/Src/main.c:1127:6:Error_Handler	1
+../Core/Src/main.c:1024:6:BMS_ExecutePrecharge	5
+../Core/Src/main.c:1048:6:BMS_PrechargeAbort	1
+../Core/Src/main.c:1057:6:HAL_FDCAN_RxFifo0Callback	6
+../Core/Src/main.c:1132:6:Error_Handler	1
