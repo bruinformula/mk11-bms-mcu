@@ -220,7 +220,7 @@ uint32_t getTimCount()
 #define UART_TIME_OUT HAL_MAX_DELAY             /* UART Time out delay  */
 #define I2C_TIME_OUT HAL_MAX_DELAY              /* I2C Time out delay   */
 
-SPI_HandleTypeDef *hspi         = &hspi1;       /* MUC SPI Handler      */
+SPI_HandleTypeDef *hspi         = &hspi3;       /* MUC SPI Handler      */
 UART_HandleTypeDef *huart       = &huart5;      /* MUC UART Handler     */
 I2C_HandleTypeDef *hi2c         = &hi2c1;       /* MUC I2C Handler      */
 
