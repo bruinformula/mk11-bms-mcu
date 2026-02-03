@@ -44,17 +44,7 @@ void fakeDriveParams(void);
 cell_asic IC[TOTAL_IC];
 cell_asic testIC[TOTAL_IC];
 
-//filling in test values;
-void insertingTestDataVoltage(cell_asic *IC) //call function before actually trying to extract data.
-{
-	for (uint8_t ic = 0; ic < TOTAL_IC; ic++) {
-		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
-			IC[ic].cell.c_codes[cell_num] = 2 + (ic * 0.2) + (cell_num * 0.05);
-		}
-	}
-	return;
-}
-//
+
 
 cell_asic TEMP_IC[IC_CHUNK];
 
@@ -814,6 +804,30 @@ void measurement_loop() {
 		// printStatus(TOTAL_IC, &IC[0], Status, ALL_GRP);
 	}
 }
+
+/**
+ *******************************************************************************
+ * @brief Insert test voltage values.
+ *******************************************************************************
+ */
+
+void insertingTestDataVoltage(cell_asic *IC) //call function before actually trying to extract data.
+{
+	for (uint8_t ic = 0; ic < TOTAL_IC; ic++) {
+		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
+			IC[ic].cell.c_codes[cell_num] = 2 + (ic * 0.2) + (cell_num * 0.05);
+		}
+		//min
+		//max
+		//find functions to generate random value
+		//reverse engineer
+		//some under
+		//some over
+		//then fill out the rest
+	}
+	return;
+}
+
 
 /**
  *******************************************************************************
