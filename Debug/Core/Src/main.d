@@ -1,7 +1,7 @@
 Core/Src/main.o: ../Core/Src/main.c \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -39,26 +39,27 @@ Core/Src/main.o: ../Core/Src/main.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/adbms_can_helper.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h \
- C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h:
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/can.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/dataframes.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/adbms_can_helper.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/can.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/custom_functions.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -96,20 +97,21 @@ C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/dataframes.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/adbms_can_helper.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/can.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/custom_functions.h:
-C:/Users/antho/STM32CubeIDE/workspace_1.18.1/Formula/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/can.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/dataframes.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/adbms_can_helper.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/can.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/custom_functions.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/Ratch/OneDrive/Documents/GitHub/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:

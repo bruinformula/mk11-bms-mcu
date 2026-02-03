@@ -39,21 +39,22 @@ extern Serial pc;
 void fakeChargeParams(void);
 void fakeDriveParams(void);
 
-#define TOTAL_IC 10
-#define IC_CHUNK 1
-cell_asic IC[TOTAL_IC];
-cell_asic TEMP_IC[IC_CHUNK];
+#define TOTAL_IC 1             //How many ICs are daisy chained together
+#define IC_CHUNK 1             //How many ICs are being processed each time
+cell_asic IC[TOTAL_IC];        //Array of IC with all information about the IC in cell_asic format
+cell_asic TEMP_IC[IC_CHUNK];   //Buffer array of the IC that only stored the information temporarily and check
+//temp acts as a buffer and put data buffer if invalid then does not merge with the IC array. VCU can still read lastest measured voltage
 
 /* ADC Command Configurations */
-RD REDUNDANT_MEASUREMENT = RD_OFF;
-CH AUX_CH_TO_CONVERT = AUX_ALL;
-CONT CONTINUOUS_MEASUREMENT = SINGLE;
-OW_C_S CELL_OPEN_WIRE_DETECTION = OW_OFF_ALL_CH;
+RD REDUNDANT_MEASUREMENT = RD_OFF;      //Only use primary measurement method
+CH AUX_CH_TO_CONVERT = AUX_ALL;         //Read all the GPIO at once
+CONT CONTINUOUS_MEASUREMENT = SINGLE;   //measure once and stop compared to CONTINOUS
+OW_C_S CELL_OPEN_WIRE_DETECTION = OW_OFF_ALL_CH; //open wire detection kept off during driving to maintain accurate voltage
 OW_AUX AUX_OPEN_WIRE_DETECTION = AUX_OW_OFF;
-PUP OPEN_WIRE_CURRENT_SOURCE = PUP_DOWN;
-DCP DISCHARGE_PERMITTED = DCP_OFF;
-RSTF RESET_FILTER = RSTF_OFF;
-ERR INJECT_ERR_SPI_READ = WITHOUT_ERR;
+PUP OPEN_WIRE_CURRENT_SOURCE = PUP_DOWN;   //this is related to above, check internal test current is PU or PD to check for broken wire
+DCP DISCHARGE_PERMITTED = DCP_OFF;  //allow discharging data balancing wire reading?
+RSTF RESET_FILTER = RSTF_OFF;       //flush old data or not
+ERR INJECT_ERR_SPI_READ = WITHOUT_ERR; //debug tool forcing a fake error into SPI to test error handler
 
 /*Loop Measurement Setup These Variables are ENABLED or DISABLED Remember ALL CAPS*/
 LOOP_MEASURMENT MEASURE_CELL = ENABLED; /*   This is ENABLED or DISABLED       */
@@ -68,10 +69,19 @@ LOOP_MEASURMENT MEASURE_STAT = DISABLED; /*   This is ENABLED or DISABLED       
 int8_t balancing = 0; // 0: No balancing, 1: Balancing
 float target_lowest_cell = -1;
 float internal_resistance = 0.42;
-uint8_t readSegment = 0;
+uint8_t readSegment = 0; //represented in binary showing which IC is being read atm
 
 uint16_t multiMask = 0;
 uint16_t tick = 0;
+
+/*
+Check: Loop starts; tick increments.
+Scan: The code reads the chip at readSegment.
+Analyze: It finds the lowest_cell voltage and saves it to target_lowest_cell.
+Decide: It compares every other cell to that target. If a cell is $> 10mV$ higher, it sets the corresponding bit in multiMask.
+Act: If balancing == 1, it sends the multiMask to the hardware to turn on the discharge resistors.
+Next: readSegment moves to the next chip for the next loop.
+*/
 
 typedef enum {
     BMS_STATE_INIT,
