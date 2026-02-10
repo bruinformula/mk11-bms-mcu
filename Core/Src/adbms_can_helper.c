@@ -131,6 +131,19 @@ void populate_CAN3(CAN3_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
     frame->data.checksum  = 0;
 }
 
+void populate_CAN4(CAN4_DATAFRAME *frame, cell_asic *ICs, int totalIC, bool precharge) {
+
+	frame->data.precharge_status = precharge;
+	frame->data.reserved0 = 0;
+	frame->data.reserved1 = 0;
+	frame->data.reserved2 = 0;
+	frame->data.reserved3 = 0;
+	frame->data.reserved4 = 0;
+	frame->data.reserved5 = 0;
+	frame->data.checksum  = 0;
+
+}
+
 void populate_charge_CAN(FDCAN_CHARGER_CONTEXT *CHARGER_CONTEXT, cell_asic *ICs, int totalIC) {
 	//set pack current data
 	CHARGER_CONTEXT->chgmsg_1806e7f4.data.pack_voltage = (int16_t)(getPackVoltage(totalIC, ICs) * 10.0f); // current is extern, *0.1 A for CAN

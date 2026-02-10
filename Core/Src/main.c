@@ -253,7 +253,6 @@ int main(void)
 		  case BMS_STATE_PRECHARGE:
 				if (BMS_HasActiveFaults()) {
 					if (PRINT_ON) printf("Fault detected in PRECHARGE state\n");
-					BMS_PrechargeAbort();
 					BMS_State.current_state = BMS_STATE_FAULT;
 					break;
 				}
@@ -264,17 +263,19 @@ int main(void)
 				}
 
 
-			  if (!BMS_ExecutePrecharge()) BMS_State.current_state = BMS_STATE_FAULT;
-			  else {
+				bool successful = BMS_ExecutePrecharge();
+				if (!successful) {
+				  BMS_State.current_state = BMS_STATE_FAULT;
+				} else {
 				  BMS_State.current_state = BMS_STATE_IDLE;
-			  }
-			  break;
+				}
+				populate_CAN4(&FDCAN_BMS_CONTEXT_INSTANCE->msg_6b3, &IC[0], TOTAL_IC, successful);
+				break;
 
 		  case BMS_STATE_READY:
 			  // Normal driving mode
 			  if (BMS_HasActiveFaults()) {
 				  if (PRINT_ON) printf("Fault detected in READY state\n");
-				  BMS_PrechargeAbort();
 				  BMS_State.current_state = BMS_STATE_FAULT;
 				  break;
 			  }

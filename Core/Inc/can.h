@@ -43,14 +43,17 @@ typedef struct {
 	FDCAN_TxHeaderTypeDef header_6b0;
 	FDCAN_TxHeaderTypeDef header_6b1;
 	FDCAN_TxHeaderTypeDef header_6b2;
+	FDCAN_TxHeaderTypeDef header_6b3;
 
 	CAN1_DATAFRAME msg_6b0;
 	CAN2_DATAFRAME msg_6b1;
 	CAN3_DATAFRAME msg_6b2;
+	CAN4_DATAFRAME msg_6b3;
 
 	uint32_t last_tx_time_6b0;
 	uint32_t last_tx_time_6b1;
 	uint32_t last_tx_time_6b2;
+	uint32_t last_tx_time_6b3;
 
 	FDCAN_CHARGER_CONTEXT CAN_CHGCONTEXT;
 

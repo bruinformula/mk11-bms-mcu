@@ -65,6 +65,20 @@ typedef union CAN3_DATAFRAME {
 	uint8_t array[8];
 } CAN3_DATAFRAME;
 
+typedef union CAN4_DATAFRAME {
+	struct __attribute__((packed)) {
+		bool precharge_status;    	  // Bytes 0,
+		uint8_t reserved0;   		  // Byte 1: blank
+		uint8_t reserved1;            // Byte 2: blank
+		uint8_t reserved2;            // Byte 3: blank
+		uint8_t reserved3;            // Byte 4: blank
+		uint8_t reserved4;			  // Byte 5: blank
+		uint8_t reserved5;			  // Byte 6: blank
+		uint8_t checksum;             // Byte 7
+	} data;
+	uint8_t array[8];
+} CAN4_DATAFRAME;
+
 
 /** CHARGER CAN MESSAGES **/
 typedef union CHARGER_MSG_1806e7f4 {
