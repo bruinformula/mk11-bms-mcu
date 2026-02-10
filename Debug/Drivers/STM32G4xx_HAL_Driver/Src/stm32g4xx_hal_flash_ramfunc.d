@@ -1,7 +1,7 @@
 Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_flash_ramfunc.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_flash_ramfunc.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- C:/Users/Ratch/OneDrive/Documents/GitHub/mk10-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -27,20 +27,14 @@ Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_flash_ramfunc.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ramfunc.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rtc.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rtc_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-C:/Users/Ratch/OneDrive/Documents/GitHub/mk10-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -66,15 +60,9 @@ C:/Users/Ratch/OneDrive/Documents/GitHub/mk10-bms-mcu/Core/Inc/stm32g4xx_hal_con
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_flash_ramfunc.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_i2c_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_pwr_ex.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rtc.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rtc_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_spi_ex.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h:
-../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:

@@ -18,7 +18,6 @@ and its licensor.
 */
 #include "common.h"
 #include "serialPrintResult.h"
-#include "custom_functions.h"
 
 #ifdef MBED
 extern Serial pc;

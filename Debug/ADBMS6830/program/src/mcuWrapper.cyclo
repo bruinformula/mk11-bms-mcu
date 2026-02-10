@@ -1,7 +1,7 @@
-../ADBMS6830/program/src/mcuWrapper.c:244:6:Delay_ms	1
-../ADBMS6830/program/src/mcuWrapper.c:260:6:adBmsCsLow	1
-../ADBMS6830/program/src/mcuWrapper.c:276:6:adBmsCsHigh	1
-../ADBMS6830/program/src/mcuWrapper.c:296:6:spiWriteBytes	2
-../ADBMS6830/program/src/mcuWrapper.c:326:6:spiWriteReadBytes	1
-../ADBMS6830/program/src/mcuWrapper.c:352:6:spiReadBytes	1
-../ADBMS6830/program/src/mcuWrapper.c:424:6:adBmsWakeupIc	2
+../ADBMS6830/program/src/mcuWrapper.c:240:6:Delay_ms	1
+../ADBMS6830/program/src/mcuWrapper.c:256:6:adBmsCsLow	1
+../ADBMS6830/program/src/mcuWrapper.c:272:6:adBmsCsHigh	1
+../ADBMS6830/program/src/mcuWrapper.c:292:6:spiWriteBytes	2
+../ADBMS6830/program/src/mcuWrapper.c:322:6:spiWriteReadBytes	1
+../ADBMS6830/program/src/mcuWrapper.c:348:6:spiReadBytes	1
+../ADBMS6830/program/src/mcuWrapper.c:420:6:adBmsWakeupIc	2

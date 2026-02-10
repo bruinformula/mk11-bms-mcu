@@ -24,8 +24,6 @@ and its licensor.
 
 #include <stdint.h>
 #include "adbms_main.h"
-#include "can.h"
-
 
 void app_main(void);
 void run_command(int cmd);

@@ -52,7 +52,6 @@ typedef union CAN2_DATAFRAME {
 } CAN2_DATAFRAME;
 
 
-
 typedef union CAN3_DATAFRAME {
 	struct __attribute__((packed)) {
 		uint16_t low_cell_voltage;    // Bytes 0–1, *0.0001 V

@@ -29,16 +29,18 @@ and its licensor.
 #include "stm32g4xx_hal.h"
 #include "stm32g4xx_it.h"
 
+// USER: PERIPHERAL HEADER FILES
+#include "adc.h"
+#include "spi.h"
+#include "usart.h"
 
 extern ADC_HandleTypeDef hadc1;         /* Mcu dependent ADC handler */
-extern I2C_HandleTypeDef hi2c1;         /* Mcu dependent I2C handler */
-extern I2C_HandleTypeDef hi2c3;         /* Mcu dependent I2C handler */
-extern SPI_HandleTypeDef hspi1;         /* Mcu dependent SPI handler */
+extern ADC_HandleTypeDef hadc2;
+extern SPI_HandleTypeDef hspi2;         /* Mcu dependent SPI handler */
 extern SPI_HandleTypeDef hspi3;         /* Mcu dependent SPI handler */
-extern UART_HandleTypeDef huart4;       /* Mcu dependent UART handler */
-extern UART_HandleTypeDef huart5;       /* Mcu dependent UART handler */
+extern UART_HandleTypeDef hlpuart1;
 
-#define CS_PIN GPIO_PIN_6               /* Mcu dependent chip select */
+#define CS_PIN GPIO_PIN_12              /* Mcu dependent chip select */
 #define GPIO_PORT GPIOB      /* Mcu dependent adc chip select port */
 #endif
 

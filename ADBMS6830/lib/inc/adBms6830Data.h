@@ -76,6 +76,7 @@ typedef struct
   uint8_t   fc      :3;   /* Filter configuration for specific modes */
   uint8_t   reserved:5;   /* Reserved bits to align to register size */
 } cfc_;
+
 /* Cell Voltage Data structure */
 typedef struct
 {
