@@ -23,6 +23,7 @@
 #include "fdcan.h"
 #include "usart.h"
 #include "spi.h"
+#include "tim.h"
 #include "gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
@@ -137,6 +138,7 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   MX_ADC1_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
 //  setvbuf(stdin, NULL, _IONBF, 0);

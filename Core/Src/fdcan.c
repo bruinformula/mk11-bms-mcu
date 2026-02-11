@@ -21,7 +21,7 @@
 #include "fdcan.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "prchg.h"
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -101,7 +101,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* FDCAN1 interrupt Init */
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 1, 0);
+    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
   /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
@@ -135,5 +135,34 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
+FDCAN_BMS_CONTEXT FDCAN_BMS;
+FDCAN_CHARGER_CONTEXT FDCAN_CHARGER;
+void configureCAN_TxMessage(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id) {
+	tx_msg->Identifier = std_id;
+	tx_msg->IdType = FDCAN_STANDARD_ID;
+	tx_msg->TxFrameType = FDCAN_DATA_FRAME;
+	tx_msg->DataLength = FDCAN_DLC_BYTES_8;
+	tx_msg->ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+	tx_msg->BitRateSwitch = FDCAN_BRS_OFF;
+	tx_msg->FDFormat = FDCAN_CLASSIC_CAN;
+	tx_msg->TxEventFifoControl = FDCAN_STORE_TX_EVENTS;
+	tx_msg->MessageMarker = 0;
+}
 
+FDCAN_RxHeaderTypeDef BMS_RxHeader;
+uint8_t BMS_RxData[8];
+
+void BMS_CAN_RxHandler() {
+	uint16_t msg_id = BMS_RxHeader.Identifier;
+	switch (msg_id) {
+	case PRECHARGE_REQUEST_RX_ID:
+		prechargeSequence();
+		break;
+
+	case INVERTER_VOLTAGE_RX_ID:
+		int16_t inverter_dc_volts_raw = (int16_t) ((BMS_RxData[1] << 8) | BMS_RxData[0]);
+		inverter_dc_volts = inverter_dc_volts_raw*0.1;
+		break;
+	}
+}
 /* USER CODE END 1 */
