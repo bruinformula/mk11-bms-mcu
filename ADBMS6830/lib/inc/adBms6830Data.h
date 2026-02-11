@@ -69,14 +69,6 @@ typedef struct
   uint16_t 	dcc     :16;
 }cfb_;
 
-
-typedef struct
-{
-  uint16_t  cell_en :16;  /* Bits 0-15: Enable mask for Cells 1-16 */
-  uint8_t   fc      :3;   /* Filter configuration for specific modes */
-  uint8_t   reserved:5;   /* Reserved bits to align to register size */
-} cfc_;
-
 /* Cell Voltage Data structure */
 typedef struct
 {
@@ -274,8 +266,6 @@ typedef struct
   cfa_ rx_cfga;
   cfb_ tx_cfgb;
   cfb_ rx_cfgb;
-  cfc_ tx_cfgc;
-  cfc_ rx_cfgc;
   clrflag_ clflag;
   cv_  cell;
   acv_ acell;
@@ -294,7 +284,6 @@ typedef struct
   sid_ sid;
   ic_register_ configa;
   ic_register_ configb;
-  ic_register_ configc;
   ic_register_ clrflag;
   ic_register_ stat;
   ic_register_ com;

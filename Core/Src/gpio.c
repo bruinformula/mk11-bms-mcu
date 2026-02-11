@@ -54,7 +54,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOC, NEG_AIR_GND_Pin|POS_AIR_GND_Pin|PRECHARGE_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(CHRG_DISCHRG_ENABLE_GPIO_Port, CHRG_DISCHRG_ENABLE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(CHRG_DSCHRG_ENABLE_GPIO_Port, CHRG_DSCHRG_ENABLE_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(SPI3_CS_GPIO_Port, SPI3_CS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pins : NEG_AIR_GND_Pin POS_AIR_GND_Pin PRECHARGE_Pin */
   GPIO_InitStruct.Pin = NEG_AIR_GND_Pin|POS_AIR_GND_Pin|PRECHARGE_Pin;
@@ -69,18 +72,25 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : CHRG_DISCHRG_ENABLE_Pin */
-  GPIO_InitStruct.Pin = CHRG_DISCHRG_ENABLE_Pin;
+  /*Configure GPIO pin : CHRG_DSCHRG_ENABLE_Pin */
+  GPIO_InitStruct.Pin = CHRG_DSCHRG_ENABLE_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(CHRG_DISCHRG_ENABLE_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(CHRG_DSCHRG_ENABLE_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : J1772_PILOT_SWITCH_Pin SHUTDOWN_POWER_Pin READY_SIGNAL_Pin */
   GPIO_InitStruct.Pin = J1772_PILOT_SWITCH_Pin|SHUTDOWN_POWER_Pin|READY_SIGNAL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SPI3_CS_Pin */
+  GPIO_InitStruct.Pin = SPI3_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(SPI3_CS_GPIO_Port, &GPIO_InitStruct);
 
 }
 

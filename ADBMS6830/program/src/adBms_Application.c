@@ -33,10 +33,7 @@ extern Serial pc;
 *******************************************************************************
 */
 
-#define TOTAL_IC 1
-// #define IC_CHUNK 1
 cell_asic IC[TOTAL_IC];
-// cell_asic TEMP_IC[IC_CHUNK]
 
 /* ADC Command Configurations */
 RD      REDUNDANT_MEASUREMENT           = RD_OFF;

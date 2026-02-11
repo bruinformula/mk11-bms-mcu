@@ -90,18 +90,10 @@ void adBms6830_read_rdcsall_voltage(uint8_t tIC, cell_asic *ic);
 void adBms6830_read_rdacsall_voltage(uint8_t tIC, cell_asic *ic);
 void adBms6830_read_rdasall_voltage(uint8_t tIC, cell_asic *ic);
 
-void adbms_main(int command);
+void adbms_main(void);
 
-// NEW FUNCTIONS
-int user_adBms6830_cellFault(uint8_t tIC, cell_asic *IC);
-int user_adBms6830_tempFault(uint8_t tIC, cell_asic *IC);
-void user_adBms6830_setFaults(void);
-void user_adBms6830_getAccyStatus(void);
-uint8_t getCurrentSensorData(void);
-float getCurrentVoltage(int value);
-void printFloat(float num);
-void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle);
-void stopBalancing(uint8_t tIC, cell_asic *ic);
+#define TOTAL_IC 1
+extern cell_asic IC[TOTAL_IC]; // USER ADDITION
 
 #endif
 /** @}*/

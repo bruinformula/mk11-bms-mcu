@@ -170,40 +170,6 @@ uint16_t ConfigB_DccBit(DCC dcc, DCC_BIT dccbit)
 
 /**
  *******************************************************************************
- * Function: ConfigB_DccBits
- * @brief Build a mask to set or clear multiple DCC bits at once.
- *
- * @details Provide a bit-mask where each bit position corresponds to one cell’s
- *          DCC bit (bit-0 ⇒ Cell 1, bit-1 ⇒ Cell 2, …, bit-15 ⇒ Cell 16).  When
- *          `dccbit` is `DCC_BIT_SET` the mask is returned unchanged, ready to be
- *          OR’ed into `tx_cfgb.dcc`.  When `dccbit` is `DCC_BIT_CLR` the helper
- *          returns `0`; callers typically clear bits by AND’ing the existing
- *          field with the bitwise-NOT of their mask.
- *
- * Parameters:
- * @param [in]  mask     16-bit mask indicating which DCC bits to modify.
- * @param [in]  dccbit   `DCC_BIT_SET` to enable, `DCC_BIT_CLR` to disable.
- *
- * @return uint16_t      Value suitable for the `dcc` field in Config-B.
- *
- *******************************************************************************
- */
-uint16_t ConfigB_DccBits(uint16_t mask, DCC_BIT dccbit)
-{
-    if (dccbit == DCC_BIT_SET)
-    {
-        /* Enable the requested DCC bits */
-        return mask;
-    }
-    else
-    {
-        /* Clearing: caller should clear these bits with AND & ~mask */
-        return 0;
-    }
-}
-
-/**
- *******************************************************************************
  * Function: SetConfig_B_DischargeTimeOutValue
  * @brief Set Config B Discharge Time Out Value.
  *
@@ -355,24 +321,6 @@ void adBms6830ParseConfigb(uint8_t tIC, cell_asic *ic, uint8_t *data)
   }
 }
 
-void adBms6830ParseConfigc(uint8_t tIC, cell_asic *ic, uint8_t *data)
-{
-  for(uint8_t curr_ic = 0; curr_ic < tIC; curr_ic++)
-  {
-    /* Byte 0 and 1: Cell Enable Mask (1 bit per cell, 16 cells) */
-    ic[curr_ic].configc.tx_data[0] = (ic[curr_ic].tx_cfgc.cell_en & 0x00FF);
-    ic[curr_ic].configc.tx_data[1] = ((ic[curr_ic].tx_cfgc.cell_en & 0xFF00) >> 8);
-
-    /* Bytes 2-5: Reserved / Other features (Set to 0) */
-    ic[curr_ic].configc.tx_data[2] = 0x00;
-    ic[curr_ic].configc.tx_data[3] = 0x00;
-    ic[curr_ic].configc.tx_data[4] = 0x00;
-    ic[curr_ic].configc.tx_data[5] = 0x00;
-  }
-}
-
-
-
 /**
  *******************************************************************************
  * Function: adBms6830ParseConfig
@@ -405,10 +353,6 @@ void adBms6830ParseConfig(uint8_t tIC, cell_asic *ic, GRP grp, uint8_t *data)
   case B:
     adBms6830ParseConfigb(tIC, &ic[0], &data[0]);
     break;
-
-  case C:
-	adBms6830ParseConfigc(tIC, &ic[0], &data[0]);
-	break;
 
   default:
     break;
@@ -1516,24 +1460,6 @@ void adBms6830CreateConfigb(uint8_t tIC, cell_asic *ic)
     ic[curr_ic].configb.tx_data[3] = (((ic[curr_ic].tx_cfgb.dtmen & 0x01) << 7) | ((ic[curr_ic].tx_cfgb.dtrng & 0x01) << 6) | ((ic[curr_ic].tx_cfgb.dcto & 0x3F) << 0));
     ic[curr_ic].configb.tx_data[4] = ((ic[curr_ic].tx_cfgb.dcc & 0xFF));
     ic[curr_ic].configb.tx_data[5] = ((ic[curr_ic].tx_cfgb.dcc >>8 ));
-  }
-}
-
-void adBms6830CreateConfigc(uint8_t tIC, cell_asic *ic)
-{
-  for(uint8_t curr_ic = 0; curr_ic < tIC; curr_ic++)
-  {
-    /* Byte 0 and 1: 16-bit Cell Enable Mask */
-    ic[curr_ic].configc.tx_data[0] = (ic[curr_ic].tx_cfgc.cell_en & 0x00FF);
-    ic[curr_ic].configc.tx_data[1] = ((ic[curr_ic].tx_cfgc.cell_en & 0xFF00) >> 8);
-
-    /* Byte 2: Filter Configuration [2:0] */
-    ic[curr_ic].configc.tx_data[2] = (ic[curr_ic].tx_cfgc.fc & 0x07);
-
-    /* Bytes 3-5: Reserved (Set to 0 for safety) */
-    ic[curr_ic].configc.tx_data[3] = 0x00;
-    ic[curr_ic].configc.tx_data[4] = 0x00;
-    ic[curr_ic].configc.tx_data[5] = 0x00;
   }
 }
 

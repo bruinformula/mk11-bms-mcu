@@ -21,6 +21,10 @@ and its licensor.
 #define WAKEUP_DELAY 1                          /* BMS ic wakeup delay  */
 #define TIM_EN 0
 
+// USER INCLUDES
+#include "spi.h"
+#include "usart.h"
+
 #ifdef MBED
 extern Serial pc;
 extern SPI spi;
@@ -33,7 +37,7 @@ extern DigitalOut chip_select;
  * @brief Delay mili second
  *
  * @details This function insert delay in ms.
- *     
+ *
  * Parameters:
  * @param [in]  delay   Delay_ms
  *
@@ -89,14 +93,14 @@ void adBmsCsHigh()
  *
  * @param [in]  size            Numberof bytes to be send on the SPI line
  *
- * @param [in]  *tx_Data    Tx data pointer 
+ * @param [in]  *tx_Data    Tx data pointer
  *
  * @return None
  *
  *******************************************************************************
 */
 void spiWriteBytes
-( 
+(
 uint16_t size,                     /*Option: Number of bytes to be written on the SPI port*/
 uint8_t *tx_data                       /*Array of bytes to be written on the SPI port*/
 )
@@ -114,9 +118,9 @@ uint8_t *tx_data                       /*Array of bytes to be written on the SPI
  *
  * @param [in]  *tx_data    Tx data pointer
  *
- * @param [in]  *rx_data    Rx data pointer 
+ * @param [in]  *rx_data    Rx data pointer
  *
- * @param [in]  size            Data size 
+ * @param [in]  size            Data size
  *
  * @return None
  *
@@ -128,7 +132,7 @@ uint8_t *tx_data,                   /*array of data to be written on SPI port*/
 uint8_t *rx_data,                   /*Input: array that will store the data read by the SPI port*/
 uint16_t size                           /*Option: number of bytes*/
 )
-{  
+{
   uint16_t data_size = (4 + size);
   uint8_t cmd[data_size];
   memcpy(&cmd[0], &tx_data[0], 4); /* dst, src, size */
@@ -143,16 +147,16 @@ uint16_t size                           /*Option: number of bytes*/
  *
  * @details This function Read a set number of bytes using the SPI port.
  *
- * @param [in]  size            Data size 
+ * @param [in]  size            Data size
  *
  * @param [in]  *rx_data    Rx data pointer
- * 
+ *
  * @return None
  *
  *******************************************************************************
 */
 void spiReadBytes(uint16_t size, uint8_t *rx_data)
-{   
+{
   uint8_t tx_data[size];
   for(uint8_t i=0; i < size; i++)
   {
@@ -165,7 +169,7 @@ void spiReadBytes(uint16_t size, uint8_t *rx_data)
 /**
  *******************************************************************************
  * Function: startTimer()
- * @brief Start timer 
+ * @brief Start timer
  *
  * @details This function start the timer.
  *
@@ -174,14 +178,14 @@ void spiReadBytes(uint16_t size, uint8_t *rx_data)
  *******************************************************************************
 */
 void startTimer()
-{   
+{
   timer.start();
 }
 
 /**
  *******************************************************************************
  * Function: stopTimer()
- * @brief Stop timer 
+ * @brief Stop timer
  *
  * @details This function stop the timer.
  *
@@ -190,14 +194,14 @@ void startTimer()
  *******************************************************************************
 */
 void stopTimer()
-{   
+{
   timer.stop();
 }
 
 /**
  *******************************************************************************
  * Function: getTimCount()
- * @brief Get Timer Count Value 
+ * @brief Get Timer Count Value
  *
  * @details This function return the timer count value.
  *
@@ -206,7 +210,7 @@ void stopTimer()
  *******************************************************************************
 */
 uint32_t getTimCount()
-{   
+{
   uint32_t count = 0;
   count = timer.read_us();
   timer.reset();
@@ -216,12 +220,16 @@ uint32_t getTimCount()
 
 #else
 
+//extern SPI_HandleTypeDef hspi2;
+//extern UART_HandleTypeDef hlpuart1;
+
 #define SPI_TIME_OUT HAL_MAX_DELAY              /* SPI Time out delay   */
 #define UART_TIME_OUT HAL_MAX_DELAY             /* UART Time out delay  */
-#define I2C_TIME_OUT HAL_MAX_DELAY              /* I2C Time out delay   */
+//#define I2C_TIME_OUT HAL_MAX_DELAY              /* I2C Time out delay   */
 
-SPI_HandleTypeDef *hspi         = &hspi2;       /* MUC SPI Handler      */
+SPI_HandleTypeDef *hspi         = &hspi3;       /* MUC SPI Handler      */
 UART_HandleTypeDef *huart       = &hlpuart1;      /* MUC UART Handler     */
+//I2C_HandleTypeDef *hi2c         = &hi2c1;       /* MUC I2C Handler      */
 
 /**
  *******************************************************************************
@@ -229,7 +237,7 @@ UART_HandleTypeDef *huart       = &hlpuart1;      /* MUC UART Handler     */
  * @brief Delay mili second
  *
  * @details This function insert delay in ms.
- *     
+ *
  * Parameters:
  * @param [in]  delay   Delay_ms
  *
@@ -283,14 +291,14 @@ void adBmsCsHigh()
  *
  * @param [in]  size            Numberof bytes to be send on the SPI line
  *
- * @param [in]  *tx_Data    Tx data pointer 
+ * @param [in]  *tx_Data    Tx data pointer
  *
  * @return None
  *
  *******************************************************************************
 */
 void spiWriteBytes
-( 
+(
 uint16_t size,                     /*Option: Number of bytes to be written on the SPI port*/
 uint8_t *tx_Data                       /*Array of bytes to be written on the SPI port*/
 )
@@ -311,9 +319,9 @@ uint8_t *tx_Data                       /*Array of bytes to be written on the SPI
  *
  * @param [in]  *tx_data    Tx data pointer
  *
- * @param [in]  *rx_data    Rx data pointer 
+ * @param [in]  *rx_data    Rx data pointer
  *
- * @param [in]  size            Data size 
+ * @param [in]  size            Data size
  *
  * @return None
  *
@@ -337,23 +345,23 @@ uint16_t size                           /*Option: number of bytes*/
  *
  * @details This function Read a set number of bytes using the SPI port.
  *
- * @param [in]  size            Data size 
+ * @param [in]  size            Data size
  *
  * @param [in]  *rx_data    Rx data pointer
- * 
+ *
  * @return None
  *
  *******************************************************************************
 */
 void spiReadBytes(uint16_t size, uint8_t *rx_data)
-{   
+{
   HAL_SPI_Receive(hspi, rx_data, size, SPI_TIME_OUT);
 }
 #if TIM_EN
 /**
  *******************************************************************************
  * Function: startTimer()
- * @brief Start timer 
+ * @brief Start timer
  *
  * @details This function start the timer.
  *
@@ -362,14 +370,14 @@ void spiReadBytes(uint16_t size, uint8_t *rx_data)
  *******************************************************************************
 */
 void startTimer()
-{   
+{
   HAL_TIM_Base_Start(htim);
 }
 
 /**
  *******************************************************************************
  * Function: stopTimer()
- * @brief Stop timer 
+ * @brief Stop timer
  *
  * @details This function stop the timer.
  *
@@ -378,14 +386,14 @@ void startTimer()
  *******************************************************************************
 */
 void stopTimer()
-{   
+{
   HAL_TIM_Base_Stop(htim);
 }
 
 /**
  *******************************************************************************
  * Function: getTimCount()
- * @brief Get Timer Count Value 
+ * @brief Get Timer Count Value
  *
  * @details This function return the timer count value.
  *
@@ -394,7 +402,7 @@ void stopTimer()
  *******************************************************************************
 */
 uint32_t getTimCount()
-{   
+{
   uint32_t count = 0;
   count = __HAL_TIM_GetCounter(htim);
   __HAL_TIM_SetCounter(htim, 0);

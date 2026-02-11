@@ -73,8 +73,8 @@ void Error_Handler(void);
 #define LPUART1_TX_GPIO_Port GPIOA
 #define LPUART1_RX_Pin GPIO_PIN_3
 #define LPUART1_RX_GPIO_Port GPIOA
-#define CHRG_DISCHRG_ENABLE_Pin GPIO_PIN_6
-#define CHRG_DISCHRG_ENABLE_GPIO_Port GPIOA
+#define CHRG_DSCHRG_ENABLE_Pin GPIO_PIN_6
+#define CHRG_DSCHRG_ENABLE_GPIO_Port GPIOA
 #define J1772_PILOT_SWITCH_Pin GPIO_PIN_0
 #define J1772_PILOT_SWITCH_GPIO_Port GPIOB
 #define LOW_CURRENT_SENSOR_Pin GPIO_PIN_1
@@ -87,6 +87,8 @@ void Error_Handler(void);
 #define READY_SIGNAL_GPIO_Port GPIOB
 #define CHARGE_SIGNAL_Pin GPIO_PIN_9
 #define CHARGE_SIGNAL_GPIO_Port GPIOA
+#define SPI3_CS_Pin GPIO_PIN_6
+#define SPI3_CS_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 

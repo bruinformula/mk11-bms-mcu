@@ -109,14 +109,21 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
+  setvbuf(stdin, NULL, _IONBF, 0);
 
+//  adbms_main();
+
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  Delay_ms(10);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		adbms_main(16);
+		adBms6830_read_cell_voltages(TOTAL_IC, IC);
+		Delay_ms(500);
 	}
     /* USER CODE END WHILE */
 
@@ -220,37 +227,27 @@ GETCHAR_PROTOTYPE
 	return ch;
 }
 
-/*placeholder echo function*/
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
-{
-	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
-	{
-		FDCAN_RxHeaderTypeDef localRxHeader;
-		uint8_t localRxData[8];
-
-		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &localRxHeader, localRxData) != HAL_OK)
-		{
-			Error_Handler();
-			return;
-		}
-
-		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &TxHeader, localRxData) != HAL_OK)
-		{
-			Error_Handler();
-			return;
-		}
-	}
-}
-
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-	if (htim->Instance == TIM2)
-	{
-		// This function is called every 1ms
-		// You can add periodic tasks here
-		updateSOC();
-	}
-}
+/// FDCAN RX Callback Implementation
+//void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+//{
+//	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
+//	{
+//		FDCAN_RxHeaderTypeDef localRxHeader;
+//		uint8_t localRxData[8];
+//
+//		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &localRxHeader, localRxData) != HAL_OK)
+//		{
+//			Error_Handler();
+//			return;
+//		}
+//
+//		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &TxHeader, localRxData) != HAL_OK)
+//		{
+//			Error_Handler();
+//			return;
+//		}
+//	}
+//}
 
 /* USER CODE END 4 */
 
