@@ -18,7 +18,6 @@ and its licensor.
 */
 #include "common.h"
 #include "serialPrintResult.h"
-#include "custom_functions.h"
 
 #ifdef MBED
 extern Serial pc;
@@ -232,7 +231,6 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
       else if(type == S_volt){ temp = IC[ic].scell.sc_codes[index]; }
       else if(type == Aux){ temp = IC[ic].aux.a_codes[index]; }
       else if(type == RAux){ temp = IC[ic].raux.ra_codes[index]; }
-      printf("Temp: %d", temp);
       voltage = getVoltage(temp);
       if(type == Cell)
       {
@@ -338,7 +336,7 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
         voltage = getVoltage(IC[ic].stata.vref3);
         pc.printf("VREF3:%fV, ", voltage);
         voltage = getVoltage(IC[ic].stata.itmp);
-        pc.printf("ITMP:%fï¿½C\n", (voltage/0.0075)-273);
+        pc.printf("ITMP:%f°C\n", (voltage/0.0075)-273);
 
         pc.printf("CCount:%d, ",IC[ic].cccrc.cmd_cntr);
         pc.printf("PECError:%d\n\n",IC[ic].cccrc.stat_pec);
@@ -443,7 +441,7 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
         voltage = getVoltage(IC[ic].stata.vref3);
         pc.printf("VREF3:%fV, ", voltage);
         voltage = getVoltage(IC[ic].stata.itmp);
-        pc.printf("ITMP:%fï¿½C\n\n", (voltage/0.0075)-273);
+        pc.printf("ITMP:%f°C\n\n", (voltage/0.0075)-273);
 
         pc.printf("Status B:\n");
         voltage = getVoltage(IC[ic].statb.va);
@@ -1137,7 +1135,6 @@ void printWriteConfig(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 */
 void printReadConfig(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1214,7 +1211,6 @@ void printReadConfig(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
       else{ printf("Wrong Register Group Select\n"); }
     }
   }
-	}
 }
 
 /**
@@ -1237,7 +1233,6 @@ void printReadConfig(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 */
 void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
 {
-	if (PRINT_ON) {
   float voltage;
   int16_t temp;
   uint8_t channel;
@@ -1259,14 +1254,9 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
       else if(type == Aux){ temp = IC[ic].aux.a_codes[index]; }
       else if(type == RAux){ temp = IC[ic].raux.ra_codes[index]; }
       voltage = getVoltage(temp);
-
       if(type == Cell)
       {
-    	printf("C%d=%fV, ",(index+1), voltage);
-//    	printf("%d", ((int) voltage * 100)/100);
-//    	printf(".%d", ((int) (voltage * 1000) - ((int) voltage * 1000)));
-//    	printf("V, ");
-
+        printf("C%d=%fV,",(index+1), voltage);
         if(index == (channel-1))
         {
           printf("CCount:%d,",IC[ic].cccrc.cmd_cntr);
@@ -1304,31 +1294,18 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
       {
         if(index <= 9)
         {
-        	float V = voltage;
-        	float temperature = -225.6985 * (V * V * V) + 1310.5937 * (V * V) + -2594.7697 * V + 1767.8260;
-        	printf("AUX%d=%fC, ",(index+1), temperature);
-//        	printf("%d", ((int) temperature * 100)/100);
-//        	printf(".%d", ((int) (temperature * 1000) - ((int) temperature * 1000)));
-//        	printf("C, ");
+          printf("AUX%d=%fV,",(index+1), voltage);
         }
-      //   else if(index == 10)
-      //   {
-      //   	float V = voltage;
-			// float temp = -225.6985 * (V * V * V) + 1310.5937 * (V * V) + -2594.7697 * V + 1767.8260;
-			// printf("VMV%d=",(index+1));
-			// printf("%d", ((int) temp * 100)/100);
-			// printf(".%d", ((int) (temp * 1000) - ((int) temp * 1000)));
-			// printf("C, ");
-      //   }
-      //   else if(index == 11)
-      //   {
-      //   	float V = voltage;
-			// float temp = -225.6985 * (V * V * V) + 1310.5937 * (V * V) + -2594.7697 * V + 1767.8260;
-			// printf("V+%d=",(index+1));
-			// printf("%d", ((int) temp * 100)/100);
-			// printf(".%d", ((int) (temp * 1000) - ((int) temp * 1000)));
-			// printf("C, ");
-      //   }
+        else if(index == 10)
+        {
+          printf("VMV:%fV,",(20 * voltage));
+        }
+        else if(index == 11)
+        {
+          printf("V+:%fV,",(20 * voltage));
+          printf("CCount:%d,",IC[ic].cccrc.cmd_cntr);
+          printf("PECError:%d",IC[ic].cccrc.aux_pec);
+        }
       }
       else if(type == RAux)
       {
@@ -1343,8 +1320,6 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
     }
     printf("\n\n");
   }
-	}
-
 }
 
 /**
@@ -1369,7 +1344,6 @@ void printVoltages(uint8_t tIC, cell_asic *IC, TYPE type)
 */
 void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 {
-	if (PRINT_ON) {
   float voltage;
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
@@ -1384,7 +1358,7 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
         voltage = getVoltage(IC[ic].stata.vref3);
         printf("VREF3:%fV, ", voltage);
         voltage = getVoltage(IC[ic].stata.itmp);
-        printf("ITMP:%fï¿½C\n", (voltage/0.0075)-273);
+        printf("ITMP:%f°C\n", (voltage/0.0075)-273);
 
         printf("CCount:%d, ",IC[ic].cccrc.cmd_cntr);
         printf("PECError:%d\n\n",IC[ic].cccrc.stat_pec);
@@ -1489,7 +1463,7 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
         voltage = getVoltage(IC[ic].stata.vref3);
         printf("VREF3:%fV, ", voltage);
         voltage = getVoltage(IC[ic].stata.itmp);
-        printf("ITMP:%fï¿½C\n\n", (voltage/0.0075)-273);
+        printf("ITMP:%f°C\n\n", (voltage/0.0075)-273);
 
         printf("Status B:\n");
         voltage = getVoltage(IC[ic].statb.va);
@@ -1568,7 +1542,6 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
       else{ printf("Wrong Register Group Select\n"); }
     }
   }
-	}
 }
 
 /**
@@ -1591,7 +1564,6 @@ void printStatus(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 */
 void printDeviceSID(uint8_t tIC, cell_asic *IC, TYPE type)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1609,7 +1581,6 @@ void printDeviceSID(uint8_t tIC, cell_asic *IC, TYPE type)
      }
      else{ printf("Wrong Register Type Select\n"); }
   }
-	}
 }
 
 /**
@@ -1634,7 +1605,6 @@ void printDeviceSID(uint8_t tIC, cell_asic *IC, TYPE type)
 */
 void printWritePwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1670,7 +1640,6 @@ void printWritePwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
     }
     else{ printf("Wrong Register Group Select\n"); }
   }
-	}
 }
 
 /**
@@ -1695,7 +1664,6 @@ void printWritePwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 */
 void printReadPwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1753,7 +1721,6 @@ void printReadPwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
     }
     else{ printf("Wrong Register Type Select\n"); }
   }
-	}
 }
 
 /**
@@ -1776,7 +1743,6 @@ void printReadPwmDutyCycle(uint8_t tIC, cell_asic *IC, TYPE type, GRP grp)
 */
 void printWriteCommData(uint8_t tIC, cell_asic *IC, TYPE type)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1792,7 +1758,6 @@ void printWriteCommData(uint8_t tIC, cell_asic *IC, TYPE type)
     }
     else{ printf("Wrong Register Group Select\n"); }
   }
-	}
 }
 
 /**
@@ -1815,7 +1780,6 @@ void printWriteCommData(uint8_t tIC, cell_asic *IC, TYPE type)
 */
 void printReadCommData(uint8_t tIC, cell_asic *IC, TYPE type)
 {
-	if (PRINT_ON) {
   for(uint8_t ic = 0; ic < tIC; ic++)
   {
     printf("IC%d:\n",(ic+1));
@@ -1836,7 +1800,6 @@ void printReadCommData(uint8_t tIC, cell_asic *IC, TYPE type)
     }
     else{ printf("Wrong Register Type Select\n"); }
   }
-	}
 }
 
 /**
@@ -1859,7 +1822,6 @@ void printReadCommData(uint8_t tIC, cell_asic *IC, TYPE type)
 */
 void printDiagnosticTestResult(uint8_t tIC, cell_asic *IC, DIAGNOSTIC_TYPE type)
 {
-	if (PRINT_ON) {
   if(type == OSC_MISMATCH)
   {
     printf("OSC Diagnostic Test:\n");
@@ -1926,7 +1888,6 @@ void printDiagnosticTestResult(uint8_t tIC, cell_asic *IC, DIAGNOSTIC_TYPE type)
     printf("\n\n");
   }
   else{printf("Wrong Diagnostic Selected\n");}
-	}
 }
 
 /**
@@ -1945,7 +1906,6 @@ void printDiagnosticTestResult(uint8_t tIC, cell_asic *IC, DIAGNOSTIC_TYPE type)
 */
 void diagnosticTestResultPrint(uint8_t result)
 {
-
   if(result == 1)
   {
     printf("PASS\n");
@@ -2103,7 +2063,6 @@ void printMenu()
   printf("Print '0' for menu\n");
   printf("Please enter command: \n");
   printf("\n\n");
-
 }
 #endif
 
@@ -2123,7 +2082,6 @@ void printMenu()
 */
 float getVoltage(int data)
 {
-//	printf("%d", data);
     float voltage_float; //voltage in Volts
     voltage_float = ((data + 10000) * 0.000150);
     return voltage_float;

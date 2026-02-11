@@ -1,4 +1,0 @@
-../Core/Src/adbms_can_helper.c:5:6:populate_CAN1	3
-../Core/Src/adbms_can_helper.c:53:6:populate_CAN2	5
-../Core/Src/adbms_can_helper.c:96:6:populate_CAN3	2
-../Core/Src/adbms_can_helper.c:134:6:populate_charge_CAN	1

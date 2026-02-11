@@ -29,7 +29,6 @@ and its licensor.
 #include "stm32g4xx_hal.h"
 #include "stm32g4xx_it.h"
 
-
 extern ADC_HandleTypeDef hadc1;         /* Mcu dependent ADC handler */
 extern I2C_HandleTypeDef hi2c1;         /* Mcu dependent I2C handler */
 extern I2C_HandleTypeDef hi2c3;         /* Mcu dependent I2C handler */

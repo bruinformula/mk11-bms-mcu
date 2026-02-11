@@ -406,8 +406,6 @@ void adBmsReadData(uint8_t tIC, cell_asic *ic, uint8_t cmd_arg[2], TYPE type, GR
       {							
         ic[cic].cccrc.cell_pec = pec_error[cic];
         ic[cic].cccrc.cmd_cntr = cmd_count[cic];
-//        printf("%X \n", pec_error[cic]);
-//        printf("%X \n", cmd_count[cic]);
       }
       break;
       
@@ -733,16 +731,6 @@ void adBmsWriteData(uint8_t tIC, cell_asic *ic, uint8_t cmd_arg[2], TYPE type, G
           }		
         }
         break;
-      case C:
-              adBms6830CreateConfigc(tIC, &ic[0]);
-              for (uint8_t cic = 0; cic < tIC; cic++)
-              {
-                for (uint8_t data = 0; data < data_len; data++)
-                {
-                  write_buffer[(cic * data_len) + data] = ic[cic].configc.tx_data[data];
-                }
-              }
-              break;
 
       default:
     	  break;
@@ -886,7 +874,6 @@ OW_C_S owcs
 {
   uint8_t cmd[2];
   cmd[0] = 0x02 + rd;
-  //cmd[1] = (cont<<7)+(dcp<<4)+(rstf<<2)+(owcs & 0x03);
   cmd[1] = (cont<<7)+(dcp<<4)+(rstf<<2)+(owcs & 0x03) + 0x60;
   spiSendCmd(cmd);
 }
@@ -988,7 +975,6 @@ CH ch
 {
   uint8_t cmd[2];
   cmd[0] = 0x04 + owaux;
-  //cmd[1] = (pup << 7) + (((ch >>4)&0x01)<<6) + (ch & 0x0F);
   cmd[1] = (pup << 7) + (((ch >>4)&0x01)<<6) + (ch & 0x0F) + 0x10;
   spiSendCmd(cmd);
 }

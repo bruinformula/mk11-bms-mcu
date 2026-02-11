@@ -73,9 +73,6 @@ uint8_t RDFCE[2]         = { 0x00, 0x16 };
 uint8_t RDFCF[2]         = { 0x00, 0x17 };
 uint8_t RDFCALL[2]       = { 0x00, 0x18 };
 
-uint8_t WRCFGC[2] = { 0x00, 0x50 }; // Write Config C
-uint8_t RDCFGC[2] = { 0x00, 0x52 }; // Read Config C
-
 /* Read aux results */
 uint8_t RDAUXA[2]        = { 0x00, 0x19 };
 uint8_t RDAUXB[2]        = { 0x00, 0x1A };

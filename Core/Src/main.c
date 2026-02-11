@@ -21,10 +21,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "can.h"
-#include "adbms_can_helper.h"
 #include "adBms_Application.h"
-#include "custom_functions.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,7 +65,6 @@ FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[8];
 FDCAN_RxHeaderTypeDef RxHeader;
 uint8_t RxData[8];
-FDCAN_BMS_CONTEXT FDCAN_BMS_CONTEXT_INSTANCE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -146,91 +142,9 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-	user_adBms6830_getAccyStatus();
-
-
-
-
-	//  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);  // Start PWM on TIM3 CH4
-	//
-	//  // Set duty cycle (e.g., 50%)
-	//  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 196600);	// full on is 196600
-	//  Delay_ms(5000);
-	//  __HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, 196570);	// full on is 196600
-
-	init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b0, FDCAN_MSG_ID_6B0);
-			init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b1, FDCAN_MSG_ID_6B1);
-			init_FDCAN_header(&FDCAN_BMS_CONTEXT_INSTANCE.header_6b2, FDCAN_MSG_ID_6B2);
-			init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E7F4, 0x1806E7F4);
-			init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E5F4, 0x1806E5F4);
-			init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_1806E9F4, 0x1806E9F4);
-			init_FDCAN_header_EXTENDED(&FDCAN_BMS_CONTEXT_INSTANCE.CAN_CHGCONTEXT.header_18FF50E5, 0x18FF50E5);
-
-	/*if (accy_status == CHARGE_POWER) {
-		HAL_FDCAN_DeInit(&hfdcan2);
-
-		hfdcan2.Instance = FDCAN2;
-		hfdcan2.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-		hfdcan2.Init.FrameFormat = FDCAN_FRAME_CLASSIC;
-		hfdcan2.Init.Mode = FDCAN_MODE_NORMAL;
-		hfdcan2.Init.AutoRetransmission = DISABLE;
-		hfdcan2.Init.TransmitPause = DISABLE;
-		hfdcan2.Init.ProtocolException = DISABLE;
-		hfdcan2.Init.NominalPrescaler = 40;
-		hfdcan2.Init.NominalSyncJumpWidth = 1;
-		hfdcan2.Init.NominalTimeSeg1 = 14;
-		hfdcan2.Init.NominalTimeSeg2 = 2;
-		hfdcan2.Init.DataPrescaler = 1;
-		hfdcan2.Init.DataSyncJumpWidth = 1;
-		hfdcan2.Init.DataTimeSeg1 = 1;
-		hfdcan2.Init.DataTimeSeg2 = 1;
-		hfdcan2.Init.StdFiltersNbr = 1;
-		hfdcan2.Init.ExtFiltersNbr = 0;
-		hfdcan2.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
-		HAL_FDCAN_Init(&hfdcan2);
-
-
-
-
-
-
-
-//		FDCAN_FilterTypeDef sFilterConfig;
-//
-//		sFilterConfig.IdType = FDCAN_STANDARD_ID;
-//		sFilterConfig.FilterIndex = 0;
-//		sFilterConfig.FilterType = FDCAN_FILTER_MASK;
-//		sFilterConfig.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-//		sFilterConfig.FilterID1 = 0x300; // ID to match
-//		sFilterConfig.FilterID2 = 0x7FF; // Full 11-bit match (mask: all bits must match)
-//
-//		if (HAL_FDCAN_ConfigFilter(&hfdcan2, &sFilterConfig) != HAL_OK)
-//		{
-//			Error_Handler();
-//		}
-//
-//		if (HAL_FDCAN_ConfigGlobalFilter(
-//				&hfdcan2,
-//				FDCAN_REJECT,        // Reject all non-matching STD messages
-//				FDCAN_REJECT,        // Reject all non-matching EXT messages
-//				FDCAN_FILTER_REMOTE, // Reject all STD remote frames
-//				FDCAN_FILTER_REMOTE  // Reject all EXT remote frames
-//		) != HAL_OK)
-//		{
-//			Error_Handler();
-//		}
-
-		/* Start the FDCAN module */
-
-//		if (HAL_FDCAN_ActivateNotification(&hfdcan2, FDCAN_IT_RX_FIFO0_NEW_MESSAGE,
-//				0) != HAL_OK)
-//		{
-//			Error_Handler();
-//		}*/
-
-	//}
-
-
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  Delay_ms(10);
 
   /* USER CODE END 2 */
 
@@ -238,28 +152,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		//		populate_CAN1(&FDCAN_BMS_CONTEXT_INSTANCE.msg_6b0);
-		//		populate_CAN2(&FDCAN_BMS_CONTEXT_INSTANCE.msg_6b1);
-		//		populate_CAN3(&FDCAN_BMS_CONTEXT_INSTANCE.msg_6b2);
-		//		FDCAN_BMS_Mailman(&hfdcan2, &FDCAN_BMS_CONTEXT_INSTANCE, HAL_GetTick());
-//		HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-//
-//		FDCAN_TxHeaderTypeDef txHeader = {
-//		    .Identifier = 0x123,
-//		    .IdType = FDCAN_STANDARD_ID,
-//		    .TxFrameType = FDCAN_DATA_FRAME,
-//		    .DataLength = FDCAN_DLC_BYTES_8,
-//		    .ErrorStateIndicator = FDCAN_ESI_ACTIVE,
-//		    .BitRateSwitch = FDCAN_BRS_OFF,
-//		    .FDFormat = FDCAN_CLASSIC_CAN,
-//		    .TxEventFifoControl = FDCAN_NO_TX_EVENTS,
-//		    .MessageMarker = 0
-//		};
-//
-//		uint8_t data[8] = {0xDE, 0xAD, 0xBE, 0xEF, 0xAA, 0xBB, 0xCC, 0xDD};
-//
-//		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan2, &txHeader, data);
-		adbms_main(16);
+		adBms6830_read_cell_voltages(TOTAL_IC, IC);
+		Delay_ms(500);
 	}
     /* USER CODE END WHILE */
 
@@ -1070,7 +964,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 	{
 		// This function is called every 1ms
 		// You can add periodic tasks here
-		updateSOC();
+//		updateSOC();
 	}
 }
 
