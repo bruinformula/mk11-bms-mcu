@@ -220,9 +220,6 @@ uint32_t getTimCount()
 
 #else
 
-//extern SPI_HandleTypeDef hspi2;
-//extern UART_HandleTypeDef hlpuart1;
-
 #define SPI_TIME_OUT HAL_MAX_DELAY              /* SPI Time out delay   */
 #define UART_TIME_OUT HAL_MAX_DELAY             /* UART Time out delay  */
 //#define I2C_TIME_OUT HAL_MAX_DELAY              /* I2C Time out delay   */
@@ -298,16 +295,11 @@ void adBmsCsHigh()
  *******************************************************************************
 */
 void spiWriteBytes
-(
-uint16_t size,                     /*Option: Number of bytes to be written on the SPI port*/
+(uint16_t size,                     /*Option: Number of bytes to be written on the SPI port*/
 uint8_t *tx_Data                       /*Array of bytes to be written on the SPI port*/
 )
 {
-  HAL_StatusTypeDef status = HAL_SPI_Transmit(hspi, tx_Data, size, SPI_TIME_OUT);
-  if(status != HAL_OK) {
-        // If you hit this, your SPI handle is likely invalid or the peripheral clock is off
-        printf("SPI Error: %d\n", status);
-    }
+  HAL_SPI_Transmit(hspi, tx_Data, size, SPI_TIME_OUT);
 }
 
 /**

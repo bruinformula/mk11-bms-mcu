@@ -58,7 +58,7 @@ void SystemClock_Config(void);
 /* New definition from EWARM V9, compatible with EWARM8 */
 int iar_fputc(int ch);
 #define PUTCHAR_PROTOTYPE int iar_fputc(int ch)
-#elif defined(__CC_ARM) || defined(__ARMCC_VERSION)
+#elif defined ( __CC_ARM ) || defined(__ARMCC_VERSION)
 /* ARM Compiler 5/6*/
 #define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
 #define GETCHAR_PROTOTYPE int fgetc(FILE *f)
@@ -109,10 +109,9 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  setvbuf(stdin, NULL, _IONBF, 0);
 
+//  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
-
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   Delay_ms(10);
@@ -206,48 +205,26 @@ size_t __write(int file, unsigned char const *ptr, size_t len)
  */
 PUTCHAR_PROTOTYPE
 {
-	/* Place your implementation of fputc here */
-	/* e.g. write a character to the LPUART1 and Loop until the end of transmission */
-	HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 0xFFFF);
+  /* Place your implementation of fputc here */
+  /* e.g. write a character to the LPUART1 and Loop until the end of transmission */
+  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, 0xFFFF);
 
-	return ch;
+  return ch;
 }
 
 GETCHAR_PROTOTYPE
 {
-	uint8_t ch = 0;
+  uint8_t ch = 0;
 
-	/* Clear the Overrun flag just before receiving the first character */
-	__HAL_UART_CLEAR_OREFLAG(&hlpuart1);
+  /* Clear the Overrun flag just before receiving the first character */
+  __HAL_UART_CLEAR_OREFLAG(&hlpuart1);
 
-	/* Wait for reception of a character on the USART RX line and echo this
-	 * character on console */
-	HAL_UART_Receive(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-	HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
-	return ch;
+  /* Wait for reception of a character on the USART RX line and echo this
+   * character on console */
+  HAL_UART_Receive(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  HAL_UART_Transmit(&hlpuart1, (uint8_t *)&ch, 1, HAL_MAX_DELAY);
+  return ch;
 }
-
-/// FDCAN RX Callback Implementation
-//void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
-//{
-//	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
-//	{
-//		FDCAN_RxHeaderTypeDef localRxHeader;
-//		uint8_t localRxData[8];
-//
-//		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &localRxHeader, localRxData) != HAL_OK)
-//		{
-//			Error_Handler();
-//			return;
-//		}
-//
-//		if (HAL_FDCAN_AddMessageToTxFifoQ(hfdcan, &TxHeader, localRxData) != HAL_OK)
-//		{
-//			Error_Handler();
-//			return;
-//		}
-//	}
-//}
 
 /* USER CODE END 4 */
 
@@ -277,7 +254,7 @@ void Error_Handler(void)
 void assert_failed(uint8_t *file, uint32_t line)
 {
   /* USER CODE BEGIN 6 */
-	/* User can add his own implementation to report the file name and line number,
+  /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
   /* USER CODE END 6 */
 }

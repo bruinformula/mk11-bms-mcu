@@ -37,8 +37,8 @@ and its licensor.
 //extern UART_HandleTypeDef huart4;       /* Mcu dependent UART handler */
 //extern UART_HandleTypeDef huart5;       /* Mcu dependent UART handler */
 
-#define CS_PIN GPIO_PIN_6              /* Mcu dependent chip select */
-#define GPIO_PORT GPIOB      /* Mcu dependent adc chip select port */
+#define CS_PIN GPIO_PIN_4              /* Mcu dependent chip select */
+#define GPIO_PORT GPIOA      /* Mcu dependent adc chip select port */
 #endif
 
 void Delay_ms(uint32_t delay);
