@@ -19,6 +19,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "adc.h"
+#include "dma.h"
 #include "fdcan.h"
 #include "usart.h"
 #include "spi.h"
@@ -27,6 +28,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adBms_Application.h"
+#include "thermistor.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,6 +51,17 @@
 /* USER CODE BEGIN PV */
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
+
+uint32_t current_sensor_adc[1];
+uint16_t current_sensor_low_adc;
+uint16_t current_sensor_high_adc;
+float current_sensor_low_voltage;
+float current_sensor_high_voltage;
+
+float v_counter = 0;
+int count = 0;
+float avg_v;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -70,7 +83,22 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+	current_sensor_low_adc =  current_sensor_adc[0] & 0xFFFF;
+	current_sensor_high_adc = (current_sensor_adc[0] >> 16) & 0xFFFF;
 
+	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
+	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
+
+	if (count < 100) {
+		v_counter+=current_sensor_low_voltage;
+		count+=1;
+	} else {
+		avg_v = v_counter/100;
+		v_counter = 0;
+		count = 0;
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -102,18 +130,25 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ADC1_Init();
+  MX_DMA_Init();
   MX_LPUART1_UART_Init();
   MX_SPI2_Init();
   MX_SPI3_Init();
   MX_FDCAN1_Init();
   MX_ADC2_Init();
+  MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
 
 //  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
+
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
   Delay_ms(10);
   /* USER CODE END 2 */
 
@@ -122,6 +157,8 @@ int main(void)
 	while (1)
 	{
 		adBms6830_read_cell_voltages(TOTAL_IC, IC);
+		computeAllTemps(TOTAL_IC, IC);
+		adBms6830_read_aux_voltages(TOTAL_IC, IC);
 		Delay_ms(500);
 	}
     /* USER CODE END WHILE */

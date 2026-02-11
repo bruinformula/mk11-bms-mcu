@@ -38,6 +38,7 @@
         * Output
         * EVENT_OUT
         * EXTI
+     PB1   ------> SharedAnalog_PB1
 */
 void MX_GPIO_Init(void)
 {
@@ -87,6 +88,12 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : CURRENT_SENSOR_LOW_Pin */
+  GPIO_InitStruct.Pin = CURRENT_SENSOR_LOW_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(CURRENT_SENSOR_LOW_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : SPI2_CS_Pin SPI3_CSB6_Pin */
   GPIO_InitStruct.Pin = SPI2_CS_Pin|SPI3_CSB6_Pin;
