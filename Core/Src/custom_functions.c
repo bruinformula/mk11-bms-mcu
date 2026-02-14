@@ -154,6 +154,19 @@ const float CCL_LUT_CURRENT[]  = {0.0f, 0.0f, 10.0f, 20.0f, 30.0f, 30.0f, 20.0f,
 /**
  * @brief Initialize fault system
  */
+
+/* 
+Fixes:
+
+1. Fix BMS_ClearCellFault indexing/bounds to match SetCellFault.
+
+2. Fix delta voltage fault logic?.
+
+3. Fix cell indexing math (cell_idx, highest_cell_ind) to match NUM_CELLS_PER_IC?
+
+*/
+
+
 void BMS_InitFaultSystem(void) {
     memset(&BMS_Faults, 0, sizeof(BMS_FaultSystem_t));
     BMS_Faults.system_fault_active = false;

@@ -15,10 +15,12 @@
 #include "adbms_can_helper.h"
 #include "adBms_Application.h"
 #include "custom_functions.h"
+#include "bms_hv_io.h"
 #include "adBms6830Data.h"
 #include "adBms6830GenericType.h"
 #include "adBms6830ParseCreate.h"
 #include "serialPrintResult.h"
+#include <bms_hv.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,6 +59,18 @@ TIM_HandleTypeDef htim8;
 
 /* USER CODE BEGIN PV */
 /* BMS CONFIGURATION */
+
+
+// some johns used for:
+// last time we called populate_IC 
+static uint32_t last_bms_populate_ic = 0;
+// last time we read from can
+static uint32_t last_can_tx   = 0;
+
+#define BMS_MEAS_PERIOD_MS 100   // run populateIC every 100ms (blocking)
+#define CAN_TX_PERIOD_MS   100
+
+
 #define TOTAL_IC 1
 cell_asic IC_DATA[TOTAL_IC];
 
@@ -111,6 +125,11 @@ static void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN 0 */
 
 /* USER CODE END 0 */
+
+/* USER CODE BEGIN Precharge Vars */
+hv_sm_t hvsm;
+/* USER CODE END Precharge Vars */
+
 
 /**
   * @brief  The application entry point.
@@ -186,17 +205,71 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
-  {
-    /* USER CODE END WHILE */
+  BMS_InitFaultSystem();
+  AIRs_OpenAll();
 
-    /* USER CODE BEGIN 3 */
-	  //HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_RESET);
-	  //HAL_Delay(100);
-	  HAL_SPI_Transmit(&hspi2, &testmessage, 1, 100);
-	 // HAL_GPIO_WritePin(GPIOB, GPIO_PIN_12, GPIO_PIN_SET);
-	  HAL_Delay(100);
+  HVSM_Init(&hvsm, HAL_GetTick());  
+
+  uint32_t last = HAL_GetTick();
+
+  while (1) {
+    uint32_t now = HAL_GetTick();
+
+    if ((now - last) >= 10) {   // 10ms tick
+      last = now;
+
+      // 1) Update charging/ready state (used by current sign and limits)
+      user_adBms6830_getAccyStatus();
+
+      // 2) Run ADBMS measurements + fault checks slower (populateIC blocks)
+      if ((now - last_bms_populate_ic) >= BMS_MEAS_PERIOD_MS) {
+        last_bms_populate_ic = now;
+
+        populateIC(IC_DATA, TOTAL_IC);              // UV/OV/temp/current faults inside
+        user_adBms6830_commFault(TOTAL_IC, IC_DATA);// optional comm fault check
+        BMS_ApplyTempCurrentLimits();               // sets CCL/DCL fault if needed
+        updateSOC();                                // optional
+      } else {
+        // still apply temp-current limits every tick if you want:
+        BMS_ApplyTempCurrentLimits();
+      }
+
+      // 3) Apply your GPIO kills / indicators based on BMS fault system
+      user_adBms6830_setFaults();
+
+      // 4) If any fault active, force AIRs open and stop FSM
+      if (BMS_HasActiveFaults()) {
+        AIRs_OpenAll();
+        continue;
+      }
+
+      // 5) Otherwise run your HV FSM tick
+      hvsm_in_t in = {
+        // REPLACE with the HOLDING PRESS BUTTON FOR REQUEST IS TRUE
+        .start_request   = , 
+        .sdc_closed      = (HAL_GPIO_ReadPin(SDC_IN_GPIO_Port, SDC_IN_Pin) == GPIO_PIN_SET),
+        // REPLACE WITH TORQUE REQUEST FROM CAN
+        .torque_zero     = ,                 
+        .bms_fault_active= BMS_HasActiveFaults(),
+        .VA_pack         = getPackVoltage(TOTAL_IC, IC_DATA),  // or your HV sensor
+        // PUT IN THE V_inverter VOLTAGE HERE from CAN
+        .Vi_inv          = 
+      };
+
+      hvsm_out_t o = HVSM_Tick(&hvsm, now, in);
+
+      // Apply relay outputs to GPIO
+      HAL_GPIO_WritePin(GPIOB, NEG_AIR_GND_Pin,       o.air_minus_cmd ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin,  o.precharge_cmd ? GPIO_PIN_SET : GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(GPIOC, POS_AIR_GND_Pin,       o.air_plus_cmd  ? GPIO_PIN_SET : GPIO_PIN_RESET);
+
+      // For now you can directly control relays based on hvsm state,
+      // or (better) implement HVSM_Tick in bms_hv.c and call it here.
+    }
+
+    // IMPORTANT: remove HAL_Delay() calls in main loop or your timing breaks
   }
+
   /* USER CODE END 3 */
 }
 
