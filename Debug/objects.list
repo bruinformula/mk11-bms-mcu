@@ -4,7 +4,6 @@
 "./ADBMS6830/program/src/mcuWrapper.o"
 "./ADBMS6830/program/src/serialPrintResult.o"
 "./Core/Src/adc.o"
-"./Core/Src/balancing.o"
 "./Core/Src/dma.o"
 "./Core/Src/elcon.o"
 "./Core/Src/fdcan.o"

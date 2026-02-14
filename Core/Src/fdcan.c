@@ -44,7 +44,7 @@ void MX_FDCAN1_Init(void)
   hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 20;
+  hfdcan1.Init.NominalPrescaler = 40;
   hfdcan1.Init.NominalSyncJumpWidth = 3;
   hfdcan1.Init.NominalTimeSeg1 = 13;
   hfdcan1.Init.NominalTimeSeg2 = 3;
@@ -53,7 +53,7 @@ void MX_FDCAN1_Init(void)
   hfdcan1.Init.DataTimeSeg1 = 13;
   hfdcan1.Init.DataTimeSeg2 = 3;
   hfdcan1.Init.StdFiltersNbr = 1;
-  hfdcan1.Init.ExtFiltersNbr = 0;
+  hfdcan1.Init.ExtFiltersNbr = 1;
   hfdcan1.Init.TxFifoQueueMode = FDCAN_TX_FIFO_OPERATION;
   if (HAL_FDCAN_Init(&hfdcan1) != HAL_OK)
   {
@@ -151,6 +151,27 @@ void configureCAN_TxMessage(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id) {
 
 FDCAN_RxHeaderTypeDef BMS_RxHeader;
 uint8_t BMS_RxData[8];
+uint32_t fdcan_rx_count;
+
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
+	{
+		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &BMS_RxHeader, BMS_RxData) != HAL_OK) {
+			// TODO
+		}
+
+		fdcan_rx_count++;
+		if (BMS_RxHeader.IdType == FDCAN_STANDARD_ID) {
+			// TODO
+		}
+
+		if (BMS_RxHeader.IdType == FDCAN_EXTENDED_ID) {
+			// TODO
+		}
+
+	}
+}
 
 void BMS_CAN_RxHandler() {
 	uint16_t msg_id = BMS_RxHeader.Identifier;

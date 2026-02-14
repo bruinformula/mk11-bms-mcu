@@ -188,6 +188,7 @@ void configureCAN_TxMessage(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id);
 
 extern FDCAN_RxHeaderTypeDef BMS_RxHeader;
 extern uint8_t BMS_RxData[8];
+extern uint32_t fdcan_rx_count;
 void BMS_CAN_RxHandler();
 
 /* USER CODE END Prototypes */

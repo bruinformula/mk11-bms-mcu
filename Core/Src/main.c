@@ -53,15 +53,24 @@
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
 
+
+#define VOLTAGE_DIVIDER_SCALE (3.3/5.0)
+#define OFFSET_VOLTAGE  (2.5*VOLTAGE_DIVIDER_SCALE)
+#define CURRENT_SENSOR_LOW_SENS ((66.7*VOLTAGE_DIVIDER_SCALE)/1000)
+#define CURRENT_SENSOR_HIGH_SENS ((5.7*VOLTAGE_DIVIDER_SCALE)/1000)
+
 uint32_t current_sensor_adc[1];
 uint16_t current_sensor_low_adc;
 uint16_t current_sensor_high_adc;
 float current_sensor_low_voltage;
 float current_sensor_high_voltage;
+float current_sensor_low_amps;
+float current_sensor_high_amps;
 
-float v_counter = 0;
-int count = 0;
-float avg_v;
+int current_range = 0;
+#define LOW_TO_HIGH_THRESHOLD 29.0
+#define HIGH_TO_LOW_THRESHOLD 24.0
+
 
 /* USER CODE END PV */
 
@@ -84,22 +93,41 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+FDCAN_TxHeaderTypeDef tx_msg;
+uint8_t txData[8];
+
+float voltage_conversions[10];
+
+void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
+	adBms6830_read_cell_voltages(TOTAL_IC, IC);
+	for (size_t i = 0; i < 10; ++i) {
+		voltage_conversions[i] = getVoltage(ic->cell.c_codes[i]);
+	}
+}
+
+// TODO: NEEDS CALIBRATION
+float getCurrentVoltage(int value) {
+	return 0.001444863364 * (float) value + 0.110218620256712;
+}
+
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	current_sensor_low_adc =  current_sensor_adc[0] & 0xFFFF;
 	current_sensor_high_adc = (current_sensor_adc[0] >> 16) & 0xFFFF;
 
-	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
-	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
+	current_sensor_low_voltage = getCurrentVoltage(current_sensor_low_adc);
+	current_sensor_high_voltage = getCurrentVoltage(current_sensor_high_adc);
 
-	if (count < 100) {
-		v_counter+=current_sensor_low_voltage;
-		count+=1;
-	} else {
-		avg_v = v_counter/100;
-		v_counter = 0;
-		count = 0;
-	}
+	current_sensor_low_amps = 13.2615 * current_sensor_low_voltage - 34.3672;
+	current_sensor_high_amps = 159.6343 * current_sensor_high_voltage - 401.4685;
+
+//	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
+//	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
+//
+//	current_sensor_low_amps = (current_sensor_low_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_LOW_SENS;
+//	current_sensor_high_amps = (current_sensor_high_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_HIGH_SENS;
 }
+
 /* USER CODE END 0 */
 
 /**
@@ -140,28 +168,81 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
+  FDCAN_FilterTypeDef sStdFilter= {0};
+  sStdFilter.IdType = FDCAN_STANDARD_ID;
+  sStdFilter.FilterIndex = 0;
+  sStdFilter.FilterType = FDCAN_FILTER_RANGE;
+  sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sStdFilter.FilterID1 = 0x000;
+  sStdFilter.FilterID2 = 0x7FF;
+  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter) != HAL_OK) {
+	  Error_Handler();
+  }
+
+  FDCAN_FilterTypeDef sExtFilter = {0};
+  sExtFilter.IdType = FDCAN_EXTENDED_ID;
+  sExtFilter.FilterIndex = 0;
+  sExtFilter.FilterType = FDCAN_FILTER_RANGE;
+  sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+  sExtFilter.FilterID1 = 0x00000000;
+  sExtFilter.FilterID2 = 0x1FFFFFFF;
+  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter) != HAL_OK) {
+	  Error_Handler();
+  }
+
+  if (HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
+	  Error_Handler();
+  }
+
+  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+	  Error_Handler();
+  }
+
+  tx_msg.Identifier = 0x1806E5F4;
+  tx_msg.IdType = FDCAN_EXTENDED_ID;
+  tx_msg.TxFrameType = FDCAN_DATA_FRAME;
+  tx_msg.DataLength = FDCAN_DLC_BYTES_8;
+  tx_msg.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
+  tx_msg.BitRateSwitch = FDCAN_BRS_OFF;
+  tx_msg.FDFormat = FDCAN_CLASSIC_CAN;
+  tx_msg.TxEventFifoControl = FDCAN_STORE_TX_EVENTS;
+  tx_msg.MessageMarker = 0;
+
+  txData[0] = 0x01; // 50 V --> 50*10 = 500 in Hex
+  txData[1] = 0xF4;
+  txData[2] = 0x00; // 20 A --> 20*10 = 200 in Hex
+  txData[3] = 0xC8;
+  txData[4] = 0; // CONTROL, 0 to START CHARGING
+  txData[5] = 0;
+  txData[6] = 0;
+  txData[7] = 0;
 
 //  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
 
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-  HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+  // MUST ENTER PRECHARGE SEQUENCE --> DRIVE LOOP, OR BALANCE/CHARGE SEQUENCE --> TERMINATE
 
-  adBms6830_init_config(TOTAL_IC, IC);
-  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  Delay_ms(10);
+//  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+//  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+//  HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+
+//  adBms6830_init_config(TOTAL_IC, IC);
+//  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+//  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+//  Delay_ms(10);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		adBms6830_read_cell_voltages(TOTAL_IC, IC);
-		computeAllTemps(TOTAL_IC, IC);
-		adBms6830_read_aux_voltages(TOTAL_IC, IC);
-		Delay_ms(500);
+//		computeAllVoltages(TOTAL_IC, IC);
+//		computeAllTemps(TOTAL_IC, IC);
+//		Delay_ms(500);
+
+		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_msg, txData);
+		HAL_Delay(1000);
+
 	}
     /* USER CODE END WHILE */
 
