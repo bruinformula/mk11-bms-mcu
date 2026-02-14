@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h> // for memset used in balanceCells
+#include <stm32g474xx.h>
 
 /* ==== Constants ==== */
 const float TEMP_LIMIT = 60.0;
