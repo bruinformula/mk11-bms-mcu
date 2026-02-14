@@ -67,7 +67,9 @@ FDCAN_TxHeaderTypeDef TxHeader;
 uint8_t TxData[8] = {44, 22, 44, 22, 44, 22, 44, 22};
 FDCAN_RxHeaderTypeDef RxHeader;
 uint8_t RxData[8] = {0};
-FDCAN_BMS_CONTEXT *FDCAN_BMS_CONTEXT_INSTANCE;
+static FDCAN_BMS_CONTEXT g_fdcan_bms_ctx;
+FDCAN_BMS_CONTEXT *FDCAN_BMS_CONTEXT_INSTANCE = &g_fdcan_bms_ctx;
+
 int8_t balancing = 0; // 0: No balancing, 1: Balancing
 
 /** TEST MODE SELECTION **/
@@ -257,7 +259,7 @@ int main(void)
 					break;
 				}
 
-				if (BMS_State.inverter_voltage > 10.0 || current == 0 || calcDCL() > 0 || accy_status != READY_POWER) {
+				if (BMS_State.inverter_voltage > 10.0 || current > 0. || calcDCL() <= 0 || accy_status != READY_POWER) {
 					if (PRINT_ON) printf("One or more PRECHARGE checks failed\n");
 					BMS_State.current_state = BMS_STATE_FAULT;
 				}
@@ -1029,18 +1031,60 @@ bool BMS_ExecutePrecharge() {
 	float expCurve = 0.0f;
 
 	float prevInvVoltage = 0.0f;
-	while (fabsf(BMS_State.inverter_voltage - getPackVoltage(TOTAL_IC, &IC[0])) >= 10. &&
-			((HAL_GetTick() - start) > 1000) && fabsf(BMS_State.inverter_voltage - prevInvVoltage) <= 0.1) {
+	const uint32_t timeout_ms = 5000;
+	const float slope_thresh_v = 0.1f;
+	const float target_delta_v = 10.0f;
+	uint32_t last_change = start;
+	const uint32_t stable_ms = 150;
+	uint32_t stable_start = 0;
 
-		float time = (float) ((HAL_GetTick() - start) * 0.001f);
-		expCurve = initPackVoltage * (1.0f - expf(-(time / RC)));
+	while ((HAL_GetTick() - start) < timeout_ms) {
+		const float packV = getPackVoltage(TOTAL_IC, &IC[0]);
+		const float invV  = BMS_State.inverter_voltage;
 
-		// if curve doesn't match expected value by > 10%, fault BMS
-		if ((fabsf(expCurve - BMS_State.inverter_voltage) / expCurve) > 0.10) {
+		// checks that we are within voltage delta and that we are stable (no more change in voltage)
+		if (fabsf(packV - invV) < target_delta_v) {
+		    const float dv = fabsf(invV - prevInvVoltage);
+
+		    if (dv < slope_thresh_v) {
+		        if (stable_start == 0) {
+		            stable_start = HAL_GetTick();
+		        }
+		        if ((HAL_GetTick() - stable_start) >= stable_ms) {
+		            break;
+		        }
+		    } else {
+		        stable_start = 0;
+		    }
+		} else {
+		    stable_start = 0;
+		}
+
+		if (fabsf(invV - prevInvVoltage) > slope_thresh_v) {
+			prevInvVoltage = invV;
+			last_change = HAL_GetTick();
+		} else if ((HAL_GetTick() - last_change) > 200) {
+			// Not moving for 200ms -> fail precharge
+			HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
 			return false;
 		}
-		prevInvVoltage = BMS_State.inverter_voltage;
+
+		const float time_s = (float)((HAL_GetTick() - start) * 0.001f);
+		expCurve = initPackVoltage * (1.0f - expf(-(time_s / RC)));
+		if (expCurve > 1.0f) {
+			if ((fabsf(expCurve - invV) / expCurve) > 0.10f) {
+				HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
+				return false;
+			}
+		}
+
+		HAL_Delay(10);
 	}
+	if ((HAL_GetTick() - start) >= timeout_ms) {
+		HAL_GPIO_WritePin(GPIOB, Precharge_Enable_Pin, GPIO_PIN_RESET);
+		return false;
+	}
+
 	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
 	HAL_GPIO_WritePin(GPIOC, Precharge_Enable_Pin, GPIO_PIN_RESET);
 
@@ -1098,12 +1142,12 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
                 	// Mark as valid and update timestamp
                 	inverter_voltages.data_valid = true;
                 	inverter_voltages.last_update_time = HAL_GetTick();
-                	BMS_State.inverter_voltage = dc_bus_raw;
+                	BMS_State.inverter_voltage = dc_bus_raw * 0.1;
                 }
 
 
                 default:
-                    printf("Unknown CAN ID: 0x%03lX\n", RxHeader.Identifier);
+//                    printf("Unknown CAN ID: 0x%03lX\n", RxHeader.Identifier);
                     break;
             }
         }
@@ -1116,13 +1160,13 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
     // Handle FIFO0 full condition
     if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_FULL) != 0)
     {
-        printf("WARNING: FIFO0 full!\n");
+//        printf("WARNING: FIFO0 full!\n");
     }
 
     // Handle message lost (overflow)
     if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_MESSAGE_LOST) != 0)
     {
-        printf("ERROR: CAN messages lost!\n");
+//        printf("ERROR: CAN messages lost!\n");
         fdcan_rx_error_count++;
     }
 }

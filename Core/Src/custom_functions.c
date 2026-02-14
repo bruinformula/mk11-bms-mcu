@@ -264,9 +264,9 @@ void BMS_ClearCellFault(uint8_t ic_num, uint8_t cell_num, uint8_t fault_type) {
 
 	// UNSURE FIX 2
 	// should probably change this?
-    if (ic_num >= 5 || cell_num >= 20) return;
+    if (ic_num >= 10 || cell_num >= NUM_CELLS_PER_IC) return;
 
-    uint8_t cell_idx = (ic_num * 20) + cell_num;
+    uint8_t cell_idx = (ic_num * NUM_CELLS_PER_IC) + cell_num;
     CellFaultStatus_t *cell = &BMS_Faults.cell_status[cell_idx];
 
     bool fault_cleared = false;
