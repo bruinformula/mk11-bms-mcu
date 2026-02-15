@@ -13,7 +13,7 @@ float bms_pack_voltage;
 bool inverter_precharged;
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
-	configureCAN_TxMessage(&FDCAN_BMS.Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
+	configureFDCAN_TxMessage_STD(&FDCAN_BMS.Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
 
 	if (htim->Instance == TIM1) {
 		if (inverter_precharged == true) {

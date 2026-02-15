@@ -1,6 +1,7 @@
-../Core/Src/fdcan.c:30:6:MX_FDCAN1_Init	8	static
-../Core/Src/fdcan.c:68:6:HAL_FDCAN_MspInit	128	static
-../Core/Src/fdcan.c:112:6:HAL_FDCAN_MspDeInit	16	static
-../Core/Src/fdcan.c:140:6:configureCAN_TxMessage	16	static
-../Core/Src/fdcan.c:156:6:HAL_FDCAN_RxFifo0Callback	16	static
-../Core/Src/fdcan.c:176:6:BMS_CAN_RxHandler	16	static
+../Core/Src/fdcan.c:31:6:MX_FDCAN1_Init	8	static
+../Core/Src/fdcan.c:69:6:HAL_FDCAN_MspInit	128	static
+../Core/Src/fdcan.c:113:6:HAL_FDCAN_MspDeInit	16	static
+../Core/Src/fdcan.c:141:6:configureFDCAN_TxMessage_STD	16	static
+../Core/Src/fdcan.c:153:6:configureFDCAN_TxMessage_EXTD	16	static
+../Core/Src/fdcan.c:169:6:HAL_FDCAN_RxFifo0Callback	16	static
+../Core/Src/fdcan.c:182:6:BMS_CAN_RxHandler	16	static

@@ -30,6 +30,7 @@
 /* USER CODE BEGIN Includes */
 #include "adBms_Application.h"
 #include "thermistor.h"
+#include "elcon_charger.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -198,25 +199,6 @@ int main(void)
 	  Error_Handler();
   }
 
-  tx_msg.Identifier = 0x1806E5F4;
-  tx_msg.IdType = FDCAN_EXTENDED_ID;
-  tx_msg.TxFrameType = FDCAN_DATA_FRAME;
-  tx_msg.DataLength = FDCAN_DLC_BYTES_8;
-  tx_msg.ErrorStateIndicator = FDCAN_ESI_ACTIVE;
-  tx_msg.BitRateSwitch = FDCAN_BRS_OFF;
-  tx_msg.FDFormat = FDCAN_CLASSIC_CAN;
-  tx_msg.TxEventFifoControl = FDCAN_STORE_TX_EVENTS;
-  tx_msg.MessageMarker = 0;
-
-  txData[0] = 0x01; // 50 V --> 50*10 = 500 in Hex
-  txData[1] = 0xF4;
-  txData[2] = 0x00; // 20 A --> 20*10 = 200 in Hex
-  txData[3] = 0xC8;
-  txData[4] = 0; // CONTROL, 0 to START CHARGING
-  txData[5] = 0;
-  txData[6] = 0;
-  txData[7] = 0;
-
 //  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
 
@@ -230,6 +212,9 @@ int main(void)
 //  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
 //  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
 //  Delay_ms(10);
+
+  configureChargeTxMsg();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -240,7 +225,7 @@ int main(void)
 //		computeAllTemps(TOTAL_IC, IC);
 //		Delay_ms(500);
 
-		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &tx_msg, txData);
+		sendChargerRequest(50, 20, 0);
 		HAL_Delay(1000);
 
 	}
