@@ -1,8 +1,8 @@
-../Core/Src/main.c:103:6:computeAllVoltages	24	static
-../Core/Src/main.c:111:7:getCurrentVoltage	16	static
-../Core/Src/main.c:115:6:HAL_ADC_ConvCpltCallback	16	static
-../Core/Src/main.c:138:5:main	56	static
-../Core/Src/main.c:243:6:SystemClock_Config	88	static
-../Core/Src/main.c:311:1:__io_putchar	16	static
-../Core/Src/main.c:320:1:__io_getchar	16	static
-../Core/Src/main.c:340:6:Error_Handler	4	static,ignoring_inline_asm
+../Core/Src/main.c:101:6:computeAllVoltages	32	static
+../Core/Src/main.c:113:7:getCurrentVoltage	16	static
+../Core/Src/main.c:117:6:HAL_ADC_ConvCpltCallback	16	static
+../Core/Src/main.c:140:5:main	56	static
+../Core/Src/main.c:248:6:SystemClock_Config	88	static
+../Core/Src/main.c:316:1:__io_putchar	16	static
+../Core/Src/main.c:325:1:__io_getchar	16	static
+../Core/Src/main.c:345:6:Error_Handler	4	static,ignoring_inline_asm

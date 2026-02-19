@@ -1,3 +1,3 @@
-../Core/Src/prchg.c:15:6:HAL_TIM_PeriodElapsedCallback	3
-../Core/Src/prchg.c:43:6:calculatePackVoltage	2
-../Core/Src/prchg.c:51:6:prechargeSequence	2
+../Core/Src/prchg.c:18:6:HAL_TIM_PeriodElapsedCallback	3
+../Core/Src/prchg.c:46:6:calculatePackVoltage	2
+../Core/Src/prchg.c:54:6:prechargeSequence	1

@@ -65,10 +65,10 @@ void Error_Handler(void);
 #define POS_AIR_GND_GPIO_Port GPIOC
 #define PRECHARGE_Pin GPIO_PIN_3
 #define PRECHARGE_GPIO_Port GPIOC
-#define J1772_PILOT_Pin GPIO_PIN_0
-#define J1772_PILOT_GPIO_Port GPIOA
-#define J1772_PROXIMITY_Pin GPIO_PIN_1
-#define J1772_PROXIMITY_GPIO_Port GPIOA
+#define J1772_CP_Pin GPIO_PIN_0
+#define J1772_CP_GPIO_Port GPIOA
+#define J1772_PP_Pin GPIO_PIN_1
+#define J1772_PP_GPIO_Port GPIOA
 #define LPUART1_TX_Pin GPIO_PIN_2
 #define LPUART1_TX_GPIO_Port GPIOA
 #define LPUART1_RX_Pin GPIO_PIN_3

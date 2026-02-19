@@ -31,6 +31,8 @@
 #include "adBms_Application.h"
 #include "thermistor.h"
 #include "elcon_charger.h"
+#include "j_plug.h"
+#include "prchg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -72,7 +74,6 @@ int current_range = 0;
 #define LOW_TO_HIGH_THRESHOLD 29.0
 #define HIGH_TO_LOW_THRESHOLD 24.0
 
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,19 +96,20 @@ int iar_fputc(int ch);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-FDCAN_TxHeaderTypeDef tx_msg;
-uint8_t txData[8];
-
-float voltage_conversions[10];
+float voltage_conversions[20];
 
 void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 	adBms6830_read_cell_voltages(TOTAL_IC, IC);
 	for (size_t i = 0; i < 10; ++i) {
-		voltage_conversions[i] = getVoltage(ic->cell.c_codes[i]);
+		voltage_conversions[i] = getVoltage(ic[0].cell.c_codes[i]);
+	}
+
+	for (size_t i = 0; i < 10; ++i) {
+		voltage_conversions[i+10] = getVoltage(ic[1].cell.c_codes[i]);
 	}
 }
 
-// TODO: NEEDS CALIBRATION
+// TODO: CURRENT SENSOR CALIBRATION
 float getCurrentVoltage(int value) {
 	return 0.001444863364 * (float) value + 0.110218620256712;
 }
@@ -168,6 +170,7 @@ int main(void)
   MX_ADC2_Init();
   MX_ADC1_Init();
   MX_TIM1_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   FDCAN_FilterTypeDef sStdFilter= {0};
   sStdFilter.IdType = FDCAN_STANDARD_ID;
@@ -202,18 +205,23 @@ int main(void)
 //  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
 
+  // TODO
   // MUST ENTER PRECHARGE SEQUENCE --> DRIVE LOOP, OR BALANCE/CHARGE SEQUENCE --> TERMINATE
 
-//  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-//  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-//  HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+  // CURRENT SENSOR START!
+  //  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+  //  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+  //  HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+
+//  prechargeSequence();
 
 //  adBms6830_init_config(TOTAL_IC, IC);
 //  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
 //  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
 //  Delay_ms(10);
 
-  configureChargeTxMsg();
+  // TODO: Test Control Pilot duty cycle reads
+  //  readControlPilotCurrent();
 
   /* USER CODE END 2 */
 
@@ -224,9 +232,6 @@ int main(void)
 //		computeAllVoltages(TOTAL_IC, IC);
 //		computeAllTemps(TOTAL_IC, IC);
 //		Delay_ms(500);
-
-		sendChargerRequest(50, 20, 0);
-		HAL_Delay(1000);
 
 	}
     /* USER CODE END WHILE */

@@ -37,14 +37,12 @@ extern FDCAN_HandleTypeDef hfdcan1;
 /* USER CODE BEGIN Private defines */
 #define FDCAN_RETRY_LIMIT 3
 
-// TODO: TX CAN IDs
+// TODO: GENERAL TX CAN IDs
 #define CURR_VOLTAGE_SOC_TX_ID 0x6B0
 #define DCL_CCL_TEMP_TX_ID 0x6B1
 #define HIGH_LOW_CELL_VOLTAGE_TX_ID 0x6B2
-#define PRECHARGE_COMPLETE_TX_ID 0x6B4
 
-// TODO: RX CAN IDs
-#define PRECHARGE_REQUEST_RX_ID 0x6B3
+// TODO: GENERAL RX CAN IDs
 #define INVERTER_VOLTAGE_RX_ID 0xA7
 
 /* USER CODE END Private defines */
@@ -54,7 +52,6 @@ void MX_FDCAN1_Init(void);
 /* USER CODE BEGIN Prototypes */
 
 // BMS CAN DATAFRAMES + CONTEXT
-
 // TODO
 typedef union BMS_DATAFRAME_1 {
 	struct __attribute__((packed)) {
@@ -92,31 +89,14 @@ typedef union BMS_DATAFRAME_3 {
 	uint8_t array[8];
 } BMS_DATAFRAME_3;
 
-typedef union BMS_DATAFRAME_4 {
-	struct __attribute__((packed)) {
-		uint8_t inverter_precharged;
-		uint8_t reserved0;
-		uint8_t reserved1;
-		uint8_t reserved2;
-		uint8_t reserved3;
-		uint8_t reserved4;
-		uint8_t reserved5;
-		uint8_t reserved6;
-		uint8_t reserved7;
-	} data;
-	uint8_t array[8];
-} BMS_DATAFRAME_4;
-
 typedef struct {
 	FDCAN_TxHeaderTypeDef Curr_Voltage_Soc_TxHeader;
 	FDCAN_TxHeaderTypeDef DCL_CCL_Temp_TxHeader;
 	FDCAN_TxHeaderTypeDef High_Low_Cell_Voltage_TxHeader;
-	FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 
 	BMS_DATAFRAME_1 Curr_Voltage_Soc_DF;
 	BMS_DATAFRAME_2 DCL_CCL_Temp_DF;
 	BMS_DATAFRAME_3 High_Low_Cell_Voltage_DF;
-	BMS_DATAFRAME_4 Precharge_Complete_DF;
 
 } FDCAN_BMS_CONTEXT;
 

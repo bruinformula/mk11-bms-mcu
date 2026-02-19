@@ -12,6 +12,7 @@ RM := rm -rf
 -include Drivers/STM32G4xx_HAL_Driver/Src/subdir.mk
 -include Core/Startup/subdir.mk
 -include Core/Src/subdir.mk
+-include Charging/Src/subdir.mk
 -include ADBMS6830/program/src/subdir.mk
 -include ADBMS6830/lib/src/subdir.mk
 -include objects.mk
