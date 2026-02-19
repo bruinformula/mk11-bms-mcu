@@ -188,6 +188,7 @@ void BMS_CAN_RxHandler() {
 		break;
 
 	case PRECHARGE_REQUEST_RX_ID:
+		prechargeStart();
 		prechargeSequence();
 		break;
 

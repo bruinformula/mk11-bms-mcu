@@ -17,7 +17,6 @@
 #include <stdbool.h>
 
 #define PRECHARGE_REQUEST_RX_ID 0x6B3
-
 typedef union PRECHARGE_COMPLETE_DF {
 	struct __attribute__((packed)) {
 		uint8_t inverter_precharged;
@@ -37,10 +36,22 @@ extern PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
 extern FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 
 #define PRECHARGE_VOLTAGE_DELTA 25
-extern float inverter_dc_volts;
+extern volatile float inverter_dc_volts;
 extern float pack_voltage;
-extern bool inverter_precharged;
 void calculatePackVoltage();
+
+typedef enum {
+    PRECHARGE_IDLE,
+    PRECHARGE_ACTIVE,
+    PRECHARGE_COMPLETE,
+	PRECHARGE_FAIL,
+} PRECHARGE_STATE;
+extern PRECHARGE_STATE precharge_state;
+
+#define PRECHARGE_TIMEOUT 5000
+extern bool inverter_precharged;
+extern uint32_t precharge_start_time;
+void prechargeStart();
 void prechargeSequence();
 
 #endif /* INC_PRCHG_H_ */
