@@ -1,3 +1,4 @@
-../Charging/Src/j_plug.c:15:6:readProximityPilot	16	static
-../Charging/Src/j_plug.c:33:6:HAL_TIM_IC_CaptureCallback	24	static
-../Charging/Src/j_plug.c:44:6:readControlPilotCurrent	8	static
+../Charging/Src/j_plug.c:16:6:readProximityPilot	16	static
+../Charging/Src/j_plug.c:36:6:HAL_TIM_IC_CaptureCallback	24	static
+../Charging/Src/j_plug.c:65:6:readControlPilotCurrent	8	static
+../Charging/Src/j_plug.c:70:6:stopReadingControlPilotCurrent	8	static

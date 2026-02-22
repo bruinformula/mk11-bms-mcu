@@ -8,11 +8,18 @@
 #ifndef INC_CHARGING_H_
 #define INC_CHARGING_H_
 
-// TODO
-// FOR THE CHARGING SEQUENCE, BAUD RATE MUST BE CHANGED TO 250 KBPS
-// CHANGE PRESCALER FROM 20 TO 40; RESTART CAN PERIPHERAL AFTERWARD
+#include "j_plug.h"
+#include "elcon_charger.h"
+#include "fdcan.h"
+#include "voltage_calculations.h"
+#include "thermistor.h"
 
-// TODO
-// ENTER ELCON CHARGING SEQUENCE OR J1772 CHARGING SEQUENCE
+#define CHARGER_VOLTAGE 420
+#define MAX_TEMPERATURE_CHARGING_THRESHOLD 60.0
+#define MAX_CELL_VOLTAGE_CHARGING_THRESHOLD 4.0
+
+void change_baud_rate();
+void charging_sequence_startup();
+void charging_sequence();
 
 #endif /* INC_CHARGING_H_ */

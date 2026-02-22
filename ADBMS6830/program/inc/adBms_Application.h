@@ -92,8 +92,11 @@ void adBms6830_read_rdasall_voltage(uint8_t tIC, cell_asic *ic);
 
 void adbms_main(void);
 
-#define TOTAL_IC 2
+#define TOTAL_IC 10
 extern cell_asic IC[TOTAL_IC];
+
+#define CELLS_PER_IC 10
+#define TOTAL_CELLS (CELLS_PER_IC*TOTAL_IC)
 
 #endif
 /** @}*/

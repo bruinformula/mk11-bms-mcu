@@ -1,3 +1,2 @@
-../Core/Src/prchg.c:19:6:calculatePackVoltage	24	static
-../Core/Src/prchg.c:28:6:prechargeStart	8	static
-../Core/Src/prchg.c:41:6:prechargeSequence	16	static
+../Core/Src/prchg.c:18:6:prechargeStart	8	static
+../Core/Src/prchg.c:31:6:prechargeSequence	16	static

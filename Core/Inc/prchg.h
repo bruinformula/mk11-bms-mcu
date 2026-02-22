@@ -8,6 +8,7 @@
 #ifndef INC_PRCHG_H_
 #define INC_PRCHG_H_
 
+#include "voltage_calculations.h"
 #include "gpio.h"
 #include "tim.h"
 #include "fdcan.h"
@@ -37,8 +38,6 @@ extern FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 
 #define PRECHARGE_VOLTAGE_DELTA 25
 extern volatile float inverter_dc_volts;
-extern float pack_voltage;
-void calculatePackVoltage();
 
 typedef enum {
     PRECHARGE_IDLE,

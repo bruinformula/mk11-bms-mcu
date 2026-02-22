@@ -24,6 +24,7 @@ C_DEPS :=
 SUBDIRS := \
 ADBMS6830/lib/src \
 ADBMS6830/program/src \
+Calculations/Src \
 Charging/Src \
 Core/Src \
 Core/Startup \

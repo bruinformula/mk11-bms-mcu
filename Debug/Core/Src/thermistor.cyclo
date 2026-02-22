@@ -1,2 +1,0 @@
-../Core/Src/thermistor.c:22:7:voltageToTemp	6
-../Core/Src/thermistor.c:44:6:computeAllTemps	2

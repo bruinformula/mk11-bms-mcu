@@ -1,0 +1,3 @@
+../Charging/Src/charging.c:10:6:change_baud_rate	8	static
+../Charging/Src/charging.c:19:6:charging_sequence_startup	16	static
+../Charging/Src/charging.c:41:6:charging_sequence	8	static

@@ -9,21 +9,11 @@
 #include "prchg.h"
 
 volatile float inverter_dc_volts;
-float bms_pack_voltage;
 bool inverter_precharged;
 uint32_t precharge_start_time;
 FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
 PRECHARGE_STATE precharge_state = PRECHARGE_IDLE;
-
-void calculatePackVoltage() {
-	bms_pack_voltage = 0;
-	adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-	adBms6830_read_cell_voltages(TOTAL_IC, IC);
-	for (size_t i = 0; i < 16; ++i) {
-		bms_pack_voltage+=(fabs(getVoltage(IC->cell.c_codes[i])));
-	}
-}
 
 void prechargeStart() {
 	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
@@ -33,7 +23,7 @@ void prechargeStart() {
 	inverter_precharged = false;
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
 
-    calculatePackVoltage();
+	computeAllVoltages(TOTAL_IC, IC);
     precharge_start_time = HAL_GetTick();
     precharge_state = PRECHARGE_ACTIVE;
 }

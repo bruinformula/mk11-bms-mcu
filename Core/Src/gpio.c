@@ -90,11 +90,17 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(CURRENT_SENSOR_LOW_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : SHUTDOWN_POWER_Pin READY_SIGNAL_Pin */
-  GPIO_InitStruct.Pin = SHUTDOWN_POWER_Pin|READY_SIGNAL_Pin;
+  /*Configure GPIO pin : SHUTDOWN_POWER_Pin */
+  GPIO_InitStruct.Pin = SHUTDOWN_POWER_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(SHUTDOWN_POWER_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : READY_SIGNAL_Pin */
+  GPIO_InitStruct.Pin = READY_SIGNAL_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  HAL_GPIO_Init(READY_SIGNAL_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : CHARGE_SIGNAL_Pin */
   GPIO_InitStruct.Pin = CHARGE_SIGNAL_Pin;

@@ -1,0 +1,2 @@
+../Calculations/Src/thermistor.c:25:7:voltageToTemp	6
+../Calculations/Src/thermistor.c:47:6:computeAllTemps	5

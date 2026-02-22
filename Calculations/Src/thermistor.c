@@ -17,7 +17,10 @@ const float temp_table[33] = {
 		55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120
 };
 
-float temp_conversions[10];
+float temp_conversions[TOTAL_IC][CELLS_PER_IC];
+
+float lowest_cell_temp = INFINITY;
+float highest_cell_temp = -INFINITY;
 
 float voltageToTemp(float V) {
 	if (V > voltage_table[0] || V < voltage_table[32]) {
@@ -42,8 +45,18 @@ float voltageToTemp(float V) {
 }
 
 void computeAllTemps(uint8_t tIC, cell_asic *ic) {
-	adBms6830_read_aux_voltages(TOTAL_IC, IC);
-	for (size_t i = 0; i < 10; ++i) {
-		temp_conversions[i] = voltageToTemp(getVoltage(IC->aux.a_codes[i]));
+	adBms6830_read_aux_voltages(tIC, ic);
+
+	for (size_t i = 0; i < TOTAL_IC; ++i) {
+		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
+			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
+			temp_conversions[i][j] = cell_temp;
+			if (cell_temp < lowest_cell_temp) {
+				lowest_cell_temp = cell_temp;
+			}
+			if (cell_temp > highest_cell_temp) {
+				highest_cell_temp = cell_temp;
+			}
+		}
 	}
 }

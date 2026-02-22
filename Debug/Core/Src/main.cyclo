@@ -1,8 +1,7 @@
-../Core/Src/main.c:101:6:computeAllVoltages	3
-../Core/Src/main.c:113:7:getCurrentVoltage	1
-../Core/Src/main.c:117:6:HAL_ADC_ConvCpltCallback	1
-../Core/Src/main.c:140:5:main	5
-../Core/Src/main.c:248:6:SystemClock_Config	3
-../Core/Src/main.c:316:1:__io_putchar	1
-../Core/Src/main.c:325:1:__io_getchar	1
-../Core/Src/main.c:345:6:Error_Handler	1
+../Core/Src/main.c:100:7:getCurrentVoltage	1
+../Core/Src/main.c:104:6:HAL_ADC_ConvCpltCallback	1
+../Core/Src/main.c:127:5:main	5
+../Core/Src/main.c:233:6:SystemClock_Config	3
+../Core/Src/main.c:301:1:__io_putchar	1
+../Core/Src/main.c:310:1:__io_getchar	1
+../Core/Src/main.c:330:6:Error_Handler	1
