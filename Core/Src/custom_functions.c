@@ -140,7 +140,8 @@ uint8_t num_active_faults = 0;
 /* ==== SOC vs. Voltage ==== */
 const int SOC_LUT_SIZE = 9;
 const float SOC_LUT_VOLTAGES[] = {2.5f, 3.15f, 3.41f, 3.53f, 3.66f, 3.77f, 3.88f, 3.98f, 4.10f};
-const float SOC_LUT_PERCENT[]  = {0.0f, 12.0f, 25.0f, 37.0f, 50.0f, 62.0f, 75.0f, 87.0f, 100.0f};
+//const float SOC_LUT_PERCENT[]  = {0.0f, 12.0f, 25.0f, 37.0f, 50.0f, 62.0f, 75.0f, 87.0f, 100.0f};
+static const float SOC_LUT_PERCENT[SOC_LUT_SIZE] = {0,10,20,30,40,50,60,70,80,90,100};
 
 /* ==== DCL vs. Temperature ==== */
 const int DCL_LUT_SIZE = 8;
@@ -151,6 +152,37 @@ const float DCL_LUT_CURRENT[]  = {0.0f, 40.0f, 100.0f, 180.0f, 180.0f, 70.0f, 10
 const int CCL_LUT_SIZE = 11;
 const float CCL_LUT_TEMP[]     = {0.0f, 5.0f, 10.0f, 15.0f, 20.0f, 35.0f, 40.0f, 45.0f, 50.0f, 55.0f, 60.0f};
 const float CCL_LUT_CURRENT[]  = {0.0f, 0.0f, 10.0f, 20.0f, 30.0f, 30.0f, 20.0f, 10.0f, 5.0f,  0.0f,  0.0f};
+
+
+const OCV_LUT_SIZE = 11;
+const OCV_TEMP_LUT_SIZE = 6;
+
+static const float OCV_LUT_TEMPS[OCV_TEMP_LUT_SIZE] = {-20.0f, -10.0f, 0.0f, 23.0f, 45.0f, 60.0f};
+static const float OCV_LUT_VOLTAGES[OCV_TEMP_LUT_SIZE][OCV_LUT_SIZE] = {
+    /* -20C (monotonic enforced) */
+    {2.66533f, 3.03961f, 3.17228f, 3.25709f, 3.32743f, 3.39219f,
+     3.45599f, 3.51175f, 3.54500f, 3.54500f, 3.54500f},
+
+    /* -10C (monotonic enforced) */
+    {2.66529f, 3.05160f, 3.19626f, 3.28058f, 3.35369f, 3.42782f,
+     3.49899f, 3.55929f, 3.59745f, 3.59745f, 3.59745f},
+
+    /* 0C (monotonic enforced at top end) */
+    {2.66526f, 3.07132f, 3.22535f, 3.30915f, 3.38708f, 3.46194f,
+     3.53802f, 3.59459f, 3.65273f, 3.67080f, 3.67080f},
+
+    /* 23C */
+    {2.66523f, 3.11227f, 3.28591f, 3.37273f, 3.44677f, 3.52923f,
+     3.60645f, 3.67989f, 3.75583f, 3.81839f, 3.95806f},
+
+    /* 45C (monotonic enforced at top end) */
+    {2.66521f, 3.12337f, 3.31620f, 3.41582f, 3.49071f, 3.56681f,
+     3.65317f, 3.73117f, 3.81798f, 3.88262f, 3.88262f},
+
+    /* 60C */
+    {2.66523f, 3.13160f, 3.32332f, 3.41852f, 3.49427f, 3.57347f,
+     3.66353f, 3.73734f, 3.82779f, 3.89601f, 4.06398f}
+};
 
 /**
  * @brief Initialize fault system
@@ -878,7 +910,9 @@ float updateSOC() {
 	}
 
 	if (is_resting && (current_time - rest_start_time > REST_DURATION_MS)) {
-		soc = voltagetoSOC(avg_cell);
+		float temp_for_soc = (avg_temp != 0.0f) ? avg_temp : 23.0f;  // fallback if temps invalid
+		soc = voltagetoSOC_Tcomp(avg_cell, temp_for_soc);
+		// soc = voltagetoSOC(avg_cell);
 
 		// reset the coloumb counter
 		coulombs = 0.0f;
@@ -889,7 +923,9 @@ float updateSOC() {
 	// Coulomb counting
 	else {
 		if (initial_soc < 0.0f) {
-			initial_soc = voltagetoSOC(avg_cell);
+//			initial_soc = voltagetoSOC(avg_cell);
+			float temp_for_soc = (avg_temp != 0.0f) ? avg_temp : 23.0f;
+			initial_soc = voltagetoSOC_Tcomp(avg_cell, temp_for_soc);
 			soc = initial_soc;
 			last_time = current_time;
 		}
@@ -1034,6 +1070,92 @@ void fanPWMControl(float max_temp, TIM_HandleTypeDef *htimPWM) {
 		printf("Temp: %.1f°C, Error: %.1f, PID: %.2f, Fan: %.0f%%, PWM: %lu\r\n",
 			max_temp, error, pid_output, fan_status, pwm_value);
 }
+/* Inverse lookup for ONE temperature curve:
+ * Given OCV voltage, return SOC% using piecewise-linear interpolation.
+ * Assumes ocv_points[] is non-decreasing.
+ */
+static float ocvToSoc_1curve(float voltage, const float ocv_points[OCV_LUT_SIZE]) {
+    if (voltage <= ocv_points[0]) return SOC_LUT_PERCENT[0];
+    if (voltage >= ocv_points[OCV_LUT_SIZE - 1]) return SOC_LUT_PERCENT[OCV_LUT_SIZE - 1];
+
+    for (int i = 0; i < OCV_LUT_SIZE - 1; i++) {
+        float v1 = ocv_points[i];
+        float v2 = ocv_points[i + 1];
+
+        if (voltage >= v1 && voltage <= v2) {
+            float soc1 = SOC_LUT_PERCENT[i];
+            float soc2 = SOC_LUT_PERCENT[i + 1];
+
+            if (v2 == v1) return soc1;
+            return soc1 + (voltage - v1) * (soc2 - soc1) / (v2 - v1);
+        }
+    }
+
+    return SOC_LUT_PERCENT[SOC_LUT_SIZE - 1];
+}
+
+static void findTempBracket(float tempC, int *t0, int *t1, float *alpha) {
+    if (tempC <= OCV_LUT_TEMPS[0]) {
+        *t0 = 0; *t1 = 0; *alpha = 0.0f;
+        return;
+    }
+    if (tempC >= OCV_LUT_TEMPS[OCV_TEMP_LUT_SIZE - 1]) {
+        *t0 = OCV_TEMP_LUT_SIZE - 1;
+        *t1 = OCV_TEMP_LUT_SIZE - 1;
+        *alpha = 0.0f;
+        return;
+    }
+
+    for (int i = 0; i < OCV_TEMP_LUT_SIZE - 1; i++) {
+        float T1 = OCV_LUT_TEMPS[i];
+        float T2 = OCV_LUT_TEMPS[i + 1];
+        if (tempC >= T1 && tempC <= T2) {
+            *t0 = i;
+            *t1 = i + 1;
+            *alpha = (T2 == T1) ? 0.0f : (tempC - T1) / (T2 - T1);
+            return;
+        }
+    }
+
+    *t0 = OCV_TEMP_LUT_SIZE - 1;
+    *t1 = OCV_TEMP_LUT_SIZE - 1;
+    *alpha = 0.0f;
+}
+
+float voltagetoSOC_Tcomp(float voltage, float tempC) {
+    int t0, t1;
+    float a;
+    findTempBracket(tempC, &t0, &t1, &a);
+
+    float soc0 = ocvToSoc_1curve(voltage, OCV_LUT_VOLTAGES[t0]);
+    float soc1 = ocvToSoc_1curve(voltage, OCV_LUT_VOLTAGES[t1]);
+
+    float soc = soc0 + a * (soc1 - soc0);
+    if (soc < 0.0f) return 0.0f;
+    if (soc > 100.0f) return 100.0f;
+
+    return soc;
+}
+
+/* Optional: SOC->OCV with temp compensation (useful if you ever need forward mapping) */
+static float socToOcv_1curve(float soc, const float ocv_points[SOC_LUT_SIZE]) {
+    return interpolate(soc, SOC_LUT_PERCENT, ocv_points, SOC_LUT_SIZE);
+}
+
+float SOCtoVoltage_Tcomp(float soc, float tempC) {
+	if (soc < 0.0f) soc = 0.0f;
+	if (soc > 100.0f) soc = 100.0f;
+
+    int t0, t1;
+    float a;
+    findTempBracket(tempC, &t0, &t1, &a);
+
+    float v0 = socToOcv_1curve(soc, OCV_LUT_VOLTAGES[t0]);
+    float v1 = socToOcv_1curve(soc, OCV_LUT_VOLTAGES[t1]);
+
+    return v0 + a * (v1 - v0);
+}
+
 
 float interpolate(float x, const float x_points[], const float y_points[], int num_points) {
     if (x <= x_points[0]) {
