@@ -105,17 +105,22 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	current_sensor_low_adc =  current_sensor_adc[0] & 0xFFFF;
 	current_sensor_high_adc = (current_sensor_adc[0] >> 16) & 0xFFFF;
 
-	current_sensor_low_voltage = getCurrentVoltage(current_sensor_low_adc);
-	current_sensor_high_voltage = getCurrentVoltage(current_sensor_high_adc);
-
-	current_sensor_low_amps = 13.2615 * current_sensor_low_voltage - 34.3672;
-	current_sensor_high_amps = 159.6343 * current_sensor_high_voltage - 401.4685;
-
-//	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
-//	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
+//	current_sensor_low_voltage = getCurrentVoltage(current_sensor_low_adc);
+//	current_sensor_high_voltage = getCurrentVoltage(current_sensor_high_adc);
 //
+//	current_sensor_low_amps = 13.2615 * current_sensor_low_voltage - 34.3672;
+//	current_sensor_high_amps = 159.6343 * current_sensor_high_voltage - 401.4685;
+
+	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
+	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
+
 //	current_sensor_low_amps = (current_sensor_low_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_LOW_SENS;
 //	current_sensor_high_amps = (current_sensor_high_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_HIGH_SENS;
+
+	// calculation with line of best fit from data table:
+	current_sensor_low_amps = 0.01842035309 * current_sensor_low_adc - 38.69539783; // off by  ~0.1 A
+	current_sensor_high_amps = 0.2126860558 * current_sensor_high_adc - 437.5978435; // off by ~0.5 A
+
 }
 
 /* USER CODE END 0 */
@@ -196,9 +201,9 @@ int main(void)
   // MUST ENTER PRECHARGE SEQUENCE --> DRIVE LOOP, OR BALANCE/CHARGE SEQUENCE --> TERMINATE
 
   // CURRENT SENSOR START!
-//    HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-//    HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-//    HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
+    HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+    HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+    HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
 
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
