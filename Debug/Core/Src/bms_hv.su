@@ -1,0 +1,3 @@
+../Core/Src/bms_hv.c:10:21:clampf	24	static
+../Core/Src/bms_hv.c:14:6:HVSM_Init	16	static
+../Core/Src/bms_hv.c:29:12:HVSM_Tick	56	static
