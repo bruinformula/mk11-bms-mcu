@@ -79,7 +79,7 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
     // Clamp to int8 range
     // if (max_temp > 127) max_temp = 127;
     // if (min_temp < -128) min_temp = -128;
-    if (highest_temp > 127) lowest_temp = 127;
+    if (highest_temp > 127) highest_temp = 127;
     if (highest_temp < -128) highest_temp = -128;
     if (lowest_temp > 127) lowest_temp = 127;
     if (lowest_temp < -128) lowest_temp = -128;

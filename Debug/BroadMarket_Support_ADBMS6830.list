@@ -4127,20 +4127,20 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
     // Clamp to int8 range
     // if (max_temp > 127) max_temp = 127;
     // if (min_temp < -128) min_temp = -128;
-    if (highest_temp > 127) lowest_temp = 127;
+    if (highest_temp > 127) highest_temp = 127;
  800262a:	4b2f      	ldr	r3, [pc, #188]	@ (80026e8 <populate_CAN2+0xf4>)
  800262c:	edd3 7a00 	vldr	s15, [r3]
  8002630:	ed9f 7a2e 	vldr	s14, [pc, #184]	@ 80026ec <populate_CAN2+0xf8>
  8002634:	eef4 7ac7 	vcmpe.f32	s15, s14
  8002638:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  800263c:	dd02      	ble.n	8002644 <populate_CAN2+0x50>
- 800263e:	4b2c      	ldr	r3, [pc, #176]	@ (80026f0 <populate_CAN2+0xfc>)
- 8002640:	4a2c      	ldr	r2, [pc, #176]	@ (80026f4 <populate_CAN2+0x100>)
+ 800263e:	4b2a      	ldr	r3, [pc, #168]	@ (80026e8 <populate_CAN2+0xf4>)
+ 8002640:	4a2b      	ldr	r2, [pc, #172]	@ (80026f0 <populate_CAN2+0xfc>)
  8002642:	601a      	str	r2, [r3, #0]
     if (highest_temp < -128) highest_temp = -128;
  8002644:	4b28      	ldr	r3, [pc, #160]	@ (80026e8 <populate_CAN2+0xf4>)
  8002646:	edd3 7a00 	vldr	s15, [r3]
- 800264a:	ed9f 7a2b 	vldr	s14, [pc, #172]	@ 80026f8 <populate_CAN2+0x104>
+ 800264a:	ed9f 7a2a 	vldr	s14, [pc, #168]	@ 80026f4 <populate_CAN2+0x100>
  800264e:	eef4 7ac7 	vcmpe.f32	s15, s14
  8002652:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8002656:	d503      	bpl.n	8002660 <populate_CAN2+0x6c>
@@ -4148,23 +4148,23 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
  800265a:	f04f 4243 	mov.w	r2, #3271557120	@ 0xc3000000
  800265e:	601a      	str	r2, [r3, #0]
     if (lowest_temp > 127) lowest_temp = 127;
- 8002660:	4b23      	ldr	r3, [pc, #140]	@ (80026f0 <populate_CAN2+0xfc>)
+ 8002660:	4b25      	ldr	r3, [pc, #148]	@ (80026f8 <populate_CAN2+0x104>)
  8002662:	edd3 7a00 	vldr	s15, [r3]
  8002666:	ed9f 7a21 	vldr	s14, [pc, #132]	@ 80026ec <populate_CAN2+0xf8>
  800266a:	eef4 7ac7 	vcmpe.f32	s15, s14
  800266e:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  8002672:	dd02      	ble.n	800267a <populate_CAN2+0x86>
- 8002674:	4b1e      	ldr	r3, [pc, #120]	@ (80026f0 <populate_CAN2+0xfc>)
- 8002676:	4a1f      	ldr	r2, [pc, #124]	@ (80026f4 <populate_CAN2+0x100>)
+ 8002674:	4b20      	ldr	r3, [pc, #128]	@ (80026f8 <populate_CAN2+0x104>)
+ 8002676:	4a1e      	ldr	r2, [pc, #120]	@ (80026f0 <populate_CAN2+0xfc>)
  8002678:	601a      	str	r2, [r3, #0]
     if (lowest_temp < -128) lowest_temp = -128;
- 800267a:	4b1d      	ldr	r3, [pc, #116]	@ (80026f0 <populate_CAN2+0xfc>)
+ 800267a:	4b1f      	ldr	r3, [pc, #124]	@ (80026f8 <populate_CAN2+0x104>)
  800267c:	edd3 7a00 	vldr	s15, [r3]
- 8002680:	ed9f 7a1d 	vldr	s14, [pc, #116]	@ 80026f8 <populate_CAN2+0x104>
+ 8002680:	ed9f 7a1c 	vldr	s14, [pc, #112]	@ 80026f4 <populate_CAN2+0x100>
  8002684:	eef4 7ac7 	vcmpe.f32	s15, s14
  8002688:	eef1 fa10 	vmrs	APSR_nzcv, fpscr
  800268c:	d503      	bpl.n	8002696 <populate_CAN2+0xa2>
- 800268e:	4b18      	ldr	r3, [pc, #96]	@ (80026f0 <populate_CAN2+0xfc>)
+ 800268e:	4b1a      	ldr	r3, [pc, #104]	@ (80026f8 <populate_CAN2+0x104>)
  8002690:	f04f 4243 	mov.w	r2, #3271557120	@ 0xc3000000
  8002694:	601a      	str	r2, [r3, #0]
 
@@ -4178,7 +4178,7 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
  80026a8:	68fb      	ldr	r3, [r7, #12]
  80026aa:	711a      	strb	r2, [r3, #4]
     frame->data.pack_low_temp = (int8_t)lowest_temp;
- 80026ac:	4b10      	ldr	r3, [pc, #64]	@ (80026f0 <populate_CAN2+0xfc>)
+ 80026ac:	4b12      	ldr	r3, [pc, #72]	@ (80026f8 <populate_CAN2+0x104>)
  80026ae:	edd3 7a00 	vldr	s15, [r3]
  80026b2:	eefd 7ae7 	vcvt.s32.f32	s15, s15
  80026b6:	edc7 7a00 	vstr	s15, [r7]
@@ -4210,9 +4210,9 @@ void populate_CAN2(CAN2_DATAFRAME *frame, cell_asic *ICs, int totalIC) {
  80026e4:	200004b8 	.word	0x200004b8
  80026e8:	200004c4 	.word	0x200004c4
  80026ec:	42fe0000 	.word	0x42fe0000
- 80026f0:	200004c0 	.word	0x200004c0
- 80026f4:	42fe0000 	.word	0x42fe0000
- 80026f8:	c3000000 	.word	0xc3000000
+ 80026f0:	42fe0000 	.word	0x42fe0000
+ 80026f4:	c3000000 	.word	0xc3000000
+ 80026f8:	200004c0 	.word	0x200004c0
 
 080026fc <populate_CAN3>:
 
