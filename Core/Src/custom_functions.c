@@ -499,7 +499,6 @@ void populateIC(cell_asic *IC, uint8_t tIC) {
 	if (c_fault > 0) {
 		cell_fault = CELL_VOLTAGE_FAULT;
 	}
-
 	Delay_ms(8);
 	start_time = HAL_GetTick();
 	adBms6830_start_aux_voltage_measurment(tIC, &IC[0]);
