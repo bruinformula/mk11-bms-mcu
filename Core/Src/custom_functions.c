@@ -973,6 +973,95 @@ float updateSOC() {
 	return soc;
 }
 
+void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
+	// Reset after max duration to prevent overheating
+	if (tick > 200) {
+		stopBalancing(tIC, ic);
+		tick = 0;
+		// Consider updating target voltage after each cycle
+		target_lowest_cell = lowest_cell;
+		return;
+	}
+
+	// Initialize target when first called
+	if (target_lowest_cell == -1) {
+		target_lowest_cell = lowest_cell;
+	}
+
+	// Only update balancing configuration periodically
+	if (tick == 10) {
+		// Clear balance mask for new calculation
+		multiMask = 0;
+
+		for (uint8_t dev = 0; dev < tIC; ++dev) {
+			// Start with all balance switches off
+			ic[dev].tx_cfgb.dcc = 0;
+
+			for (uint8_t ch = 0; ch < NUM_CELLS_PER_IC; ++ch) {
+				float v = getVoltage(ic[dev].cell.c_codes[ch]);
+
+				// Improved logic: Balance cells above target with a small hysteresis
+				if (v > (target_lowest_cell + 0.01)) { // 10mV hysteresis
+													   // Set this cell for balancing
+					multiMask |= (1 << ch);
+					// Configure PWM duty cycle
+					ic[dev].PwmA.pwma[ch] = duty_cycle;
+				} else {
+					// Ensure PWM is off for cells we don't balance
+					ic[dev].PwmA.pwma[ch] = PWM_0_0_PCT;
+				}
+			}
+
+			// Apply the mask directly (cleaner than the previous approach)
+//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
+		}
+	}
+
+	// Send configuration to the hardware - this should happen every time
+	// to ensure the balancing continues even if we don't update the mask
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRPWM1, Pwm, A); /* cells 1-8 */
+
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRPWM2, Pwm, B); /* cells 9-16 */
+
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B); /* push DCC */
+
+	// Enable S-pin control
+	adBmsWakeupIc(tIC);
+	spiSendCmd(UNMUTE);
+}
+
+void stopBalancing(uint8_t tIC, cell_asic *ic) {
+	// Clear all balance control
+	multiMask = 0;
+
+	for (uint8_t dev = 0; dev < tIC; ++dev) {
+		// Clear all DCC bits for all cells
+		ic[dev].tx_cfgb.dcc = 0;
+
+		// Also ensure all PWM settings are zero
+		for (uint8_t ch = 0; ch < NUM_CELLS_PER_IC; ++ch) {
+			ic[dev].PwmA.pwma[ch] = PWM_0_0_PCT;
+		}
+	}
+
+	// Update hardware registers
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRPWM1, Pwm, A);
+
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRPWM2, Pwm, B);
+
+	adBmsWakeupIc(tIC);
+	adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B);
+
+	// Ensure S-pins are operational
+	adBmsWakeupIc(tIC);
+	spiSendCmd(UNMUTE);
+}
+
 /**
  * @brief PID controlled fan speed to maintain optimal battery temperature
  *
