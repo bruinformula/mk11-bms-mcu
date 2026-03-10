@@ -26,6 +26,7 @@
 #include <math.h>
 #include "adbms_can_helper.h"
 #include "custom_functions.h"
+#include <stdlib.h>
 #ifdef MBED
 extern Serial pc;
 #endif
@@ -959,3 +960,32 @@ void stopBalancing(uint8_t tIC, cell_asic *ic) {
 	adBmsWakeupIc(tIC);
 	spiSendCmd(UNMUTE);
 }
+
+
+/**
+ *******************************************************************************
+ * @brief Insert test voltage values.
+ *******************************************************************************
+ */
+
+void insertingTestDataVoltage(cell_asic *IC) //call function before actually trying to extract data.
+{
+	for (uint8_t ic = 0; ic < TOTAL_IC; ic++) {
+		for (uint8_t cell_num = 0; cell_num < NUM_CELLS_PER_IC; cell_num++) {
+
+			float voltage;
+			int category = rand() % 100;
+
+			if (category < 10)
+				voltage = 1.5f + ((float)rand() / RAND_MAX) * (UV_THRESHOLD - 1.5f);
+			else if (category < 90)
+				voltage = UV_THRESHOLD + ((float)rand() / RAND_MAX) * (OV_THRESHOLD - UV_THRESHOLD);
+			else
+				voltage = OV_THRESHOLD + ((float)rand() / RAND_MAX) * (5.0f - OV_THRESHOLD);
+
+			IC[ic].cell.c_codes[cell_num] = (voltage - 1.5f) / 0.000150f;
+		}
+	}
+	return;
+}
+
