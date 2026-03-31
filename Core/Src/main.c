@@ -34,6 +34,7 @@
 #include "prchg.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
+#include "balancing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -69,6 +70,8 @@ float current_sensor_low_voltage;
 float current_sensor_high_voltage;
 float current_sensor_low_amps;
 float current_sensor_high_amps;
+
+extern uint16_t tick;
 
 int current_range = 0;
 #define LOW_TO_HIGH_THRESHOLD 29.0
@@ -164,35 +167,35 @@ int main(void)
   MX_TIM1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  FDCAN_FilterTypeDef sStdFilter= {0};
-  sStdFilter.IdType = FDCAN_STANDARD_ID;
-  sStdFilter.FilterIndex = 0;
-  sStdFilter.FilterType = FDCAN_FILTER_RANGE;
-  sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-  sStdFilter.FilterID1 = 0x000;
-  sStdFilter.FilterID2 = 0x7FF;
-  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter) != HAL_OK) {
-	  Error_Handler();
-  }
-
-  FDCAN_FilterTypeDef sExtFilter = {0};
-  sExtFilter.IdType = FDCAN_EXTENDED_ID;
-  sExtFilter.FilterIndex = 0;
-  sExtFilter.FilterType = FDCAN_FILTER_RANGE;
-  sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-  sExtFilter.FilterID1 = 0x00000000;
-  sExtFilter.FilterID2 = 0x1FFFFFFF;
-  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter) != HAL_OK) {
-	  Error_Handler();
-  }
-
-  if (HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
-	  Error_Handler();
-  }
-
-  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-	  Error_Handler();
-  }
+//  FDCAN_FilterTypeDef sStdFilter= {0};
+//  sStdFilter.IdType = FDCAN_STANDARD_ID;
+//  sStdFilter.FilterIndex = 0;
+//  sStdFilter.FilterType = FDCAN_FILTER_RANGE;
+//  sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+//  sStdFilter.FilterID1 = 0x000;
+//  sStdFilter.FilterID2 = 0x7FF;
+//  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter) != HAL_OK) {
+//	  Error_Handler();
+//  }
+//
+//  FDCAN_FilterTypeDef sExtFilter = {0};
+//  sExtFilter.IdType = FDCAN_EXTENDED_ID;
+//  sExtFilter.FilterIndex = 0;
+//  sExtFilter.FilterType = FDCAN_FILTER_RANGE;
+//  sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+//  sExtFilter.FilterID1 = 0x00000000;
+//  sExtFilter.FilterID2 = 0x1FFFFFFF;
+//  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter) != HAL_OK) {
+//	  Error_Handler();
+//  }
+//
+//  if (HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
+//	  Error_Handler();
+//  }
+//
+//  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+//	  Error_Handler();
+//  }
 
 //  setvbuf(stdin, NULL, _IONBF, 0);
 //  adbms_main();
@@ -218,6 +221,14 @@ int main(void)
 	{
 		computeAllVoltages(TOTAL_IC, IC);
 		computeAllTemps(TOTAL_IC, IC);
+
+//		if ((highest_cell_voltage - lowest_cell_voltage) > 0.02f) {
+//			balanceCells(TOTAL_IC, IC, PWM_6_6_PCT);
+//			tick++;  // tick is extern from balancing.c
+//		} else {
+//			stopBalancing(TOTAL_IC, IC);
+//			tick = 0;
+//		}
 		Delay_ms(500);
 	}
     /* USER CODE END WHILE */

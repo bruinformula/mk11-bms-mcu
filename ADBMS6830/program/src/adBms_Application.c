@@ -219,7 +219,7 @@ void adBms6830_init_config(uint8_t tIC, cell_asic *ic)
 //    ic[cic].cfga.fc = IIR_FPA256;
 
     /* Init config B */
-//    ic[cic].cfgb.dtmen = DTMEN_ON;
+    ic[cic].tx_cfgb.dtmen = DTMEN_ON;
     ic[cic].tx_cfgb.vov = SetOverVoltageThreshold(OV_THRESHOLD);
     ic[cic].tx_cfgb.vuv = SetUnderVoltageThreshold(UV_THRESHOLD);
 //    ic[cic].cfgb.dcc = ConfigB_DccBit(DCC16, DCC_BIT_SET);
