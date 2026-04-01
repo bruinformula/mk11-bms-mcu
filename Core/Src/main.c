@@ -37,6 +37,7 @@
 #include "voltage_calculations.h"
 #include "current_calculations.h"
 #include "balancing.h"
+#include "bms_state.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -59,14 +60,6 @@
 /* USER CODE BEGIN PV */
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
-
-typedef enum {
-	BMS_IDLE = 0,
-	BMS_CHARGING,
-	BMS_BALANCING,
-	BMS_PRECHARGING,
-	BMS_DRIVE,
-} BMS_STATE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -89,19 +82,7 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-static BMS_STATE bms_state = BMS_IDLE;
 
-void determineStartupMode() {
-	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
-		if (HAL_GPIO_ReadPin(BALANCING_EN_GPIO_Port, BALANCING_EN_Pin) == GPIO_PIN_SET) {
-			bms_state = BMS_BALANCING;
-		} else {
-			bms_state = BMS_CHARGING;
-		}
-	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_PRECHARGING;
-	}
-}
 /* USER CODE END 0 */
 
 /**
@@ -172,6 +153,7 @@ int main(void)
 	  Error_Handler();
   }
 
+  MX_FREERTOS_Init();
   startADC();
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);

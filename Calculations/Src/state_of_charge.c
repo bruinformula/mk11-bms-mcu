@@ -55,8 +55,8 @@ float ocv_lookup_soc(float avg_temp, float cell_voltage) {
 
 float initial_soc;
 void get_initial_soc() {
-	float soc_min = ocv_lookup_soc(avg_temp, lowest_cell_voltage);
-	float soc_max = ocv_lookup_soc(avg_temp, highest_cell_voltage);
+	float soc_min = ocv_lookup_soc(avg_cell_temp, lowest_cell_voltage);
+	float soc_max = ocv_lookup_soc(avg_cell_temp, highest_cell_voltage);
 
 	if (soc_min <= 50.0) {
 		initial_soc = soc_min;

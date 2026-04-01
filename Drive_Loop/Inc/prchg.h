@@ -8,14 +8,15 @@
 #ifndef INC_PRCHG_H_
 #define INC_PRCHG_H_
 
+#include <math.h>
+#include <stdbool.h>
 #include "voltage_calculations.h"
 #include "gpio.h"
 #include "tim.h"
 #include "fdcan.h"
 #include "adBms_Application.h"
 #include "serialPrintResult.h"
-#include <math.h>
-#include <stdbool.h>
+#include "bms_state.h"
 
 #define PRECHARGE_COMPLETE_TX_ID 0x6B4
 #define PRECHARGE_REQUEST_RX_ID 0x6B3

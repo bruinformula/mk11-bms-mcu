@@ -42,6 +42,7 @@ void prechargeSequence() {
 			HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1,
 			            				&Precharge_Complete_TxHeader,
 			            				Precharge_Complete_DF.array);
+			enterDriveMode(); // TRANSITION TO DRIVE MODE
 			break;
 		} else if (HAL_GetTick() - precharge_start_time >= PRECHARGE_TIMEOUT) {
 			inverter_precharged = false;
@@ -54,6 +55,7 @@ void prechargeSequence() {
 			HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1,
 			            				&Precharge_Complete_TxHeader,
 			            				Precharge_Complete_DF.array);
+			// PRECHARGE FAILURE, CAN BE RE-ATTEMPTED
 			break;
 		}
 	}

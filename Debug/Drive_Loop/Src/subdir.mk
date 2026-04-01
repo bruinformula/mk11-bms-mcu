@@ -6,15 +6,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Drive_Loop/Src/currLimiting.c \
-../Drive_Loop/Src/prchg.c 
+../Drive_Loop/Src/datalogging.c \
+../Drive_Loop/Src/prchg.c \
+../Drive_Loop/Src/safety_handler.c 
 
 OBJS += \
 ./Drive_Loop/Src/currLimiting.o \
-./Drive_Loop/Src/prchg.o 
+./Drive_Loop/Src/datalogging.o \
+./Drive_Loop/Src/prchg.o \
+./Drive_Loop/Src/safety_handler.o 
 
 C_DEPS += \
 ./Drive_Loop/Src/currLimiting.d \
-./Drive_Loop/Src/prchg.d 
+./Drive_Loop/Src/datalogging.d \
+./Drive_Loop/Src/prchg.d \
+./Drive_Loop/Src/safety_handler.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes
@@ -24,7 +30,7 @@ Drive_Loop/Src/%.o Drive_Loop/Src/%.su Drive_Loop/Src/%.cyclo: ../Drive_Loop/Src
 clean: clean-Drive_Loop-2f-Src
 
 clean-Drive_Loop-2f-Src:
-	-$(RM) ./Drive_Loop/Src/currLimiting.cyclo ./Drive_Loop/Src/currLimiting.d ./Drive_Loop/Src/currLimiting.o ./Drive_Loop/Src/currLimiting.su ./Drive_Loop/Src/prchg.cyclo ./Drive_Loop/Src/prchg.d ./Drive_Loop/Src/prchg.o ./Drive_Loop/Src/prchg.su
+	-$(RM) ./Drive_Loop/Src/currLimiting.cyclo ./Drive_Loop/Src/currLimiting.d ./Drive_Loop/Src/currLimiting.o ./Drive_Loop/Src/currLimiting.su ./Drive_Loop/Src/datalogging.cyclo ./Drive_Loop/Src/datalogging.d ./Drive_Loop/Src/datalogging.o ./Drive_Loop/Src/datalogging.su ./Drive_Loop/Src/prchg.cyclo ./Drive_Loop/Src/prchg.d ./Drive_Loop/Src/prchg.o ./Drive_Loop/Src/prchg.su ./Drive_Loop/Src/safety_handler.cyclo ./Drive_Loop/Src/safety_handler.d ./Drive_Loop/Src/safety_handler.o ./Drive_Loop/Src/safety_handler.su
 
 .PHONY: clean-Drive_Loop-2f-Src
 

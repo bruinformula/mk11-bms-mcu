@@ -11,13 +11,12 @@
 #include <math.h>
 #include "adBms_Application.h"
 #include "serialPrintResult.h"
-
-extern int lowest_cell_voltage_segment;
-extern int lowest_cell_voltage_cell;
+#include "bms_state.h"
 
 extern float bms_pack_voltage;
 extern float lowest_cell_voltage;
 extern float highest_cell_voltage;
+extern float avg_cell_voltage;
 extern float voltage_conversions[TOTAL_IC][CELLS_PER_IC];
 void computeAllVoltages(uint8_t tIC, cell_asic *ic);
 

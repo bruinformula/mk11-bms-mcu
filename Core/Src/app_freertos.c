@@ -26,7 +26,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "freertos_handles.h"
+#include "datalogging.h"
 #include "currLimiting.h"
+#include "voltage_calculations.h"
+#include "thermistor.h"
+#include "adBms_Application.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -107,27 +111,27 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of safetyTask */
-  osThreadDef(safetyTask, safetyTaskFunction, osPriorityNormal, 0, 64);
+  osThreadDef(safetyTask, safetyTaskFunction, osPriorityHigh, 0, 64);
   safetyTaskHandle = osThreadCreate(osThread(safetyTask), NULL);
 
   /* definition and creation of voltageTask */
-  osThreadDef(voltageTask, voltageTaskFunction, osPriorityIdle, 0, 64);
+  osThreadDef(voltageTask, voltageTaskFunction, osPriorityAboveNormal, 0, 64);
   voltageTaskHandle = osThreadCreate(osThread(voltageTask), NULL);
 
   /* definition and creation of tempTask */
-  osThreadDef(tempTask, tempTaskFunction, osPriorityIdle, 0, 64);
+  osThreadDef(tempTask, tempTaskFunction, osPriorityAboveNormal, 0, 64);
   tempTaskHandle = osThreadCreate(osThread(tempTask), NULL);
 
   /* definition and creation of currLimitTask */
-  osThreadDef(currLimitTask, currLimitTaskFunction, osPriorityIdle, 0, 64);
+  osThreadDef(currLimitTask, currLimitTaskFunction, osPriorityNormal, 0, 64);
   currLimitTaskHandle = osThreadCreate(osThread(currLimitTask), NULL);
 
   /* definition and creation of socTask */
-  osThreadDef(socTask, socTaskFunction, osPriorityIdle, 0, 64);
+  osThreadDef(socTask, socTaskFunction, osPriorityBelowNormal, 0, 64);
   socTaskHandle = osThreadCreate(osThread(socTask), NULL);
 
   /* definition and creation of daqTask */
-  osThreadDef(daqTask, daqTaskFunction, osPriorityIdle, 0, 64);
+  osThreadDef(daqTask, daqTaskFunction, osPriorityLow, 0, 64);
   daqTaskHandle = osThreadCreate(osThread(daqTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -164,10 +168,12 @@ void safetyTaskFunction(void const * argument)
 void voltageTaskFunction(void const * argument)
 {
   /* USER CODE BEGIN voltageTaskFunction */
+  TickType_t lastWakeTime = osKernelSysTick();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(200);
+    computeAllVoltages(TOTAL_IC, IC);
+    osDelayUntil(&lastWakeTime, 200);
   }
   /* USER CODE END voltageTaskFunction */
 }
@@ -182,10 +188,12 @@ void voltageTaskFunction(void const * argument)
 void tempTaskFunction(void const * argument)
 {
   /* USER CODE BEGIN tempTaskFunction */
+  TickType_t lastWakeTime = osKernelSysTick();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(200);
+	computeAllTemps(TOTAL_IC, IC);
+    osDelayUntil(&lastWakeTime, 200);
   }
   /* USER CODE END tempTaskFunction */
 }
@@ -239,10 +247,13 @@ void socTaskFunction(void const * argument)
 void daqTaskFunction(void const * argument)
 {
   /* USER CODE BEGIN daqTaskFunction */
+  TickType_t lastWakeTime = osKernelSysTick();
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
+	sendTemp();
+	sendVoltage();
+    osDelayUntil(&lastWakeTime, 1000);
   }
   /* USER CODE END daqTaskFunction */
 }

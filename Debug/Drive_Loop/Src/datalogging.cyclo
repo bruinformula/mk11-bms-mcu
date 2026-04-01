@@ -1,0 +1,4 @@
+../Drive_Loop/Src/datalogging.c:16:6:configureTemp_TxMsg	1
+../Drive_Loop/Src/datalogging.c:20:6:configureVoltage_TxMsg	1
+../Drive_Loop/Src/datalogging.c:24:6:sendTemp	1
+../Drive_Loop/Src/datalogging.c:33:6:sendVoltage	1
