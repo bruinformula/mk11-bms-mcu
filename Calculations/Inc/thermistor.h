@@ -12,6 +12,7 @@
 #include "adBms_Application.h"
 #include "serialPrintResult.h"
 
+extern float avg_temp;
 extern float lowest_cell_temp;
 extern float highest_cell_temp;
 

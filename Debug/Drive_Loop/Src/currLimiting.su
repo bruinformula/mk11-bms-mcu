@@ -1,0 +1,5 @@
+../Drive_Loop/Src/currLimiting.c:15:14:interpolateCurve	48	static
+../Drive_Loop/Src/currLimiting.c:72:6:calculateCCL	8	static
+../Drive_Loop/Src/currLimiting.c:76:6:calculateDCL	8	static
+../Drive_Loop/Src/currLimiting.c:80:6:configureCCL_DCL_TxMsg	8	static
+../Drive_Loop/Src/currLimiting.c:84:6:sendCCL_DCL	8	static

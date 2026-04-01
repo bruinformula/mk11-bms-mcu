@@ -12,6 +12,9 @@
 #include "adBms_Application.h"
 #include "serialPrintResult.h"
 
+extern int lowest_cell_voltage_segment;
+extern int lowest_cell_voltage_cell;
+
 extern float bms_pack_voltage;
 extern float lowest_cell_voltage;
 extern float highest_cell_voltage;

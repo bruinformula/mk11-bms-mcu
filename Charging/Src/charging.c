@@ -7,8 +7,10 @@
 
 #include "charging.h"
 
+static CHARGING_STATE charging_state = CHG_IDLE;
+
 void change_baud_rate() {
-	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON
+	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON CHARGER
 	HAL_FDCAN_Stop(&hfdcan1);
 	HAL_FDCAN_DeInit(&hfdcan1);
 	hfdcan1.Init.DataPrescaler = 40;
@@ -18,54 +20,67 @@ void change_baud_rate() {
 
 void charging_sequence_startup() {
 	change_baud_rate();
-
 	while (proximity_pilot_state != STATE_PP_CONNECTED) {
-		readProximityPilot();
+		// BLOCK
 	}
 
 	uint32_t start_time = HAL_GetTick();
-	readControlPilotCurrent();
+	readControlPilot();
 	while (HAL_GetTick() - start_time < 3000) {
-		// BLOCK, SAMPLE CONTROL PILOT SIGNAL FOR 3 SECONDS
+		// WAIT 3 SECONDS
 	}
-	stopReadingControlPilotCurrent();
+	stopReadingControlPilot();
 
-	if (requested_amps > 0 && control_pilot_state == STATE_CP_CONNECTED) {
-		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port,
-				J1772_PILOT_SWITCH_Pin,
-				GPIO_PIN_SET);
+	if (advertised_amps > 0 && control_pilot_state == STATE_CP_CONNECTED) {
+		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+		charging_state = CHG_ACTIVE;
 		charging_sequence();
 	}
 }
 
+static uint32_t last_tx_time = 0;
+static float requested_voltage = 0;
+static float requested_amps = 0;
 void charging_sequence() {
-	computeAllTemps(TOTAL_IC, IC);
-	computeAllVoltages(TOTAL_IC, IC);
+	while(1) {
+		computeAllVoltages(TOTAL_IC, IC);
+		computeAllTemps(TOTAL_IC, IC);
 
-	if (highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
-		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port,
-				J1772_PILOT_SWITCH_Pin,
-				GPIO_PIN_SET);
-		sendChargerRequest(CHARGER_VOLTAGE, requested_amps, 1);
-		return;
+		if (chargerFaultDetected()) {
+			sendChargerRequest(0, 0, 1);
+			charging_state = CHG_ELCON_FAULT;
+			break;
+		}
+
+		if (highest_cell_temp > MAX_TEMPERATURE_CHARGING_THRESHOLD) {
+			sendChargerRequest(0, 0, 1);
+			charging_state = CHG_TEMP_FAULT;
+			break;
+		}
+
+		if (fabsf(current_sensor_val - requested_amps) > CURRENT_SENSOR_EPSILON) {
+			sendChargerRequest(0, 0, 1);
+			charging_state = CHG_CURRENT_FAULT;
+			break;
+		}
+
+		if (highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
+			sendChargerRequest(0, 0, 1);
+			charging_state = CHG_COMPLETE;
+			break;
+		}
+
+		if (proximity_pilot_state != STATE_PP_CONNECTED) {
+			requested_voltage = 0;
+			requested_amps = 0;
+		} else {
+			requested_voltage = CHARGER_VOLTAGE;
+			requested_amps = advertised_amps;
+		}
+
+		if (HAL_GetTick() - last_tx_time >= 1000) {
+			sendChargerRequest(requested_voltage, requested_amps, 0);
+			last_tx_time = HAL_GetTick();
+		}
 	}
-
-	if (highest_cell_temp > MAX_TEMPERATURE_CHARGING_THRESHOLD) {
-		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port,
-						J1772_PILOT_SWITCH_Pin,
-						GPIO_PIN_SET);
-		sendChargerRequest(CHARGER_VOLTAGE, requested_amps, 1);
-		return;
-	}
-
-	readProximityPilot();
-	if (proximity_pilot_state != STATE_PP_CONNECTED) {
-		// TODO
-		// Block?
-	}
-
-	sendChargerRequest(CHARGER_VOLTAGE, requested_amps, 0);
-	// TODO: Analyze the ELCON Charger Response for faults on their side.
-
-	HAL_Delay(1000);
 }

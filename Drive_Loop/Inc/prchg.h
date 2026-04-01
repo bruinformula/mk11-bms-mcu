@@ -17,7 +17,12 @@
 #include <math.h>
 #include <stdbool.h>
 
+#define PRECHARGE_COMPLETE_TX_ID 0x6B4
 #define PRECHARGE_REQUEST_RX_ID 0x6B3
+#define INVERTER_VOLTAGE_RX_ID 0xA7
+#define PRECHARGE_VOLTAGE_DELTA 25
+#define PRECHARGE_TIMEOUT 5000
+
 typedef union PRECHARGE_COMPLETE_DF {
 	struct __attribute__((packed)) {
 		uint8_t inverter_precharged;
@@ -32,12 +37,6 @@ typedef union PRECHARGE_COMPLETE_DF {
 	} data;
 	uint8_t array[8];
 } PRECHARGE_COMPLETE_DF;
-extern PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
-#define PRECHARGE_COMPLETE_TX_ID 0x6B4
-extern FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
-
-#define PRECHARGE_VOLTAGE_DELTA 25
-extern volatile float inverter_dc_volts;
 
 typedef enum {
     PRECHARGE_IDLE,
@@ -45,11 +44,9 @@ typedef enum {
     PRECHARGE_COMPLETE,
 	PRECHARGE_FAIL,
 } PRECHARGE_STATE;
-extern PRECHARGE_STATE precharge_state;
 
-#define PRECHARGE_TIMEOUT 5000
+extern volatile float inverter_dc_volts;
 extern bool inverter_precharged;
-extern uint32_t precharge_start_time;
 void prechargeStart();
 void prechargeSequence();
 

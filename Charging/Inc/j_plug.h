@@ -8,8 +8,15 @@
 #ifndef INC_J_PLUG_H_
 #define INC_J_PLUG_H_
 
+#include <stdint.h>
+#include <math.h>
+#include "adc.h"
+#include "tim.h"
+
+#define PP_VOLTAGE_EPSILON 0.1
+#define TIMER_CLOCK 1000000
+
 // CONTROL PILOT
-// TODO: IMPLEMENT CONTROL PILOT STATE HANDLING
 typedef enum {
 	STATE_CP_IDLE,
 	STATE_CP_CONNECTED,
@@ -27,14 +34,11 @@ typedef enum {
 } STATE_PP;
 extern volatile STATE_PP proximity_pilot_state;
 
-#define TIMER_CLOCK 1000000
-extern volatile float duty;
-extern volatile float frequency;
-extern volatile int requested_amps;
+extern volatile uint16_t proximity_pilot_adc;
 extern volatile float proximity_pilot_voltage;
+extern volatile int advertised_amps;
 
-void readProximityPilot();
-void readControlPilotCurrent();
-void stopReadingControlPilotCurrent();
+void readControlPilot();
+void stopReadingControlPilot();
 
 #endif /* INC_J_PLUG_H_ */

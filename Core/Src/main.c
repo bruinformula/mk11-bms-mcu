@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
@@ -34,6 +35,8 @@
 #include "prchg.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
+#include "current_calculations.h"
+#include "balancing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -57,27 +60,18 @@
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
 
-#define VOLTAGE_DIVIDER_SCALE (3.3/5.0)
-#define OFFSET_VOLTAGE  (2.5*VOLTAGE_DIVIDER_SCALE)
-#define CURRENT_SENSOR_LOW_SENS ((66.7*VOLTAGE_DIVIDER_SCALE)/1000)
-#define CURRENT_SENSOR_HIGH_SENS ((5.7*VOLTAGE_DIVIDER_SCALE)/1000)
-
-uint32_t current_sensor_adc[1];
-uint16_t current_sensor_low_adc;
-uint16_t current_sensor_high_adc;
-float current_sensor_low_voltage;
-float current_sensor_high_voltage;
-float current_sensor_low_amps;
-float current_sensor_high_amps;
-
-int current_range = 0;
-#define LOW_TO_HIGH_THRESHOLD 29.0
-#define HIGH_TO_LOW_THRESHOLD 24.0
-
+typedef enum {
+	BMS_IDLE = 0,
+	BMS_CHARGING,
+	BMS_BALANCING,
+	BMS_PRECHARGING,
+	BMS_DRIVE,
+} BMS_STATE;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 #if defined(__ICCARM__)
 /* New definition from EWARM V9, compatible with EWARM8 */
@@ -95,29 +89,19 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+static BMS_STATE bms_state = BMS_IDLE;
 
-// TODO: CURRENT SENSOR CALIBRATION
-float getCurrentVoltage(int value) {
-	return 0.001444863364 * (float) value + 0.110218620256712;
+void determineStartupMode() {
+	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
+		if (HAL_GPIO_ReadPin(BALANCING_EN_GPIO_Port, BALANCING_EN_Pin) == GPIO_PIN_SET) {
+			bms_state = BMS_BALANCING;
+		} else {
+			bms_state = BMS_CHARGING;
+		}
+	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
+		bms_state = BMS_PRECHARGING;
+	}
 }
-
-void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	current_sensor_low_adc =  current_sensor_adc[0] & 0xFFFF;
-	current_sensor_high_adc = (current_sensor_adc[0] >> 16) & 0xFFFF;
-
-	current_sensor_low_voltage = getCurrentVoltage(current_sensor_low_adc);
-	current_sensor_high_voltage = getCurrentVoltage(current_sensor_high_adc);
-
-	current_sensor_low_amps = 13.2615 * current_sensor_low_voltage - 34.3672;
-	current_sensor_high_amps = 159.6343 * current_sensor_high_voltage - 401.4685;
-
-//	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
-//	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
-//
-//	current_sensor_low_amps = (current_sensor_low_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_LOW_SENS;
-//	current_sensor_high_amps = (current_sensor_high_voltage - OFFSET_VOLTAGE)/CURRENT_SENSOR_HIGH_SENS;
-}
-
 /* USER CODE END 0 */
 
 /**
@@ -156,7 +140,6 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   MX_ADC1_Init();
-  MX_TIM1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
   FDCAN_FilterTypeDef sStdFilter= {0};
@@ -189,31 +172,27 @@ int main(void)
 	  Error_Handler();
   }
 
-//  setvbuf(stdin, NULL, _IONBF, 0);
-//  adbms_main();
-
-  // TODO
-  // MUST ENTER PRECHARGE SEQUENCE --> DRIVE LOOP, OR BALANCE/CHARGE SEQUENCE --> TERMINATE
-
-  // CURRENT SENSOR START!
-//    HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-//    HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
-//    HAL_ADCEx_MultiModeStart_DMA(&hadc1, current_sensor_adc, 1);
-
+  startADC();
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  Delay_ms(10);
 
+  determineStartupMode();
   /* USER CODE END 2 */
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
+
+  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-		computeAllVoltages(TOTAL_IC, IC);
-		computeAllTemps(TOTAL_IC, IC);
-		Delay_ms(500);
+
 	}
     /* USER CODE END WHILE */
 
@@ -318,6 +297,28 @@ GETCHAR_PROTOTYPE
 }
 
 /* USER CODE END 4 */
+
+/**
+  * @brief  Period elapsed callback in non blocking mode
+  * @note   This function is called  when TIM6 interrupt took place, inside
+  * HAL_TIM_IRQHandler(). It makes a direct call to HAL_IncTick() to increment
+  * a global variable "uwTick" used as application time base.
+  * @param  htim : TIM handle
+  * @retval None
+  */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+{
+  /* USER CODE BEGIN Callback 0 */
+
+  /* USER CODE END Callback 0 */
+  if (htim->Instance == TIM6)
+  {
+    HAL_IncTick();
+  }
+  /* USER CODE BEGIN Callback 1 */
+
+  /* USER CODE END Callback 1 */
+}
 
 /**
   * @brief  This function is executed in case of error occurrence.

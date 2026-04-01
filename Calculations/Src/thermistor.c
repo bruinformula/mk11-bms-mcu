@@ -19,9 +19,11 @@ const float temp_table[33] = {
 
 float temp_conversions[TOTAL_IC][CELLS_PER_IC];
 
+float avg_temp = 0;
 float lowest_cell_temp = INFINITY;
 float highest_cell_temp = -INFINITY;
 
+// TODO: ACCOMODATE FOR BROKEN TEMPS
 float voltageToTemp(float V) {
 	if (V > voltage_table[0] || V < voltage_table[32]) {
 		return 999.0; // Out of range
@@ -45,9 +47,13 @@ float voltageToTemp(float V) {
 }
 
 void computeAllTemps(uint8_t tIC, cell_asic *ic) {
+	avg_temp = 0.0f;
+	float lowest_cell_temp = INFINITY;
+	float highest_cell_temp = -INFINITY;
+
 	adBms6830_read_aux_voltages(tIC, ic);
 
-	for (size_t i = 0; i < TOTAL_IC; ++i) {
+	for (size_t i = 0; i < tIC; ++i) {
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
 			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
 			temp_conversions[i][j] = cell_temp;
@@ -57,6 +63,8 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			if (cell_temp > highest_cell_temp) {
 				highest_cell_temp = cell_temp;
 			}
+			avg_temp += cell_temp;
 		}
 	}
+	avg_temp/=(TOTAL_IC*CELLS_PER_IC);
 }

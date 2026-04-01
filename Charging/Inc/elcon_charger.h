@@ -8,7 +8,7 @@
 #ifndef INC_ELCON_CHARGER_H_
 #define INC_ELCON_CHARGER_H_
 
-#include "stdbool.h"
+#include <stdbool.h>
 #include "fdcan.h"
 
 #define ELCON_CHARGER_TX_ID 0x1806E5F4
@@ -60,12 +60,9 @@ typedef struct FDCAN_CHARGER_CONTEXT {
 	msg_18FF50E5 chgmsg_18FF50E5_DF;
 } FDCAN_CHARGER_CONTEXT;
 
-extern FDCAN_CHARGER_CONTEXT FDCAN_CHARGER;
-
 void configureChargeTxMsg();
-void sendChargerRequest(float max_charging_voltage,
-		float max_charging_current,
-		bool stop_charging);
+void sendChargerRequest(float max_charging_voltage, float max_charging_current, bool stop_charging);
 void parseChargerBroadcast();
+bool chargerFaultDetected();
 
 #endif /* INC_ELCON_CHARGER_H_ */

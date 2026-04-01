@@ -1,2 +1,2 @@
-../Calculations/Src/thermistor.c:25:7:voltageToTemp	40	static
-../Calculations/Src/thermistor.c:47:6:computeAllTemps	32	static
+../Calculations/Src/thermistor.c:27:7:voltageToTemp	40	static
+../Calculations/Src/thermistor.c:49:6:computeAllTemps	40	static

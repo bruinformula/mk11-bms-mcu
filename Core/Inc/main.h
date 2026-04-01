@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BALANCING_EN_Pin GPIO_PIN_13
+#define BALANCING_EN_GPIO_Port GPIOC
 #define RCC_OSC_OUT_Pin GPIO_PIN_1
 #define RCC_OSC_OUT_GPIO_Port GPIOF
 #define NEG_AIR_GND_Pin GPIO_PIN_0
@@ -85,6 +87,7 @@ void Error_Handler(void);
 #define CURRENT_SENSOR_HIGH_GPIO_Port GPIOB
 #define SHUTDOWN_POWER_Pin GPIO_PIN_10
 #define SHUTDOWN_POWER_GPIO_Port GPIOB
+#define SHUTDOWN_POWER_EXTI_IRQn EXTI15_10_IRQn
 #define READY_SIGNAL_Pin GPIO_PIN_11
 #define READY_SIGNAL_GPIO_Port GPIOB
 #define SPI2_CS_Pin GPIO_PIN_12
