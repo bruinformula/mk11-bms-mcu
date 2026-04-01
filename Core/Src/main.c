@@ -82,7 +82,12 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
+		bms_state = BMS_FAULT;
+		Error_Handler();
+	}
+}
 /* USER CODE END 0 */
 
 /**
@@ -161,14 +166,6 @@ int main(void)
 
   determineStartupMode();
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-  osKernelStart();
-
-  /* We should never get here as control is now taken by the scheduler */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */

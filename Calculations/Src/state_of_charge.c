@@ -1,12 +1,12 @@
 #include "state_of_charge.h"
 
-float interpolate(float x0, float x1, float y0, float y1, float x) {
+static float interpolate(float x0, float x1, float y0, float y1, float x) {
 	if (x0 == x1) return y0;
 	return y0 + (x-x0)*(y1-y0)/(x1-x0);
 }
 
 // TODO: FAULT HANDLING FOR OUT OF RANGE VALUES
-float ocv_lookup_soc(float avg_temp, float cell_voltage) {
+static float ocv_lookup_soc(float avg_temp, float cell_voltage) {
 	int t_low = 0;
 	int t_high = 0;
 
@@ -53,19 +53,23 @@ float ocv_lookup_soc(float avg_temp, float cell_voltage) {
 	return -1;
 }
 
-float initial_soc;
+float soc;
 void get_initial_soc() {
 	float soc_min = ocv_lookup_soc(avg_cell_temp, lowest_cell_voltage);
 	float soc_max = ocv_lookup_soc(avg_cell_temp, highest_cell_voltage);
 
 	if (soc_min <= 50.0) {
-		initial_soc = soc_min;
+		soc = soc_min;
 	} else {
-		initial_soc = soc_max;
+		soc = soc_max;
 	}
 }
 
-// TODO: IMPLEMENT COULUMB COUNTER
-void coulumb_count() {
+void coulomb_count(uint32_t dt_ms) {
+	float dt_seconds = (float)dt_ms / 1000.0f;
+	float delta_soc = (current_sensor_val * dt_seconds)/NOMINAL_PACK_CAPACITY_AS;
+	delta_soc*=100.0f;
 
+	// Discharge or Charge?
+	soc -= delta_soc;
 }

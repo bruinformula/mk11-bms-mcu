@@ -11,6 +11,7 @@
 #include "j_plug.h"
 #include "elcon_charger.h"
 #include "fdcan.h"
+#include "state_of_charge.h"
 #include "voltage_calculations.h"
 #include "thermistor.h"
 

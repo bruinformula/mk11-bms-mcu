@@ -1,7 +1,7 @@
 ../Core/Src/app_freertos.c:83:6:MX_FREERTOS_Init	1
 ../Core/Src/app_freertos.c:150:6:safetyTaskFunction	1
-../Core/Src/app_freertos.c:168:6:voltageTaskFunction	1
-../Core/Src/app_freertos.c:188:6:tempTaskFunction	1
-../Core/Src/app_freertos.c:208:6:currLimitTaskFunction	1
-../Core/Src/app_freertos.c:229:6:socTaskFunction	1
-../Core/Src/app_freertos.c:247:6:daqTaskFunction	1
+../Core/Src/app_freertos.c:169:6:voltageTaskFunction	1
+../Core/Src/app_freertos.c:190:6:tempTaskFunction	1
+../Core/Src/app_freertos.c:211:6:currLimitTaskFunction	1
+../Core/Src/app_freertos.c:232:6:socTaskFunction	1
+../Core/Src/app_freertos.c:257:6:daqTaskFunction	1

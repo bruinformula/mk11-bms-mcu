@@ -78,13 +78,13 @@ Drive_Loop/Src/currLimiting.o: ../Drive_Loop/Src/currLimiting.c \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/tim.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/elcon_charger.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/fdcan.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/balancing.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/state_of_charge.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/thermistor.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/ocv_table.h \
+ /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h \
+ /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/balancing.h \
+ /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h \
  /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/freertos_handles.h
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/freertos_handles.h:
@@ -165,11 +165,11 @@ Drive_Loop/Src/currLimiting.o: ../Drive_Loop/Src/currLimiting.c \
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/tim.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/elcon_charger.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/fdcan.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/balancing.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/state_of_charge.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/thermistor.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/ocv_table.h:
+/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
+/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/balancing.h:
+/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h:
 /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/freertos_handles.h:

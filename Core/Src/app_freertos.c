@@ -153,6 +153,7 @@ void safetyTaskFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	// TODO: SCARY
     osDelay(10);
   }
   /* USER CODE END safetyTaskFunction */
@@ -172,6 +173,7 @@ void voltageTaskFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	// TODO: NEED TO CREATE A DIFFERENT VERSION FOR RTOS DRIVE MODE
     computeAllVoltages(TOTAL_IC, IC);
     osDelayUntil(&lastWakeTime, 200);
   }
@@ -192,6 +194,7 @@ void tempTaskFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	// TODO: NEED TO CREATE A DIFFERENT VERSION FOR RTOS DRIVE MODE
 	computeAllTemps(TOTAL_IC, IC);
     osDelayUntil(&lastWakeTime, 200);
   }
@@ -229,10 +232,17 @@ void currLimitTaskFunction(void const * argument)
 void socTaskFunction(void const * argument)
 {
   /* USER CODE BEGIN socTaskFunction */
+  TickType_t lastWakeTime = osKernelSysTick();
+  TickType_t last_time = lastWakeTime;
+
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1000);
+	osDelayUntil(&lastWakeTime, 1000);
+	TickType_t now = osKernelSysTick();
+	TickType_t dt_ticks = now - last_time;
+	last_time = now;
+	coulomb_count(dt_ticks);
   }
   /* USER CODE END socTaskFunction */
 }
