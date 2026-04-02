@@ -1,5 +1,16 @@
-Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_gpio.o: \
- ../Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_gpio.c \
+Charging/Src/balancing.o: ../Charging/Src/balancing.c \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/balancing.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
  C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
@@ -34,7 +45,20 @@ Drivers/STM32G4xx_HAL_Driver/Src/stm32g4xx_hal_gpio.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
- ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
+ ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/balancing.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
 C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
@@ -70,3 +94,4 @@ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:

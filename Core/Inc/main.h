@@ -57,6 +57,8 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define BALANCE_ENABLE_Pin GPIO_PIN_13
+#define BALANCE_ENABLE_GPIO_Port GPIOC
 #define RCC_OSC_OUT_Pin GPIO_PIN_1
 #define RCC_OSC_OUT_GPIO_Port GPIOF
 #define NEG_AIR_GND_Pin GPIO_PIN_0

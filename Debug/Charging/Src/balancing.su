@@ -1,0 +1,2 @@
+../Charging/Src/balancing.c:6:16:Calculate_Proportional_PWM	24	static
+../Charging/Src/balancing.c:26:6:Start_Cell_Balancing	64	static

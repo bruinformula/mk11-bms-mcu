@@ -1,11 +1,11 @@
 Charging/Src/charging.o: ../Charging/Src/charging.c \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/charging.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/j_plug.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/elcon_charger.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/fdcan.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/charging.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/j_plug.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/elcon_charger.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/fdcan.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -39,28 +39,28 @@ Charging/Src/charging.o: ../Charging/Src/charging.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/thermistor.h
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/charging.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/j_plug.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/elcon_charger.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/fdcan.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h:
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Calculations/Inc/thermistor.h
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/charging.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/j_plug.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Charging/Inc/elcon_charger.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/fdcan.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -94,18 +94,18 @@ Charging/Src/charging.o: ../Charging/Src/charging.c \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/thermistor.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adBms_Application.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Calculations/Inc/thermistor.h:

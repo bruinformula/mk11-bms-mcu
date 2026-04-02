@@ -1,18 +1,18 @@
 ADBMS6830/program/src/serialPrintResult.o: \
  ../ADBMS6830/program/src/serialPrintResult.c \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -46,20 +46,20 @@ ADBMS6830/program/src/serialPrintResult.o: \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h:
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/serialPrintResult.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/common.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830GenericType.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/adbms_main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830ParseCreate.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830Data.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/ADBMS6830/program/inc/mcuWrapper.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -93,4 +93,4 @@ ADBMS6830/program/src/serialPrintResult.o: \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_it.h:

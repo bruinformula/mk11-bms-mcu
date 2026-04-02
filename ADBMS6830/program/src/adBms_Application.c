@@ -23,6 +23,8 @@ and its licensor.
 #include "adBms6830GenericType.h"
 #include "serialPrintResult.h"
 #include "mcuWrapper.h"
+#include "voltage_calculations.h"
+#include "thermistor.h"
 #ifdef MBED
 extern Serial pc;
 #endif
@@ -671,3 +673,27 @@ void adBms6830_clear_fcell_measurement(uint8_t tIC)
 
 /** @}*/
 /** @}*/
+
+#include "adBms_Application.h"
+#include <stdio.h>
+
+/**
+ * @brief Executes smart balancing with dynamic PWM and Thermal Protection.
+ * @param pIcs Pointer to the IC configuration structures.
+ */
+
+void adBms6830_write_read_pwm_duty_cycle(uint8_t tIC, cell_asic *ic){
+	for(int i = 0; i < tIC; i++){
+		ic[i].pwma.tx_data[0] = (ic[i].PwmA.pwma[1] << 4) | (ic[i].PwmA.pwma[0] & 0x0F);
+		ic[i].pwma.tx_data[1] = (ic[i].PwmA.pwma[3] << 4) | (ic[i].PwmA.pwma[2] & 0x0F);
+		ic[i].pwma.tx_data[2] = (ic[i].PwmA.pwma[5] << 4) | (ic[i].PwmA.pwma[4] & 0x0F);
+		ic[i].pwma.tx_data[3] = (ic[i].PwmA.pwma[7] << 4) | (ic[i].PwmA.pwma[6] & 0x0F);
+		ic[i].pwma.tx_data[4] = (ic[i].PwmA.pwma[9] << 4) | (ic[i].PwmA.pwma[8] & 0x0F);
+		ic[i].pwma.tx_data[5] = 0x00;
+	}
+
+	adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+
+	adBmsReadData(tIC, ic, RDPWM1, Pwm, A);
+
+}

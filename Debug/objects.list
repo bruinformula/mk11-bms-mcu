@@ -6,6 +6,7 @@
 "./Calculations/Src/state_of_charge.o"
 "./Calculations/Src/thermistor.o"
 "./Calculations/Src/voltage_calculations.o"
+"./Charging/Src/balancing.o"
 "./Charging/Src/charging.o"
 "./Charging/Src/elcon_charger.o"
 "./Charging/Src/j_plug.o"
