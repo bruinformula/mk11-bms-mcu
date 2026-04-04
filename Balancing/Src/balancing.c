@@ -24,8 +24,6 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle, bool update_n
 			target_lowest_cell = lowest_cell_voltage;
 		}
 
-		// Only update balancing configuration periodically
-
 		// Clear balance mask for new calculation
 		multiMask = 0;
 
@@ -38,8 +36,7 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle, bool update_n
 
 				// Improved logic: Balance cells above target with a small hysteresis
 				if (v > (target_lowest_cell + 0.01)) { // 10mV hysteresis
-													   // Set this cell for balancing
-					multiMask |= (1 << ch);
+//					multiMask |= (1 << ch);
 					// Configure PWM duty cycle
 					ic[dev].PwmA.pwma[ch] = duty_cycle;
 				} else {
@@ -48,8 +45,7 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle, bool update_n
 				}
 			}
 
-			// Apply the mask directly (cleaner than the previous approach)
-	//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
+//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
 		}
 	}
 
