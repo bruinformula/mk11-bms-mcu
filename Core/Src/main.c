@@ -71,11 +71,16 @@ float current_sensor_high_voltage;
 float current_sensor_low_amps;
 float current_sensor_high_amps;
 
-extern uint16_t tick;
-
+uint16_t balance_counter = 0;
+uint32_t balance_start_time = 0;
+bool balancing_active = false;
 int current_range = 0;
+
 #define LOW_TO_HIGH_THRESHOLD 29.0
 #define HIGH_TO_LOW_THRESHOLD 24.0
+#define BALANCE_UPDATE_INTERVAL 10  // recalculate every 10 * 500ms = 5 seconds
+#define MAX_BALANCE_DURATION_MS  30000
+
 
 /* USER CODE END PV */
 
@@ -222,13 +227,24 @@ int main(void)
 		computeAllVoltages(TOTAL_IC, IC);
 		computeAllTemps(TOTAL_IC, IC);
 
-//		if ((highest_cell_voltage - lowest_cell_voltage) > 0.02f) {
-//			balanceCells(TOTAL_IC, IC, PWM_6_6_PCT);
-//			tick++;  // tick is extern from balancing.c
-//		} else {
-//			stopBalancing(TOTAL_IC, IC);
-//			tick = 0;
-//		}
+
+		bool balance_timed_out = balancing_active &&
+		                             (HAL_GetTick() - balance_start_time >= MAX_BALANCE_DURATION_MS);
+
+		if ((highest_cell_voltage - lowest_cell_voltage) > 0.02f && !balance_timed_out) {
+
+			if (!balancing_active) {
+				// record when balancing started
+				balance_start_time = HAL_GetTick();
+				balancing_active = true;
+			}
+			balanceCells(TOTAL_IC, IC, PWM_6_6_PCT, balance_counter % BALANCE_UPDATE_INTERVAL == 0);
+			balance_counter++;
+		} else {
+			stopBalancing(TOTAL_IC, IC);
+			balance_counter = 0;
+			balancing_active = false;
+		}
 		Delay_ms(500);
 	}
     /* USER CODE END WHILE */

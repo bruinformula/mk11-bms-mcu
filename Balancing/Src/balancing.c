@@ -15,26 +15,17 @@ extern uint8_t WRCFGB[2];
 extern uint8_t UNMUTE[2];
 
 uint16_t multiMask = 0;
-uint16_t tick = 0;
 float target_lowest_cell = -1;
 
-void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
-	// Reset after max duration to prevent overheating
-	if (tick > 200) {
-		stopBalancing(tIC, ic);
-		tick = 0;
-		// Consider updating target voltage after each cycle
-		target_lowest_cell = lowest_cell_voltage;
-		return;
-	}
+void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle, bool update_now) {
+	if (update_now) {
+		// Initialize target when first called
+		if (target_lowest_cell == -1) {
+			target_lowest_cell = lowest_cell_voltage;
+		}
 
-	// Initialize target when first called
-	if (target_lowest_cell == -1) {
-		target_lowest_cell = lowest_cell_voltage;
-	}
+		// Only update balancing configuration periodically
 
-	// Only update balancing configuration periodically
-	if (tick == 10) {
 		// Clear balance mask for new calculation
 		multiMask = 0;
 
@@ -42,7 +33,7 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
 			// Start with all balance switches off
 			ic[dev].tx_cfgb.dcc = 0;
 
-			for (uint8_t ch = 0; ch < CELLS_PER_IC - 2; ++ch) {
+			for (uint8_t ch = 0; ch < CELLS_PER_IC; ++ch) {
 				float v = getVoltage(ic[dev].cell.c_codes[ch]);
 
 				// Improved logic: Balance cells above target with a small hysteresis
@@ -58,9 +49,10 @@ void balanceCells(uint8_t tIC, cell_asic *ic, PWM_DUTY duty_cycle) {
 			}
 
 			// Apply the mask directly (cleaner than the previous approach)
-//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
+	//			ic[dev].tx_cfgb.dcc = ConfigB_DccBits(multiMask, DCC_BIT_SET);
 		}
 	}
+
 
 	// Send configuration to the hardware - this should happen every time
 	// to ensure the balancing continues even if we don't update the mask
