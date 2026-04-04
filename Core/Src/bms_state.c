@@ -6,6 +6,7 @@
  */
 
 #include "bms_state.h"
+#include "prchg.h"
 
 BMS_STATE bms_state = BMS_IDLE;
 
@@ -21,6 +22,12 @@ void determineStartupMode() {
 		}
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		bms_state = BMS_PRECHARGING;
+		prechargeStart();
+		prechargeSequence();
+	} else {
+		/* No charge/balance/ready signal — go straight to drive mode
+		   so RTOS tasks (voltage, temp, etc.) start running */
+		enterDriveMode();
 	}
 }
 
