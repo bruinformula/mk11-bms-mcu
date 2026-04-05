@@ -31,6 +31,9 @@
 #include "datalogging.h"
 #include "gui_test.h"
 #include "usart.h"
+#include "adBms6830GenericType.h"
+#include "bms_state.h"
+#include "balancing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,12 +53,13 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+static uint8_t uart_rx_byte = 0;
 /* USER CODE END Variables */
 osThreadId voltageTaskHandle;
 osThreadId tempTaskHandle;
 osThreadId currLimitTaskHandle;
 osThreadId dataloggingTaskHandle;
+osThreadId balancingTaskHandle;
 osMutexId SPI_MUTEXHandle;
 osMutexId CAN_MUTEXHandle;
 
@@ -68,6 +72,7 @@ void voltageFunction(void const * argument);
 void tempFunction(void const * argument);
 void currLimitFunction(void const * argument);
 void dataloggingFunction(void const * argument);
+void balancingFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -119,8 +124,12 @@ void MX_FREERTOS_Init(void) {
   currLimitTaskHandle = osThreadCreate(osThread(currLimitTask), NULL);
 
   /* definition and creation of dataloggingTask */
-  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityLow, 0, 256);
+  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityLow, 0, 512);
   dataloggingTaskHandle = osThreadCreate(osThread(dataloggingTask), NULL);
+
+  /* definition and creation of balancingTask */
+  osThreadDef(balancingTask, balancingFunction, osPriorityAboveNormal, 0, 512);
+  balancingTaskHandle = osThreadCreate(osThread(balancingTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -141,6 +150,10 @@ void voltageFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	if (bms_state == BMS_BALANCING) {
+		osDelay(500);
+		continue;
+	}
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllVoltages(TOTAL_IC, IC);
 	osMutexRelease(SPI_MUTEXHandle);
@@ -162,6 +175,10 @@ void tempFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	if (bms_state == BMS_BALANCING) {
+		osDelay(500);
+		continue;
+	}
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllTemps(TOTAL_IC, IC);
 	osMutexRelease(SPI_MUTEXHandle);
@@ -204,21 +221,41 @@ void dataloggingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-//	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-//	sendTemp();
-//	osMutexRelease(CAN_MUTEXHandle);
-//
-//	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-//	sendVoltage();
-//	osMutexRelease(CAN_MUTEXHandle);
+	if (HAL_UART_Receive(&hlpuart1, &uart_rx_byte, 1, 10) == HAL_OK) {
+		if (uart_rx_byte == 'B') bms_state = BMS_BALANCING;
+		else if (uart_rx_byte == 'S') bms_state = BMS_IDLE;
+	}
 
 	taskENTER_CRITICAL();
 	int len = build_bms_json();
 	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, len, HAL_MAX_DELAY);
 	taskEXIT_CRITICAL();
-    osDelay(5000);
+    osDelay(2000);
   }
   /* USER CODE END dataloggingFunction */
+}
+
+/* USER CODE BEGIN Header_balancingFunction */
+/**
+* @brief Function implementing the balancingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_balancingFunction */
+void balancingFunction(void const * argument)
+{
+  /* USER CODE BEGIN balancingFunction */
+  osDelay(5000);
+  for(;;)
+  {
+	if (bms_state == BMS_BALANCING) {
+		osMutexWait(SPI_MUTEXHandle, osWaitForever);
+		balancingLoop(TOTAL_IC, IC);
+		osMutexRelease(SPI_MUTEXHandle);
+	}
+	osDelay(2000);
+  }
+  /* USER CODE END balancingFunction */
 }
 
 /* Private application code --------------------------------------------------*/

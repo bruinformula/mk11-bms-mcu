@@ -158,10 +158,10 @@ int main(void)
 	  Error_Handler();
   }
 
-//  adBms6830_init_config(TOTAL_IC, IC);
-//  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-//  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-//  startADC();
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  startADC();
 
   /* USER CODE END 2 */
 
