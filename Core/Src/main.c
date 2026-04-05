@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
 #include "fdcan.h"
@@ -64,7 +63,6 @@ uint8_t HeaderTxBuffer[] =
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 #if defined(__ICCARM__)
 /* New definition from EWARM V9, compatible with EWARM8 */
@@ -158,20 +156,23 @@ int main(void)
 	  Error_Handler();
   }
 
-  MX_FREERTOS_Init();
-  startADC();
+//  startADC();
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  HAL_Delay(10);
 
-  determineStartupMode();
+  balancingLoop(TOTAL_IC, IC);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-
+//		computeAllVoltages(TOTAL_IC, IC);
+//		computeAllTemps(TOTAL_IC, IC);
+//		HAL_Delay(500);
 	}
     /* USER CODE END WHILE */
 

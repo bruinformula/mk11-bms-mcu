@@ -84,10 +84,8 @@ void configureCCL_DCL_TxMsg() {
 void sendCCL_DCL() {
 	calculateCCL();
 	calculateDCL();
-	ccl_dcl_df.data.pack_ccl = (uint16_t)(ccl*100);
 	ccl_dcl_df.data.pack_dcl = (uint16_t)(dcl*100);
+	ccl_dcl_df.data.pack_ccl = (uint16_t)(ccl*100);
 
-	osMutexWait(CAN_MutexHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CCL_DCL_TxHeader, ccl_dcl_df.array);
-	osMutexRelease(CAN_MutexHandle);
 }

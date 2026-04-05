@@ -1,4 +1,2 @@
 ../Core/Src/bms_state.c:12:6:determineStartupMode	8	static
 ../Core/Src/bms_state.c:27:6:enterDriveMode	8	static
-../Core/Src/bms_state.c:35:6:spi_lock	8	static
-../Core/Src/bms_state.c:41:6:spi_unlock	8	static

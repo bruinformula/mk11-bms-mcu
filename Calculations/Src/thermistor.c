@@ -50,9 +50,7 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	lowest_cell_temp = INFINITY;
 	highest_cell_temp = -INFINITY;
 
-	spi_lock();
 	adBms6830_read_aux_voltages(tIC, ic);
-	spi_unlock();
 
 	for (size_t i = 0; i < tIC; ++i) {
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {

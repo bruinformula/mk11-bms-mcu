@@ -25,9 +25,7 @@ void sendTemp() {
 	temp_df.data.avg_temp = (avg_cell_temp*100);
 	temp_df.data.highest_temp = (highest_cell_temp*100);
 	temp_df.data.lowest_temp = (lowest_cell_temp*100);
-	osMutexWait(CAN_MutexHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Temp_TxHeader, temp_df.array);
-	osMutexRelease(CAN_MutexHandle);
 }
 
 void sendVoltage() {
@@ -35,7 +33,5 @@ void sendVoltage() {
 	voltage_df.data.highest_cell_voltage = (highest_cell_voltage*100);
 	voltage_df.data.lowest_cell_voltage = (lowest_cell_voltage*100);
 	voltage_df.data.bms_pack_voltage = (bms_pack_voltage*100);
-	osMutexWait(CAN_MutexHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Voltage_TxHeader, voltage_df.array);
-	osMutexRelease(CAN_MutexHandle);
 }

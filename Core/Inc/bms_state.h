@@ -14,8 +14,6 @@
 #include "currLimiting.h"
 #include "datalogging.h"
 #include "adBms_Application.h"
-#include "freertos_handles.h"
-#include "cmsis_os.h"
 
 typedef enum {
 	BMS_IDLE = 0,
@@ -30,7 +28,5 @@ extern BMS_STATE bms_state;
 
 void determineStartupMode();
 void enterDriveMode();
-void spi_lock();
-void spi_unlock();
 
 #endif /* INC_BMS_STATE_H_ */

@@ -1,7 +1,0 @@
-../Core/Src/app_freertos.c:83:6:MX_FREERTOS_Init	144	static
-../Core/Src/app_freertos.c:150:6:safetyTaskFunction	16	static
-../Core/Src/app_freertos.c:169:6:voltageTaskFunction	24	static
-../Core/Src/app_freertos.c:190:6:tempTaskFunction	24	static
-../Core/Src/app_freertos.c:211:6:currLimitTaskFunction	24	static
-../Core/Src/app_freertos.c:232:6:socTaskFunction	32	static
-../Core/Src/app_freertos.c:257:6:daqTaskFunction	24	static

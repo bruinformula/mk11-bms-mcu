@@ -29,17 +29,4 @@ void enterDriveMode() {
 	configureTemp_TxMsg();
 	configureVoltage_TxMsg();
 	bms_state = BMS_DRIVE;
-	osKernelStart();
-}
-
-void spi_lock() {
-	if (bms_state == BMS_DRIVE) {
-		osMutexWait(SPI_MUTEXHandle, osWaitForever);
-	}
-}
-
-void spi_unlock() {
-	if (bms_state == BMS_DRIVE) {
-		osMutexRelease(SPI_MUTEXHandle);
-	}
 }

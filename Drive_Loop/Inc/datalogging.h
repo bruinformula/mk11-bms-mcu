@@ -9,7 +9,6 @@
 #define INC_DATALOGGING_H_
 
 #include "fdcan.h"
-#include "freertos_handles.h"
 #include "state_of_charge.h"
 #include "current_calculations.h"
 #include "voltage_calculations.h"
@@ -17,6 +16,7 @@
 
 #define TEMP_TX_ID 0x6B0
 #define VOLTAGE_TX_ID 0x6B1
+#define OTHER_TX_ID 0x6B2
 
 typedef union TEMP_DF {
 	struct __attribute__((packed)) {

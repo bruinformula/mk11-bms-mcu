@@ -280,8 +280,7 @@ void adBms6830_read_config(uint8_t tIC, cell_asic *ic)
 void adBms6830_start_adc_cell_voltage_measurment(uint8_t tIC)
 {
   adBmsWakeupIc(tIC);
-//  adBms6830_Adcv(RD_ON, CONTINUOUS, DCP_OFF, RSTF_OFF, OW_OFF_ALL_CH);
-  adBms6830_Adcv(RD_ON, CONTINUOUS, DCP_ON, RSTF_OFF, OW_OFF_ALL_CH);
+  adBms6830_Adcv(RD_ON, CONTINUOUS, DCP_OFF, RSTF_OFF, OW_OFF_ALL_CH);
 
 #ifdef MBED
   pc.printf("Cell conversion completed\n");
