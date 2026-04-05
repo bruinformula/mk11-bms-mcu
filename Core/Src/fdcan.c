@@ -177,6 +177,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 	}
 }
 
+int inv_debug = 0;
 void BMS_CAN_RxHandler() {
 	uint32_t msg_id = BMS_RxHeader.Identifier;
 	switch (msg_id) {
@@ -191,6 +192,7 @@ void BMS_CAN_RxHandler() {
 		break;
 
 	case INVERTER_VOLTAGE_RX_ID:
+		inv_debug++;
 		int16_t inverter_dc_volts_raw = (int16_t) ((BMS_RxData[1] << 8) | BMS_RxData[0]);
 		inverter_dc_volts = inverter_dc_volts_raw*0.1;
 		break;

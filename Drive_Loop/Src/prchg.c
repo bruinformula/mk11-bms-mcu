@@ -15,14 +15,17 @@ static FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 static PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
 static PRECHARGE_STATE precharge_state = PRECHARGE_IDLE;
 
+int prchg_debug = 0;
+
 void prechargeStart() {
 	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
 	HAL_Delay(10);
 	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
 	HAL_Delay(10);
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
-	computeAllVoltages(TOTAL_IC, IC);
+//	computeAllVoltages(TOTAL_IC, IC);
 
+	prchg_debug++;
     precharge_state = PRECHARGE_ACTIVE;
     precharge_start_time = HAL_GetTick();
 }
@@ -32,6 +35,7 @@ void prechargeSequence() {
 		float delta = fabsf(bms_pack_voltage - inverter_dc_volts);
 
 		if (delta <= PRECHARGE_VOLTAGE_DELTA) {
+			prchg_debug++;
 			inverter_precharged = true;
 			HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
 			HAL_Delay(10);
@@ -45,6 +49,8 @@ void prechargeSequence() {
 			enterDriveMode(); // TRANSITION TO DRIVE MODE
 			break;
 		} else if (HAL_GetTick() - precharge_start_time >= PRECHARGE_TIMEOUT) {
+			prchg_debug++;
+
 			inverter_precharged = false;
 			HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
 			HAL_Delay(10);

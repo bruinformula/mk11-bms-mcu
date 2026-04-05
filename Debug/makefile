@@ -43,34 +43,34 @@ $(wildcard ../makefile.init) \
 $(wildcard ../makefile.targets) \
 
 
-BUILD_ARTIFACT_NAME := mk11-bms-mcu
+BUILD_ARTIFACT_NAME := BroadMarket_Support_ADBMS6830
 BUILD_ARTIFACT_EXTENSION := elf
 BUILD_ARTIFACT_PREFIX :=
 BUILD_ARTIFACT := $(BUILD_ARTIFACT_PREFIX)$(BUILD_ARTIFACT_NAME)$(if $(BUILD_ARTIFACT_EXTENSION),.$(BUILD_ARTIFACT_EXTENSION),)
 
 # Add inputs and outputs from these tool invocations to the build variables 
 EXECUTABLES += \
-mk11-bms-mcu.elf \
+BroadMarket_Support_ADBMS6830.elf \
 
 MAP_FILES += \
-mk11-bms-mcu.map \
+BroadMarket_Support_ADBMS6830.map \
 
 SIZE_OUTPUT += \
 default.size.stdout \
 
 OBJDUMP_LIST += \
-mk11-bms-mcu.list \
+BroadMarket_Support_ADBMS6830.list \
 
 
 # All Target
 all: main-build
 
 # Main-build Target
-main-build: mk11-bms-mcu.elf secondary-outputs
+main-build: BroadMarket_Support_ADBMS6830.elf secondary-outputs
 
 # Tool invocations
-mk11-bms-mcu.elf mk11-bms-mcu.map: $(OBJS) $(USER_OBJS) /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "mk11-bms-mcu.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="mk11-bms-mcu.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+BroadMarket_Support_ADBMS6830.elf BroadMarket_Support_ADBMS6830.map: $(OBJS) $(USER_OBJS) /Users/oreoturkey/Documents/mk11-bms-mcu/STM32G474RETX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "BroadMarket_Support_ADBMS6830.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m4 -T"/Users/oreoturkey/Documents/mk11-bms-mcu/STM32G474RETX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BroadMarket_Support_ADBMS6830.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
@@ -79,14 +79,14 @@ default.size.stdout: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
 	@echo 'Finished building: $@'
 	@echo ' '
 
-mk11-bms-mcu.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "mk11-bms-mcu.list"
+BroadMarket_Support_ADBMS6830.list: $(EXECUTABLES) makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-objdump -h -S $(EXECUTABLES) > "BroadMarket_Support_ADBMS6830.list"
 	@echo 'Finished building: $@'
 	@echo ' '
 
 # Other Targets
 clean:
-	-$(RM) default.size.stdout mk11-bms-mcu.elf mk11-bms-mcu.list mk11-bms-mcu.map
+	-$(RM) BroadMarket_Support_ADBMS6830.elf BroadMarket_Support_ADBMS6830.list BroadMarket_Support_ADBMS6830.map default.size.stdout
 	-@echo ' '
 
 secondary-outputs: $(SIZE_OUTPUT) $(OBJDUMP_LIST)
