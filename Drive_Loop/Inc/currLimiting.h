@@ -32,9 +32,12 @@ typedef struct CurvePoint {
 	float current;
 } CurvePoint;
 
+extern float ccl;
+extern float dcl;
+
 void calculateCCL();
 void calculateDCL();
 void configureCCL_DCL_TxMsg();
-void sendCCL_DCL();
+void sendDCL_CCL();
 
 #endif /* INC_CURRLIMITING_H_ */

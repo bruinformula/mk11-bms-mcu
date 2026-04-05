@@ -21,7 +21,8 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-
+static float current_sensor_low_voltage;
+static float current_sensor_high_voltage;
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -46,7 +47,7 @@ void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV32;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.GainCompensation = 0;
@@ -80,7 +81,7 @@ void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_247CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -119,7 +120,7 @@ void MX_ADC2_Init(void)
   /** Common config
   */
   hadc2.Instance = ADC2;
-  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV32;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.GainCompensation = 0;
@@ -141,7 +142,7 @@ void MX_ADC2_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_47CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_247CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -153,7 +154,6 @@ void MX_ADC2_Init(void)
   /** Configure Regular Channel
   */
   sConfig.Rank = ADC_REGULAR_RANK_2;
-  sConfig.SamplingTime = ADC_SAMPLETIME_2CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc2, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -330,6 +330,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	// CURRENT SENSOR HANDLING
 	current_sensor_low_adc = adc_val[0] & 0xFFFF;
 	current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
+
+	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
+	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
 
 	current_sensor_low = (current_sensor_low_adc - 2104)/53.4;
 	current_sensor_high = (current_sensor_high_adc + 447)/0.217;

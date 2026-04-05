@@ -13,7 +13,8 @@ void determineStartupMode() {
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
 		if (HAL_GPIO_ReadPin(BALANCING_EN_GPIO_Port, BALANCING_EN_Pin) == GPIO_PIN_SET) {
 			bms_state = BMS_BALANCING;
-			balancingLoop(TOTAL_IC, IC);
+			// ADJUST
+			fastBalancingLoop(TOTAL_IC, IC);
 		} else {
 			bms_state = BMS_CHARGING;
 			charging_sequence_startup();

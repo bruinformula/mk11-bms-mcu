@@ -25,6 +25,7 @@ typedef enum {
 	BALANCE_WAIT
 } BalanceState;
 
-void balancingLoop(uint8_t tIC, cell_asic *ic);
+void fastBalancingLoop(uint8_t tIC, cell_asic *ic);
+void pwmBalancingLoop(uint8_t tIC, cell_asic *ic); // TODO
 
 #endif /* INC_BALANCING_H_ */

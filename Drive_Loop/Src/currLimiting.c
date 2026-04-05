@@ -7,8 +7,8 @@
 
 #include "currLimiting.h"
 
-static float ccl;
-static float dcl;
+float ccl;
+float dcl;
 static CCL_DCL_DF ccl_dcl_df;
 static FDCAN_TxHeaderTypeDef CCL_DCL_TxHeader;
 
@@ -81,7 +81,7 @@ void configureCCL_DCL_TxMsg() {
 	configureFDCAN_TxMessage_STD(&CCL_DCL_TxHeader, CCL_DCL_TX_ID);
 }
 
-void sendCCL_DCL() {
+void sendDCL_CCL() {
 	calculateCCL();
 	calculateDCL();
 	ccl_dcl_df.data.pack_dcl = (uint16_t)(dcl*100);

@@ -1,2 +1,2 @@
 ../Core/Src/bms_state.c:12:6:determineStartupMode	4
-../Core/Src/bms_state.c:27:6:enterDriveMode	1
+../Core/Src/bms_state.c:28:6:enterDriveMode	1

@@ -8,6 +8,7 @@ float voltage_conversions[TOTAL_IC][CELLS_PER_IC];
 
 // TODO: ACCOMODATE FOR BROKEN CELL VOLTAGE READINGS, THINK ABOUT RACE CONDITIONS
 void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
+
 	avg_cell_voltage = 0.0f;
 	bms_pack_voltage = 0.0f;
 	lowest_cell_voltage  = INFINITY;

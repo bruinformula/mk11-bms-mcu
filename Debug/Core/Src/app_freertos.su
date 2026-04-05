@@ -1,0 +1,5 @@
+../Core/Src/app_freertos.c:77:6:MX_FREERTOS_Init	104	static
+../Core/Src/app_freertos.c:136:6:voltageFunction	16	static
+../Core/Src/app_freertos.c:157:6:tempFunction	16	static
+../Core/Src/app_freertos.c:178:6:currLimitFunction	16	static
+../Core/Src/app_freertos.c:199:6:dataloggingFunction	16	static

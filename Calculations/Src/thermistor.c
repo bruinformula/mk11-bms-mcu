@@ -42,7 +42,7 @@ float voltageToTemp(float V) {
 		}
 	}
 
-	return 999.0;
+	return 999;
 }
 
 void computeAllTemps(uint8_t tIC, cell_asic *ic) {
@@ -56,10 +56,10 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
 			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
 			temp_conversions[i][j] = cell_temp;
-			if (cell_temp < lowest_cell_temp) {
+			if (cell_temp < lowest_cell_temp && cell_temp != 999) {
 				lowest_cell_temp = cell_temp;
 			}
-			if (cell_temp > highest_cell_temp) {
+			if (cell_temp > highest_cell_temp && cell_temp != 999) {
 				highest_cell_temp = cell_temp;
 			}
 			avg_cell_temp += cell_temp;

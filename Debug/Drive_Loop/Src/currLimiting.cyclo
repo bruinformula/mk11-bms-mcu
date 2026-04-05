@@ -2,4 +2,4 @@
 ../Drive_Loop/Src/currLimiting.c:72:6:calculateCCL	1
 ../Drive_Loop/Src/currLimiting.c:76:6:calculateDCL	1
 ../Drive_Loop/Src/currLimiting.c:80:6:configureCCL_DCL_TxMsg	1
-../Drive_Loop/Src/currLimiting.c:84:6:sendCCL_DCL	1
+../Drive_Loop/Src/currLimiting.c:84:6:sendDCL_CCL	1
