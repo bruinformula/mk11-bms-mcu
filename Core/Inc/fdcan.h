@@ -29,7 +29,8 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "prchg.h"
+#include "elcon_charger.h"
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;

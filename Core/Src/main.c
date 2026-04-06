@@ -127,6 +127,7 @@ int main(void)
   MX_ADC2_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   FDCAN_FilterTypeDef sStdFilter= {0};
   sStdFilter.IdType = FDCAN_STANDARD_ID;
@@ -158,18 +159,18 @@ int main(void)
 	  Error_Handler();
   }
 
-  adBms6830_init_config(TOTAL_IC, IC);
-  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  startADC();
+//  adBms6830_init_config(TOTAL_IC, IC);
+//  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+//  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+//  startADC();
 
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
-  MX_FREERTOS_Init();
+//  MX_FREERTOS_Init();
 
   /* Start scheduler */
-  osKernelStart();
+//  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -222,11 +223,11 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
   {
     Error_Handler();
   }
@@ -294,11 +295,13 @@ GETCHAR_PROTOTYPE
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-
+  if (htim->Instance == TIM1) {
+	  prechargeCheck();
+  }
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6)
   {
-    HAL_IncTick();
+	  HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
 
