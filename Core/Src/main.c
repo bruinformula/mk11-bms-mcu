@@ -158,6 +158,15 @@ int main(void)
 	  Error_Handler();
   }
 
+  // QUICK TEST...
+  useTransceiver1(); // INTERACT w/ ISO SPI TRANSCEIVER 1
+  adBmsWakeupIc(1); // Should wakeup ISO SPI Transceiver 1..
+  // WAKE1_State = HAL_GPIO_ReadPin(WAKE1_GPIO_Port, WAKE1_Pin);
+
+  useTransceiver2(); // INTERACT w/ ISO SPI TRANSCEIVER 2
+  adBmsWakeupIc(1); // Should wakeup ISO SPI Transceiver 2..
+  // WAKE2_State = HAL_GPIO_ReadPin(WAKE2_GPIO_Port, WAKE2_Pin);
+
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);

@@ -222,11 +222,16 @@ uint32_t getTimCount()
 
 #define SPI_TIME_OUT HAL_MAX_DELAY              /* SPI Time out delay   */
 #define UART_TIME_OUT HAL_MAX_DELAY             /* UART Time out delay  */
-//#define I2C_TIME_OUT HAL_MAX_DELAY              /* I2C Time out delay   */
 
-SPI_HandleTypeDef *hspi         = &hspi3;       /* MUC SPI Handler      */
-UART_HandleTypeDef *huart       = &hlpuart1;      /* MUC UART Handler     */
-//I2C_HandleTypeDef *hi2c         = &hi2c1;       /* MUC I2C Handler      */
+TRANSCEIVER_MODE mode;
+
+void useTransceiver1(void) {
+        mode = TRANSCEIVER_1;
+}
+
+void useTransceiver2(void) {
+        mode = TRANSCEIVER_2;
+}
 
 /**
  *******************************************************************************
@@ -260,7 +265,11 @@ void Delay_ms(uint32_t delay)
 */
 void adBmsCsLow()
 {
-  HAL_GPIO_WritePin(GPIO_PORT, CS_PIN, GPIO_PIN_RESET);
+	if (mode == TRANSCEIVER_1) {
+		HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_RESET);
+	} else if (mode == TRANSCEIVER_2) {
+		HAL_GPIO_WritePin(CS3_GPIO_Port, CS3_Pin, GPIO_PIN_RESET);
+	}
 }
 
 /**
@@ -276,7 +285,11 @@ void adBmsCsLow()
 */
 void adBmsCsHigh()
 {
-  HAL_GPIO_WritePin(GPIO_PORT, CS_PIN, GPIO_PIN_SET);
+	if (mode == TRANSCEIVER_1) {
+		HAL_GPIO_WritePin(CS2_GPIO_Port, CS2_Pin, GPIO_PIN_SET);
+	} else if (mode == TRANSCEIVER_2) {
+		HAL_GPIO_WritePin(CS3_GPIO_Port, CS3_Pin, GPIO_PIN_SET);
+	}
 }
 
 /**
@@ -299,7 +312,11 @@ void spiWriteBytes
 uint8_t *tx_Data                       /*Array of bytes to be written on the SPI port*/
 )
 {
-  HAL_SPI_Transmit(hspi, tx_Data, size, SPI_TIME_OUT);
+	if (mode == TRANSCEIVER_1) {
+		HAL_SPI_Transmit(&hspi2, tx_Data, size, SPI_TIME_OUT);
+	} else if (mode == TRANSCEIVER_2) {
+		HAL_SPI_Transmit(&hspi3, tx_Data, size, SPI_TIME_OUT);
+	}
 }
 
 /**
@@ -326,8 +343,13 @@ uint8_t *rx_data,                   /*Input: array that will store the data read
 uint16_t size                           /*Option: number of bytes*/
 )
 {
-  HAL_SPI_Transmit(hspi, tx_data, 4, SPI_TIME_OUT);
-  HAL_SPI_Receive(hspi, rx_data, size, SPI_TIME_OUT);
+	if (mode == TRANSCEIVER_1) {
+		HAL_SPI_Transmit(&hspi2, tx_data, 4, SPI_TIME_OUT);
+		HAL_SPI_Receive(&hspi2, rx_data, size, SPI_TIME_OUT);
+	} else if (mode == TRANSCEIVER_2) {
+		HAL_SPI_Transmit(&hspi3, tx_data, 4, SPI_TIME_OUT);
+		HAL_SPI_Receive(&hspi3, rx_data, size, SPI_TIME_OUT);
+	}
 }
 
 /**
@@ -347,7 +369,11 @@ uint16_t size                           /*Option: number of bytes*/
 */
 void spiReadBytes(uint16_t size, uint8_t *rx_data)
 {
-  HAL_SPI_Receive(hspi, rx_data, size, SPI_TIME_OUT);
+	if (mode == TRANSCEIVER_1) {
+		HAL_SPI_Receive(&hspi2, rx_data, size, SPI_TIME_OUT);
+	} else if (mode == TRANSCEIVER_2) {
+		HAL_SPI_Receive(&hspi3, rx_data, size, SPI_TIME_OUT);
+	}
 }
 #if TIM_EN
 /**

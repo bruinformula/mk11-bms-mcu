@@ -26,19 +26,22 @@ and its licensor.
 
 #else
 #include "main.h"
+#include "spi.h"
 #include "stm32g4xx_hal.h"
 #include "stm32g4xx_it.h"
 
-//extern ADC_HandleTypeDef hadc1;         /* Mcu dependent ADC handler */
-//extern I2C_HandleTypeDef hi2c1;         /* Mcu dependent I2C handler */
-//extern I2C_HandleTypeDef hi2c3;         /* Mcu dependent I2C handler */
-//extern SPI_HandleTypeDef hspi1;         /* Mcu dependent SPI handler */
-//extern SPI_HandleTypeDef hspi5;         /* Mcu dependent SPI handler */
-//extern UART_HandleTypeDef huart4;       /* Mcu dependent UART handler */
-//extern UART_HandleTypeDef huart5;       /* Mcu dependent UART handler */
+extern SPI_HandleTypeDef hspi2;         /* Mcu dependent SPI handler */ // [FOR ISO SPI TRANSCEIVER 1]
+extern SPI_HandleTypeDef hspi3;         /* Mcu dependent SPI handler */ // [FOR ISO SPI TRANSCEIVER 2]
 
-#define CS_PIN GPIO_PIN_4              /* Mcu dependent chip select */
-#define GPIO_PORT GPIOA      /* Mcu dependent adc chip select port */
+typedef enum {
+        TRANSCEIVER_1,
+        TRANSCEIVER_2
+} TRANSCEIVER_MODE;
+
+extern TRANSCEIVER_MODE mode;
+
+void useTransceiver1(void);
+void useTransceiver2(void);
 #endif
 
 void Delay_ms(uint32_t delay);
