@@ -98,6 +98,9 @@ extern cell_asic IC[TOTAL_IC];
 #define CELLS_PER_IC 10
 #define TOTAL_CELLS (CELLS_PER_IC*TOTAL_IC)
 
+extern const float OV_THRESHOLD;
+extern const float UV_THRESHOLD;
+
 #endif
 /** @}*/
 /** @}*/

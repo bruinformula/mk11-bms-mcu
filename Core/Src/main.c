@@ -158,18 +158,18 @@ int main(void)
 	  Error_Handler();
   }
 
-//  adBms6830_init_config(TOTAL_IC, IC);
-//  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-//  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-//  startADC();
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  startADC();
 
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
-//  MX_FREERTOS_Init();
+  MX_FREERTOS_Init();
 
   /* Start scheduler */
-//  osKernelStart();
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
