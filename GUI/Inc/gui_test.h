@@ -8,12 +8,15 @@
 #ifndef INC_GUI_TEST_H_
 #define INC_GUI_TEST_H_
 
+#include "usart.h"
 #include "current_calculations.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
 #include "adBms_Application.h"
+#include "currLimiting.h"
 
 extern char json_buf[4096];
 int build_bms_json();
+void send_bms_json();
 
 #endif /* INC_GUI_TEST_H_ */

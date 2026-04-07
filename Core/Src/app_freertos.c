@@ -30,7 +30,6 @@
 #include "currLimiting.h"
 #include "datalogging.h"
 #include "gui_test.h"
-#include "usart.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,8 +67,6 @@ void voltageFunction(void const * argument);
 void tempFunction(void const * argument);
 void currLimitFunction(void const * argument);
 void dataloggingFunction(void const * argument);
-
-void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
   * @brief  FreeRTOS initialization
@@ -144,7 +141,7 @@ void voltageFunction(void const * argument)
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllVoltages(TOTAL_IC, IC);
 	osMutexRelease(SPI_MUTEXHandle);
-	osDelay(2000);
+	osDelay(500);
   }
   /* USER CODE END voltageFunction */
 }
@@ -165,7 +162,7 @@ void tempFunction(void const * argument)
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllTemps(TOTAL_IC, IC);
 	osMutexRelease(SPI_MUTEXHandle);
-    osDelay(2000);
+    osDelay(1000);
   }
   /* USER CODE END tempFunction */
 }
@@ -204,19 +201,20 @@ void dataloggingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-//	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-//	sendTemp();
-//	osMutexRelease(CAN_MUTEXHandle);
-//
-//	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-//	sendVoltage();
-//	osMutexRelease(CAN_MUTEXHandle);
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
+	sendTemp();
+	osMutexRelease(CAN_MUTEXHandle);
 
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
+	sendVoltage();
+	osMutexRelease(CAN_MUTEXHandle);
+
+	// GUI TEST
 	taskENTER_CRITICAL();
-	int len = build_bms_json();
-	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, len, HAL_MAX_DELAY);
+	send_bms_json();
 	taskEXIT_CRITICAL();
-    osDelay(5000);
+
+    osDelay(2000);
   }
   /* USER CODE END dataloggingFunction */
 }

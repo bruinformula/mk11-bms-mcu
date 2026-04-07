@@ -14,6 +14,7 @@
 #include "currLimiting.h"
 #include "datalogging.h"
 #include "adBms_Application.h"
+#include "cmsis_os.h"
 
 typedef enum {
 	BMS_IDLE = 0,
@@ -24,8 +25,9 @@ typedef enum {
 	BMS_DRIVE,
 } BMS_STATE;
 
-extern BMS_STATE bms_state;
+extern volatile BMS_STATE bms_state;
 
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 void determineStartupMode();
 void enterDriveMode();
 

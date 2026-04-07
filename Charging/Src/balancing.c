@@ -10,7 +10,7 @@
 static int num_unbalanced_cells = TOTAL_CELLS;
 static BalanceState balance_state = BALANCE_IDLE;
 
-void balancingLoop(uint8_t tIC, cell_asic *ic) {
+void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
 	// SETUP: SET DCTO (Discharge Timeout) to nonzero value
 	for (size_t i = 0; i < tIC; ++i) {
 		ic[i].tx_cfgb.dcto = NONZERO_DCTO;

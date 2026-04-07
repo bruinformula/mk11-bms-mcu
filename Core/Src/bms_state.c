@@ -7,13 +7,13 @@
 
 #include "bms_state.h"
 
-BMS_STATE bms_state = BMS_IDLE;
+volatile BMS_STATE bms_state = BMS_IDLE;
 
 void determineStartupMode() {
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
+		// TODO
 		if (HAL_GPIO_ReadPin(BALANCING_EN_GPIO_Port, BALANCING_EN_Pin) == GPIO_PIN_SET) {
 			bms_state = BMS_BALANCING;
-			// ADJUST
 			fastBalancingLoop(TOTAL_IC, IC);
 		} else {
 			bms_state = BMS_CHARGING;
@@ -22,10 +22,21 @@ void determineStartupMode() {
 		}
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		bms_state = BMS_PRECHARGING;
+
+		while(bms_state == BMS_PRECHARGING) {
+			computeAllVoltages(TOTAL_IC, IC);
+			HAL_Delay(500);
+		}
+
+		if (bms_state == BMS_DRIVE) {
+			MX_FREERTOS_Init();
+			osKernelStart();
+		}
 	}
 }
 
 void enterDriveMode() {
+	// Configure CAN Datalogging Messages
 	configureCCL_DCL_TxMsg();
 	configureTemp_TxMsg();
 	configureVoltage_TxMsg();

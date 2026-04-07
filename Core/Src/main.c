@@ -38,6 +38,8 @@
 #include "current_calculations.h"
 #include "balancing.h"
 #include "bms_state.h"
+#include "gui_test.h"
+#include "currLimiting.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +62,8 @@
 /* USER CODE BEGIN PV */
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
+bool ready_signal;
+bool charge_signal;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -162,16 +166,10 @@ int main(void)
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  computeAllVoltages(TOTAL_IC, IC);
   startADC();
 
+  determineStartupMode();
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in cmsis_os2.c) */
-//  MX_FREERTOS_Init();
-
-  /* Start scheduler */
-//  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 

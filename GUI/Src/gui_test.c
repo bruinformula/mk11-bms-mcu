@@ -49,3 +49,8 @@ int build_bms_json() {
 
     return offset;  // number of bytes to send
 }
+
+void send_bms_json() {
+	int len = build_bms_json();
+	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, len, HAL_MAX_DELAY);
+}
