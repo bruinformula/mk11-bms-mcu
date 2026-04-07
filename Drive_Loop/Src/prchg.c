@@ -22,14 +22,14 @@ volatile static PRECHARGE_STATE precharge_state = PRECHARGE_IDLE;
 //}
 
 void prechargeStart() {
-//	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
 //	delay_10ms();
-//	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
 //	delay_10ms();
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
-	computeAllVoltages(TOTAL_IC, IC);
     precharge_state = PRECHARGE_ACTIVE;
     __HAL_TIM_SET_COUNTER(&htim1, 0);
+    __HAL_TIM_CLEAR_FLAG(&htim1, TIM_FLAG_UPDATE);
     HAL_TIM_Base_Start_IT(&htim1);
 }
 
@@ -39,9 +39,9 @@ void prechargeCheck() {
 	float delta = fabsf(bms_pack_voltage - inverter_dc_volts);
 	if (delta <= PRECHARGE_VOLTAGE_DELTA) {
 		inverter_precharged = true;
-//		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
 //		delay_10ms();
-//		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
 //		delay_10ms();
 		precharge_state = PRECHARGE_COMPLETE;
 		Precharge_Complete_DF.data.inverter_precharged = 1;
@@ -49,9 +49,9 @@ void prechargeCheck() {
 		enterDriveMode();
 	} else {
 		inverter_precharged = false;
-//		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
 //		delay_10ms();
-//		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
 //		delay_10ms();
 		precharge_state = PRECHARGE_FAIL;
 		Precharge_Complete_DF.data.inverter_precharged = 0;

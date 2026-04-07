@@ -1,9 +1,9 @@
 Charging/Src/j_plug.o: ../Charging/Src/j_plug.c \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/j_plug.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/adc.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Charging/Inc/j_plug.h \
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/adc.h \
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -37,13 +37,13 @@ Charging/Src/j_plug.o: ../Charging/Src/j_plug.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/current_calculations.h \
- /Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/tim.h
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Charging/Inc/j_plug.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/adc.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/main.h:
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Calculations/Inc/current_calculations.h \
+ C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/tim.h
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Charging/Inc/j_plug.h:
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/adc.h:
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:
@@ -77,5 +77,5 @@ Charging/Src/j_plug.o: ../Charging/Src/j_plug.c \
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Calculations/Inc/current_calculations.h:
-/Users/ishanchitale/STM32CubeIDE/workspace_1.16.0/mk11-bms-mcu/Core/Inc/tim.h:
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Calculations/Inc/current_calculations.h:
+C:/Users/colin/STM32CubeIDE/workspace_1.19.0/mk11-bms-mcu/Core/Inc/tim.h:

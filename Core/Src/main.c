@@ -159,10 +159,11 @@ int main(void)
 	  Error_Handler();
   }
 
-//  adBms6830_init_config(TOTAL_IC, IC);
-//  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-//  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-//  startADC();
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  computeAllVoltages(TOTAL_IC, IC);
+  startADC();
 
   /* USER CODE END 2 */
 
@@ -301,7 +302,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6)
   {
-	  HAL_IncTick();
+    HAL_IncTick();
   }
   /* USER CODE BEGIN Callback 1 */
 
