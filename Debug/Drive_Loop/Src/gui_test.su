@@ -1,1 +1,2 @@
-../Drive_Loop/Src/gui_test.c:12:5:build_bms_json	160	static
+../Drive_Loop/Src/gui_test.c:15:20:bms_state_str	16	static
+../Drive_Loop/Src/gui_test.c:29:5:build_bms_json	192	static

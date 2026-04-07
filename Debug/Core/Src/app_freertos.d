@@ -86,6 +86,7 @@ Core/Src/app_freertos.o: ../Core/Src/app_freertos.c \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/gui_test.h \
+ /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/usart.h
 ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/FreeRTOSConfig.h:
@@ -174,4 +175,5 @@ Core/Src/app_freertos.o: ../Core/Src/app_freertos.c \
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/gui_test.h:
+/Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/usart.h:

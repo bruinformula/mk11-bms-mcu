@@ -67,7 +67,24 @@ Charging/Src/balancing.o: ../Charging/Src/balancing.c \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Calculations/Inc/thermistor.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h \
- /Users/oreoturkey/Documents/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830CmdList.h
+ /Users/oreoturkey/Documents/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830CmdList.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h \
+ /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/FreeRTOSConfig.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/list.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/task.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h \
+ ../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h
 /Users/oreoturkey/Documents/mk11-bms-mcu/Charging/Inc/balancing.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Calculations/Inc/current_calculations.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Calculations/Inc/voltage_calculations.h:
@@ -137,3 +154,20 @@ Charging/Src/balancing.o: ../Charging/Src/balancing.c \
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830CmdList.h:
+../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h:
+/Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/FreeRTOSConfig.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/projdefs.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/portable.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/deprecated_definitions.h:
+../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/portmacro.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/mpu_wrappers.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/list.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/task.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/semphr.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/queue.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h:
+../Middlewares/Third_Party/FreeRTOS/Source/include/timers.h:

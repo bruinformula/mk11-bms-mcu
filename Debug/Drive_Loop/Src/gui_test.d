@@ -68,7 +68,8 @@ Drive_Loop/Src/gui_test.o: ../Drive_Loop/Src/gui_test.c \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Charging/Inc/balancing.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830CmdList.h \
  /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h \
- /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h
+ /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h \
+ /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/gui_test.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Calculations/Inc/current_calculations.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Calculations/Inc/thermistor.h:
@@ -139,3 +140,4 @@ Drive_Loop/Src/gui_test.o: ../Drive_Loop/Src/gui_test.c \
 /Users/oreoturkey/Documents/mk11-bms-mcu/ADBMS6830/lib/inc/adBms6830CmdList.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
 /Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/datalogging.h:
+/Users/oreoturkey/Documents/mk11-bms-mcu/Drive_Loop/Inc/currLimiting.h:
