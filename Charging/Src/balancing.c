@@ -6,8 +6,6 @@
  */
 
 #include "balancing.h"
-#include "cmsis_os.h"
-#include "bms_state.h"
 
 static int num_unbalanced_cells = TOTAL_CELLS;
 static BalanceState balance_state = BALANCE_IDLE;
@@ -42,13 +40,8 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		balance_state = BALANCE_DISCHARGE;
 		uint32_t discharge_start_time = HAL_GetTick();
 		while (HAL_GetTick() - discharge_start_time <= BALANCE_BLEED_PERIOD) {
-			if (bms_state != BMS_BALANCING) {
-				for (size_t x = 0; x < tIC; ++x) ic[x].tx_cfgb.dcc = 0x0000;
-				adBms6830_write_config(tIC, ic);
-				return;
-			}
 			adBms6830_write_config(tIC, ic);
-			osDelay(500);
+			HAL_Delay(500);
 		}
 
 		// WAIT FOR 60 SECONDS (BALANCE_WAIT_PERIOD)
@@ -58,9 +51,8 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		balance_state = BALANCE_WAIT;
 		uint32_t wait_period_start_time = HAL_GetTick();
 		while (HAL_GetTick() - wait_period_start_time <= BALANCE_WAIT_PERIOD) {
-			if (bms_state != BMS_BALANCING) return;
 			adBms6830_write_config(tIC, ic);
-			osDelay(500);
+			HAL_Delay(500);
 		}
 
 	}
