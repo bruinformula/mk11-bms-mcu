@@ -1,4 +1,0 @@
-../Charging/Src/elcon_charger.c:12:6:configureChargeTxMsg	8	static
-../Charging/Src/elcon_charger.c:16:6:sendChargerRequest	32	static
-../Charging/Src/elcon_charger.c:30:6:parseChargerBroadcast	4	static
-../Charging/Src/elcon_charger.c:36:6:chargerFaultDetected	4	static
