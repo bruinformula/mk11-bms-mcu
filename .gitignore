@@ -1,0 +1,8 @@
+*.o
+*.d
+Debug/
+.metadata/
+*.elf
+.DS_Store
+.settings/
+*.log
