@@ -17,10 +17,15 @@ const float temp_table[33] = {
 		55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120
 };
 
+bool cell_is_broken_t[TOTAL_IC][CELLS_PER_IC];
+BrokenCell_T broken_cells_t[TOTAL_CELLS];
+size_t broken_cell_count_t = 0;
+
 float avg_cell_temp = 0;
 float lowest_cell_temp = INFINITY;
 float highest_cell_temp = -INFINITY;
 float temp_conversions[TOTAL_IC][CELLS_PER_IC];
+
 
 // TODO: ACCOMODATE FOR BROKEN TEMP READINGS, THINK ABOUT RACE CONDITIONS
 float voltageToTemp(float V) {
@@ -54,7 +59,22 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 
 	for (size_t i = 0; i < tIC; ++i) {
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
-			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
+			float raw_voltage = getVoltage(ic[i].aux.a_codes[j]);
+			float cell_temp = voltageToTemp(raw_voltage);
+
+			if (raw_voltage > MAX_VALID_CELL_T || raw_voltage < MIN_VALID_CELL_T) {
+				cell_is_broken_t[i][j] = true;
+
+				if (broken_cell_count_t < TOTAL_CELLS) {
+					broken_cells_t[broken_cell_count_t].cell_index = j;
+					broken_cells_t[broken_cell_count_t].ic_index = i;
+					broken_cells_t[broken_cell_count_t].measured_temp = cell_temp;
+					broken_cell_count_t++;
+				}
+
+				temp_conversions[i][j] = NAN;
+			}
+
 			temp_conversions[i][j] = cell_temp;
 			if (cell_temp < lowest_cell_temp && cell_temp != 999) {
 				lowest_cell_temp = cell_temp;
@@ -65,5 +85,7 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			avg_cell_temp += cell_temp;
 		}
 	}
-	avg_cell_temp/=(TOTAL_CELLS);
+
+	if (TOTAL_CELLS - broken_cell_count_t == 0) avg_cell_temp = -1.0;
+	else avg_cell_temp/=(TOTAL_CELLS);
 }
