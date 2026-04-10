@@ -48,7 +48,10 @@ typedef enum {
 
 extern volatile float inverter_dc_volts;
 extern volatile bool inverter_precharged;
+extern volatile float inverter_dc_volts_slope;
+
 void prechargeStart();
 void prechargeCheck();
+void prechargeFail();
 
 #endif /* INC_PRCHG_H_ */

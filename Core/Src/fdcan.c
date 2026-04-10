@@ -162,6 +162,10 @@ void configureFDCAN_TxMessage_EXTD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t extd_
 FDCAN_RxHeaderTypeDef BMS_RxHeader;
 uint8_t BMS_RxData[8];
 uint32_t fdcan_rx_count;
+uint32_t start_time;
+uint32_t last_measured_time;
+float prev_inverter_dc_volts = 0.0f;
+bool precharge_started = false;
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
@@ -185,12 +189,39 @@ void BMS_CAN_RxHandler() {
 		break;
 
 	case PRECHARGE_REQUEST_RX_ID:
+		start_time = HAL_GetTick();
+		last_measured_time = start_time;
 		prechargeStart();
+		precharge_started = true;
 		break;
 
 	case INVERTER_VOLTAGE_RX_ID:
 		int16_t inverter_dc_volts_raw = (int16_t) ((BMS_RxData[1] << 8) | BMS_RxData[0]);
+		uint32_t curr_time = HAL_GetTick();
 		inverter_dc_volts = inverter_dc_volts_raw*0.1;
+
+		float exp_curve = 0.0f;
+		float RC = 1.0f;
+
+		if (precharge_started) {
+			float time_s = (float)((curr_time - start_time) * 0.001f);
+			exp_curve = bms_pack_voltage * (1.0f - expf(-(time_s / RC)));
+
+			if ((fabsf(exp_curve - inverter_dc_volts) / exp_curve) > 0.10f) {
+				// fail precharge if curve fit is not close enough
+				prechargeFail();
+			}
+			if (curr_time - start_time < 200) {
+				prev_inverter_dc_volts = inverter_dc_volts;
+				last_measured_time = HAL_GetTick();
+			} else if (curr_time - last_measured_time > 200) {
+				inverter_dc_volts_slope = (inverter_dc_volts - prev_inverter_dc_volts) / ((curr_time - last_measured_time) * 0.001f);
+				prev_inverter_dc_volts = inverter_dc_volts;
+				last_measured_time = HAL_GetTick();
+			}
+
+		}
+
 		break;
 	}
 }

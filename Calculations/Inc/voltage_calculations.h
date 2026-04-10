@@ -13,7 +13,7 @@
 #include "serialPrintResult.h"
 #include "bms_state.h"
 
-#define MAX_VALID_CELL_V 4.5
+#define MAX_VALID_CELL_V 5.0
 #define MIN_VALID_CELL_V 0.1
 
 typedef struct {
