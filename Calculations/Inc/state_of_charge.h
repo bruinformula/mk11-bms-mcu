@@ -16,7 +16,7 @@
 #define NOMINAL_PACK_CAPACITY_AH 14.414
 #define NOMINAL_PACK_CAPACITY_AS (NOMINAL_PACK_CAPACITY_AH*3600.0f)
 #define NOMINAL_PACK_VOLTAGE 420
-
+#define CURRENT_SENSOR_DEADBAND_A 0.5
 extern float soc;
 
 void get_initial_soc();

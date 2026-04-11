@@ -68,8 +68,16 @@ void get_initial_soc() {
 void coulomb_count(uint32_t dt_ms) {
 	float dt_seconds = (float)dt_ms / 1000.0f;
 	float delta_soc = (current_sensor_val * dt_seconds)/NOMINAL_PACK_CAPACITY_AS;
-	delta_soc*=100.0f;
+
+	if (fabsf(current_sensor_val) < CURRENT_SENSOR_DEADBAND_A) delta_soc = 0;
+
+	delta_soc *= 100.0f;
 
 	// Discharge or Charge?
 	soc -= delta_soc;
+
+	// Clamping
+	if (soc > 100.0f) soc = 100.0;
+	if (soc < 0.0f) soc = 0.0;
+
 }
