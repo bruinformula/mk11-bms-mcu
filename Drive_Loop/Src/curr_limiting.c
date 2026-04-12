@@ -5,12 +5,12 @@
  *      Author: ishanchitale
  */
 
-#include "currLimiting.h"
+#include <curr_limiting.h>
 
-float ccl;
 float dcl;
-static CCL_DCL_DF ccl_dcl_df;
-static FDCAN_TxHeaderTypeDef CCL_DCL_TxHeader;
+float ccl;
+static DCL_CCL_DF dcl_ccl_df;
+static FDCAN_TxHeaderTypeDef DCL_CCL_TxHeader;
 
 static float interpolateCurve(const CurvePoint *curve, int size, float x) {
     // Clamp below range
@@ -69,23 +69,25 @@ static const CurvePoint DCL_Curve[DCL_CURVE_POINTS] = {
     {60.0f, 0.0f}
 };
 
-void calculateCCL() {
-	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, highest_cell_temp);
-}
-
 void calculateDCL() {
-	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, highest_cell_temp);
+	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, temp_context.highest_cell_temp);
 }
 
-void configureCCL_DCL_TxMsg() {
-	configureFDCAN_TxMessage_STD(&CCL_DCL_TxHeader, CCL_DCL_TX_ID);
+void calculateCCL() {
+	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, temp_context.highest_cell_temp);
+}
+
+void configureDCL_CCL_TxMsg() {
+	configureFDCAN_TxMessage_STD(&DCL_CCL_TxHeader, DCL_CCL_TX_ID);
 }
 
 void sendDCL_CCL() {
-	calculateCCL();
 	calculateDCL();
-	ccl_dcl_df.data.pack_dcl = (uint16_t)(dcl*100);
-	ccl_dcl_df.data.pack_ccl = (uint16_t)(ccl*100);
+	calculateCCL();
+	dcl_ccl_df.data.pack_dcl = (uint16_t)(dcl*100);
+	dcl_ccl_df.data.pack_ccl = (uint16_t)(ccl*100);
 
-	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &CCL_DCL_TxHeader, ccl_dcl_df.array);
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
+	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &DCL_CCL_TxHeader, dcl_ccl_df.array);
+	osMutexRelease(CAN_MUTEXHandle);
 }

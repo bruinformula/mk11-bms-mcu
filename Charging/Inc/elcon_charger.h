@@ -8,13 +8,13 @@
 #ifndef INC_ELCON_CHARGER_H_
 #define INC_ELCON_CHARGER_H_
 
-#include <stdbool.h>
 #include "fdcan.h"
+#include <stdbool.h>
 
 #define ELCON_CHARGER_TX_ID 0x1806E5F4
 #define ELCON_CHARGER_RX_ID 0x18FF50E5
 
-// CAN CHARGER DATAFRAMES + CONTEXT
+// ELCON CHARGER DATAFRAMES
 typedef union CHARGER_MSG_1806e5f4 {
 	struct __attribute__((packed)) {
 		uint8_t max_charging_voltage_msb; // 0.1 V/Byte
@@ -53,16 +53,16 @@ typedef union CHARGER_MSG_18ff50e5 {
 	uint8_t array[8];
 } msg_18FF50E5;
 
-typedef struct FDCAN_CHARGER_CONTEXT {
+typedef struct ELCON_CHARGER_CONTEXT {
 	FDCAN_TxHeaderTypeDef TxHeader_1806E5F4;
 	msg_1806E5F4 chgmsg_1806E5F4_DF;
 
 	msg_18FF50E5 chgmsg_18FF50E5_DF;
-} FDCAN_CHARGER_CONTEXT;
+} ELCON_CHARGER_CONTEXT;
 
 void configureChargeTxMsg();
-void sendChargerRequest(float max_charging_voltage, float max_charging_current, bool stop_charging);
 void parseChargerBroadcast();
+void sendChargerRequest(float max_charging_voltage, float max_charging_current, bool stop_charging);
 bool chargerFaultDetected();
 
 #endif /* INC_ELCON_CHARGER_H_ */

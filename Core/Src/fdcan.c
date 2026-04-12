@@ -101,7 +101,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* FDCAN1 interrupt Init */
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 7, 0);
+    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
   /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
@@ -182,6 +182,9 @@ void BMS_CAN_RxHandler() {
 
 	case ELCON_CHARGER_RX_ID:
 		parseChargerBroadcast();
+		if (chargerFaultDetected()) {
+			charging_state = CHG_ELCON_FAULT;
+		}
 		break;
 
 	case PRECHARGE_REQUEST_RX_ID:

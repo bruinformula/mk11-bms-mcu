@@ -33,13 +33,13 @@
 #include "elcon_charger.h"
 #include "j_plug.h"
 #include "prchg.h"
+#include "current_calculations.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
 #include "current_calculations.h"
 #include "balancing.h"
 #include "bms_state.h"
 #include "gui_test.h"
-#include "currLimiting.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +88,7 @@ int iar_fputc(int ch);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		bms_state = BMS_FAULT;
+		bms_state = BMS_SHUTDOWN_FAULT;
 		Error_Handler();
 	}
 }
@@ -131,7 +131,6 @@ int main(void)
   MX_ADC2_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
-  MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
   FDCAN_FilterTypeDef sStdFilter= {0};
   sStdFilter.IdType = FDCAN_STANDARD_ID;
@@ -163,13 +162,30 @@ int main(void)
 	  Error_Handler();
   }
 
+  // CONFIGURE ALL CAN MESSAGES!
+  configureTemp_TxMsg();
+  configureVoltage_TxMsg();
+  configureSoc_Curr_Pack_TxMsg();
+  configureChargeTxMsg();
+  configurePrchgTxMsg();
+  configureDCL_CCL_TxMsg();
+
   adBms6830_init_config(TOTAL_IC, IC);
   adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
   adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  get_initial_soc(); // TODO: Needs initial voltages and temperatures calculated!
   startADC();
 
+  // SETS BMS STATE
   determineStartupMode();
+
   /* USER CODE END 2 */
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -294,9 +310,7 @@ GETCHAR_PROTOTYPE
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-  if (htim->Instance == TIM1) {
-	  prechargeCheck();
-  }
+
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6)
   {

@@ -7,7 +7,7 @@
 
 #include "charging.h"
 
-static CHARGING_STATE charging_state = CHG_IDLE;
+CHARGING_STATE charging_state = CHG_IDLE;
 
 void change_baud_rate() {
 	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON CHARGER
@@ -18,72 +18,60 @@ void change_baud_rate() {
 	HAL_FDCAN_Start(&hfdcan1);
 }
 
-void charging_sequence_startup() {
-	change_baud_rate();
-	while (proximity_pilot_state != STATE_PP_CONNECTED) {
-		// BLOCK
-	}
+// TODO: j1772_context can update due to TIM Callback for computing control pilot.
+void charging_loop() {
+	readProximityPilot();
 
-	uint32_t start_time = HAL_GetTick();
-	readControlPilot();
-	while (HAL_GetTick() - start_time < 3000) {
-		// WAIT 3 SECONDS
-	}
-	stopReadingControlPilot();
-
-	if (advertised_amps > 0 && control_pilot_state == STATE_CP_CONNECTED) {
-		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
-		get_initial_soc();
-		charging_sequence();
-	}
-}
-
-static uint32_t last_tx_time = 0;
-static float requested_voltage = 0;
-static float requested_amps = 0;
-void charging_sequence() {
-	charging_state = CHG_ACTIVE;
-
-	while(1) {
-		computeAllVoltages(TOTAL_IC, IC);
-		computeAllTemps(TOTAL_IC, IC);
-
-		if (chargerFaultDetected()) {
+	switch (charging_state) {
+		case CHG_IDLE:
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
 			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_ELCON_FAULT;
+
+			if (j1772_context.proximity_pilot_state == STATE_PP_CONNECTED
+					&& j1772_context.control_pilot_state == STATE_CP_PWM_PRESENT) {
+				charging_state = CHG_WAITING;
+			}
+
 			break;
-		}
 
-		if (highest_cell_temp > MAX_TEMPERATURE_CHARGING_THRESHOLD) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_TEMP_FAULT;
+		case CHG_WAITING:
+			if (j1772_context.proximity_pilot_state != STATE_PP_CONNECTED ||
+					j1772_context.control_pilot_state == STATE_CP_ERROR) {
+				charging_state = CHG_IDLE;
+				break;
+			}
+
+			if (j1772_context.control_pilot_state == STATE_CP_PWM_PRESENT) {
+				HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+				charging_state = CHG_ACTIVE;
+			}
+
 			break;
-		}
 
-		if (fabsf(current_sensor_val - requested_amps) > CURRENT_SENSOR_EPSILON) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_CURRENT_FAULT;
+		case CHG_ACTIVE:
+			if (j1772_context.proximity_pilot_state != STATE_PP_CONNECTED ||
+					j1772_context.control_pilot_state == STATE_CP_ERROR) {
+				charging_state = CHG_IDLE;
+				break;
+			}
+
+			if (voltage_context.highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
+				charging_state = CHG_COMPLETE;
+			} else {
+				sendChargerRequest(CHARGER_VOLTAGE, j1772_context.control_pilot_advertised_amps, 0);
+			}
 			break;
-		}
 
-		if (highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_COMPLETE;
+		case CHG_ELCON_FAULT: // CHG_ELCON_FAULT issued in fdcan.c.
+			// LATCHING, should power cycle & re-connect charger.
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			sendChargerRequest(0,0,1);
 			break;
-		}
 
-		if (proximity_pilot_state != STATE_PP_CONNECTED) {
-			requested_voltage = 0;
-			requested_amps = 0;
-		} else {
-			requested_voltage = CHARGER_VOLTAGE;
-			requested_amps = advertised_amps;
-		}
+		case CHG_COMPLETE:
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			sendChargerRequest(0,0,1);
+			break;
 
-		if (HAL_GetTick() - last_tx_time >= 1000) {
-			coulomb_count(HAL_GetTick() - last_tx_time);
-			sendChargerRequest(requested_voltage, requested_amps, 0);
-			last_tx_time = HAL_GetTick();
-		}
 	}
 }

@@ -1,5 +1,9 @@
-../Core/Src/app_freertos.c:76:6:MX_FREERTOS_Init	104	static
-../Core/Src/app_freertos.c:135:6:voltageFunction	16	static
-../Core/Src/app_freertos.c:156:6:tempFunction	16	static
-../Core/Src/app_freertos.c:177:6:currLimitFunction	16	static
-../Core/Src/app_freertos.c:198:6:dataloggingFunction	16	static
+../Core/Src/app_freertos.c:90:6:MX_FREERTOS_Init	200	static
+../Core/Src/app_freertos.c:177:6:voltageFunction	16	static
+../Core/Src/app_freertos.c:196:6:tempFunction	16	static
+../Core/Src/app_freertos.c:215:6:safetyFunction	16	static
+../Core/Src/app_freertos.c:234:6:currFunction	16	static
+../Core/Src/app_freertos.c:253:6:dataloggingFunction	16	static
+../Core/Src/app_freertos.c:274:6:prchgFunction	16	static
+../Core/Src/app_freertos.c:295:6:currLimitFunction	16	static
+../Core/Src/app_freertos.c:316:6:balancingFunction	16	static

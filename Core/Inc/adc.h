@@ -31,8 +31,8 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "current_calculations.h"
 #include "j_plug.h"
-#include <stdbool.h>
-#include <math.h>
+#include "freertos_handles.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 extern ADC_HandleTypeDef hadc1;

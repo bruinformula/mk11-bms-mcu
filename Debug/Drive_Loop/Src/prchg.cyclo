@@ -1,2 +1,3 @@
-../Drive_Loop/Src/prchg.c:24:6:prechargeStart	1
-../Drive_Loop/Src/prchg.c:38:6:prechargeCheck	2
+../Drive_Loop/Src/prchg.c:18:6:configurePrchgTxMsg	1
+../Drive_Loop/Src/prchg.c:22:6:prechargeStart	3
+../Drive_Loop/Src/prchg.c:31:6:prechargeLoop	5

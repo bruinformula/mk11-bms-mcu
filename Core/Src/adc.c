@@ -21,8 +21,7 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-static float current_sensor_low_voltage;
-static float current_sensor_high_voltage;
+
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -317,7 +316,6 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-static bool using_high_range = false;
 static uint32_t adc_val[2];
 
 void startADC() {
@@ -327,33 +325,12 @@ void startADC() {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	// CURRENT SENSOR HANDLING
-	current_sensor_low_adc = adc_val[0] & 0xFFFF;
-	current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
+	current_context.current_sensor_low_adc = adc_val[0] & 0xFFFF;
+	current_context.current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
+	j1772_context.proximity_pilot_adc = adc_val[1] & 0xFFFF;
 
-	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
-	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
-
-	current_sensor_low = (current_sensor_low_adc - 2104)/53.4;
-	current_sensor_high = (current_sensor_high_adc + 447)/0.217;
-
-	if (!using_high_range && fabsf(current_sensor_low) > 30.0f) {
-		using_high_range = true;
-	} else if (using_high_range && fabsf(current_sensor_low) < 25.0f) {
-		using_high_range = false;
-	}
-
-	current_sensor_val = using_high_range ? current_sensor_high : current_sensor_low;
-
-	proximity_pilot_adc = adc_val[1] & 0xFFFF;
-	proximity_pilot_voltage = (proximity_pilot_adc/4095.0)*3.3;
-	// TODO; NEED TO EXAMINE ACTUAL VOLTAGE VALUES AFTER DIVIDER AND SET THRESHOLDS
-	if (fabsf(proximity_pilot_voltage - 4.4) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state = STATE_PP_NOT_CONNECTED;
-	} else if (fabsf(proximity_pilot_voltage - 2.7) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state = STATE_PP_BUTTON_PRESSED;
-	} else if (fabsf(proximity_pilot_voltage - 1.5) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state= STATE_PP_CONNECTED;
-	}
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	vTaskNotifyGiveFromISR(currTaskHandle, &xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 1 */
