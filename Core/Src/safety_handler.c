@@ -32,10 +32,10 @@ uint8_t BMS_GetFaultRegister() {
 void BMS_CheckFaultRegister() {
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	if (fault_register.reg != 0) {
-		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
 		bms_state = BMS_INTERNAL_FAULT;
 	} else {
-		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
 	}
 	osMutexRelease(FAULT_MUTEXHandle);
 }
