@@ -55,9 +55,3 @@ void change_baud_rate_250() {
 	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;
 	HAL_FDCAN_Init(&hfdcan1);
 }
-
-void change_baud_rate_500() {
-	HAL_FDCAN_DeInit(&hfdcan1);
-	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
-	HAL_FDCAN_Init(&hfdcan1);
-}

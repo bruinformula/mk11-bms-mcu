@@ -352,7 +352,7 @@ void balancingFunction(void const * argument)
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_BALANCING) {
 		  fastBalancingLoop(TOTAL_IC, IC);
-		  osDelay(500);
+		  osDelay(500); // Discharge Timer is ~2 Seconds.
 	  }
   }
   /* USER CODE END balancingFunction */

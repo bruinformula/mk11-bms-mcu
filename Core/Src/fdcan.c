@@ -44,13 +44,13 @@ void MX_FDCAN1_Init(void)
   hfdcan1.Init.AutoRetransmission = ENABLE;
   hfdcan1.Init.TransmitPause = DISABLE;
   hfdcan1.Init.ProtocolException = DISABLE;
-  hfdcan1.Init.NominalPrescaler = 4;
-  hfdcan1.Init.NominalSyncJumpWidth = 2;
-  hfdcan1.Init.NominalTimeSeg1 = 7;
+  hfdcan1.Init.NominalPrescaler = 2;
+  hfdcan1.Init.NominalSyncJumpWidth = 1;
+  hfdcan1.Init.NominalTimeSeg1 = 14;
   hfdcan1.Init.NominalTimeSeg2 = 2;
-  hfdcan1.Init.DataPrescaler = 4;
-  hfdcan1.Init.DataSyncJumpWidth = 2;
-  hfdcan1.Init.DataTimeSeg1 = 7;
+  hfdcan1.Init.DataPrescaler = 2;
+  hfdcan1.Init.DataSyncJumpWidth = 1;
+  hfdcan1.Init.DataTimeSeg1 = 14;
   hfdcan1.Init.DataTimeSeg2 = 2;
   hfdcan1.Init.StdFiltersNbr = 1;
   hfdcan1.Init.ExtFiltersNbr = 1;
@@ -179,12 +179,13 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 void BMS_CAN_RxHandler() {
 	uint32_t msg_id = BMS_RxHeader.Identifier;
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    bool scheduler_running = (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING);
 
 	switch (msg_id) {
 
 	case ELCON_CHARGER_RX_ID:
 		parseChargerBroadcast();
-		if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && chargerFaultDetected()) {
+		if (scheduler_running && chargerFaultDetected()) {
 			xTaskNotifyFromISR(chargingTaskHandle, EVT_ELCON_FAULT, eSetBits, &xHigherPriorityTaskWoken);
 		}
 		break;
@@ -199,6 +200,8 @@ void BMS_CAN_RxHandler() {
 		break;
 	}
 
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	if (scheduler_running) {
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
 }
 /* USER CODE END 1 */
