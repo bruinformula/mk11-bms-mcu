@@ -58,5 +58,8 @@ void sendSoc_Curr_Pack() {
 	soc_curr_pack_df.data.curr = (current_context.current_sensor_val*100);
 	soc_curr_pack_df.data.soc = (soc*100);
 	soc_curr_pack_df.data.pack_voltage = (voltage_context.estimated_pack_voltage*100);
+
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Soc_Curr_Pack_TxHeader, soc_curr_pack_df.array);
+	osMutexRelease(CAN_MUTEXHandle);
 }

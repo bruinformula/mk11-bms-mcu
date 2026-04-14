@@ -56,13 +56,25 @@ static float ocv_lookup_soc(float avg_temp, float cell_voltage) {
 float soc;
 
 void get_initial_soc() {
-	float soc_min = ocv_lookup_soc(temp_context.avg_cell_temp, voltage_context.lowest_cell_voltage);
-	float soc_max = ocv_lookup_soc(temp_context.avg_cell_temp, voltage_context.highest_cell_voltage);
+	float temp;
+	float v_high;
+	float v_low;
+
+	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
+	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
+	temp = temp_context.avg_cell_temp;
+	v_low = voltage_context.lowest_cell_voltage;
+	v_high = voltage_context.highest_cell_voltage;
+	osMutexRelease(TEMP_MUTEXHandle);
+	osMutexRelease(VOLTAGE_MUTEXHandle);
+
+	float soc_min = ocv_lookup_soc(temp, v_low);
+	float soc_max = ocv_lookup_soc(temp, v_high);
 
 	if (isnan(soc_min) || isnan(soc_max)) {
 		soc = NAN;
 	} else {
-		if (soc_min <= 50.0) {
+		if (soc_min <= 50.0f) {
 			soc = soc_min;
 		} else {
 			soc = soc_max;

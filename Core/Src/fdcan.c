@@ -101,7 +101,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* FDCAN1 interrupt Init */
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 6, 0);
+    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 7, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
   /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
@@ -178,12 +178,14 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 
 void BMS_CAN_RxHandler() {
 	uint32_t msg_id = BMS_RxHeader.Identifier;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
 	switch (msg_id) {
 
 	case ELCON_CHARGER_RX_ID:
 		parseChargerBroadcast();
-		if (chargerFaultDetected()) {
-			charging_state = CHG_ELCON_FAULT;
+		if (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING && chargerFaultDetected()) {
+			xTaskNotifyFromISR(chargingTaskHandle, EVT_ELCON_FAULT, eSetBits, &xHigherPriorityTaskWoken);
 		}
 		break;
 
@@ -192,9 +194,11 @@ void BMS_CAN_RxHandler() {
 		break;
 
 	case INVERTER_VOLTAGE_RX_ID:
-		int16_t inverter_dc_volts_raw = (int16_t) ((BMS_RxData[1] << 8) | BMS_RxData[0]);
+		uint16_t inverter_dc_volts_raw = (uint16_t) ((BMS_RxData[1] << 8) | BMS_RxData[0]);
 		inverter_dc_volts = inverter_dc_volts_raw*0.1;
 		break;
 	}
+
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 1 */

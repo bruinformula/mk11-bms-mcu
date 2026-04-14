@@ -53,6 +53,6 @@ extern volatile bool inverter_precharged;
 
 void configurePrchgTxMsg();
 void prechargeStart();
-void prechargeLoop();
+void precharge_loop();
 
 #endif /* INC_PRCHG_H_ */

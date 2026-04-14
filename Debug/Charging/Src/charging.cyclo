@@ -1,2 +1,1 @@
-../Charging/Src/charging.c:12:6:change_baud_rate	1
-../Charging/Src/charging.c:22:6:charging_loop	14
+../Charging/Src/charging.c:12:6:charging_loop	14

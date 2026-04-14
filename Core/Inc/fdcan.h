@@ -32,12 +32,13 @@ extern "C" {
 #include "prchg.h"
 #include "charging.h"
 #include "elcon_charger.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN Private defines */
-
+#define EVT_ELCON_FAULT    (1 << 2)
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);

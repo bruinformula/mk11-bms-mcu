@@ -50,7 +50,8 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+volatile bool temp_ready;
+volatile bool voltage_ready;
 /* USER CODE END Variables */
 osThreadId voltageTaskHandle;
 osThreadId tempTaskHandle;
@@ -60,6 +61,8 @@ osThreadId dataloggingTaskHandle;
 osThreadId prchgTaskHandle;
 osThreadId currLimitTaskHandle;
 osThreadId balancingTaskHandle;
+osThreadId chargingTaskHandle;
+osThreadId socTaskHandle;
 osMutexId SPI_MUTEXHandle;
 osMutexId CAN_MUTEXHandle;
 osMutexId VOLTAGE_MUTEXHandle;
@@ -79,6 +82,8 @@ void dataloggingFunction(void const * argument);
 void prchgFunction(void const * argument);
 void currLimitFunction(void const * argument);
 void balancingFunction(void const * argument);
+void chargingFunction(void const * argument);
+void socFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -161,6 +166,14 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(balancingTask, balancingFunction, osPriorityNormal, 0, 1024);
   balancingTaskHandle = osThreadCreate(osThread(balancingTask), NULL);
 
+  /* definition and creation of chargingTask */
+  osThreadDef(chargingTask, chargingFunction, osPriorityNormal, 0, 1024);
+  chargingTaskHandle = osThreadCreate(osThread(chargingTask), NULL);
+
+  /* definition and creation of socTask */
+  osThreadDef(socTask, socFunction, osPriorityNormal, 0, 512);
+  socTaskHandle = osThreadCreate(osThread(socTask), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
@@ -177,10 +190,15 @@ void MX_FREERTOS_Init(void) {
 void voltageFunction(void const * argument)
 {
   /* USER CODE BEGIN voltageFunction */
+    static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
 	computeAllVoltages(TOTAL_IC, IC);
+	  if (!first_run) {
+		  first_run = true;
+		  voltage_ready = true;
+	  }
 	osDelay(500);
   }
   /* USER CODE END voltageFunction */
@@ -196,10 +214,15 @@ void voltageFunction(void const * argument)
 void tempFunction(void const * argument)
 {
   /* USER CODE BEGIN tempFunction */
+    static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
 	computeAllTemps(TOTAL_IC, IC);
+	  if (!first_run) {
+		  first_run = true;
+		  temp_ready = true;
+	  }
     osDelay(1000);
   }
   /* USER CODE END tempFunction */
@@ -215,9 +238,14 @@ void tempFunction(void const * argument)
 void safetyFunction(void const * argument)
 {
   /* USER CODE BEGIN safetyFunction */
+	static bool bmsInitialized = false;
   /* Infinite loop */
   for(;;)
   {
+	  if (!bmsInitialized) { // ON STARTUP!
+		  bmsInitialized = true;
+		  wakeup_tasks();
+	  }
 	BMS_CheckFaultRegister();
     osDelay(50);
   }
@@ -237,7 +265,7 @@ void currFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Based on ADC ISR; ~200 Hz.
 	  calculateCurrent();
   }
   /* USER CODE END currFunction */
@@ -258,7 +286,7 @@ void dataloggingFunction(void const * argument)
   {
 	sendVoltage();
 	sendTemp();
-	// sendSoc_Curr_Pack();
+	sendSoc_Curr_Pack();
     osDelay(1000);
   }
   /* USER CODE END dataloggingFunction */
@@ -277,10 +305,11 @@ void prchgFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	if (bms_state == BMS_PRECHARGING) {
-		prechargeLoop();
-	}
-    osDelay(100);
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_PRECHARGING) {
+		  precharge_loop();
+		  osDelay(50);
+	  }
   }
   /* USER CODE END prchgFunction */
 }
@@ -298,10 +327,11 @@ void currLimitFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	if (bms_state == BMS_DRIVE) {
-		sendDCL_CCL();
-	}
-    osDelay(100);
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_DRIVE) {
+		  sendDCL_CCL();
+		  osDelay(100);
+	  }
   }
   /* USER CODE END currLimitFunction */
 }
@@ -319,12 +349,70 @@ void balancingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	if (bms_state == BMS_BALANCING) {
-		fastBalancingLoop(TOTAL_IC, IC);
-	}
-    osDelay(500);
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_BALANCING) {
+		  fastBalancingLoop(TOTAL_IC, IC);
+		  osDelay(500);
+	  }
   }
   /* USER CODE END balancingFunction */
+}
+
+/* USER CODE BEGIN Header_chargingFunction */
+/**
+* @brief Function implementing the chargingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_chargingFunction */
+void chargingFunction(void const * argument)
+{
+  /* USER CODE BEGIN chargingFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_CHARGING) {
+		  // Waits for ISR Notifications, w/ 50 ms timeout.
+		  charging_loop();
+	  }
+  }
+  /* USER CODE END chargingFunction */
+}
+
+/* USER CODE BEGIN Header_socFunction */
+/**
+* @brief Function implementing the socTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_socFunction */
+void socFunction(void const * argument)
+{
+  /* USER CODE BEGIN socFunction */
+	static bool socInitialized = false;
+	static uint32_t last_tick;
+  /* Infinite loop */
+  for(;;)
+  {
+	  if (!socInitialized) {
+		  if (voltage_ready && temp_ready) {
+			  get_initial_soc();
+			  socInitialized = true;
+			  last_tick = HAL_GetTick();
+		  } else {
+			  osDelay(50);
+			  continue;
+		  }
+	  }
+
+	  uint32_t now = HAL_GetTick();
+	  uint32_t delta = now - last_tick;
+	  last_tick = now;
+	  coulomb_count(delta);
+	  osDelay(500);
+  }
+  /* USER CODE END socFunction */
 }
 
 /* Private application code --------------------------------------------------*/

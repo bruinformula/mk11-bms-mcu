@@ -27,6 +27,9 @@ typedef enum {
 
 extern volatile BMS_STATE bms_state;
 
-void determineStartupMode();
+void determine_startup_mode();
+void wakeup_tasks();
+void change_baud_rate_250();
+void change_baud_rate_500();
 
 #endif /* INC_BMS_STATE_H_ */

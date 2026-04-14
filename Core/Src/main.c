@@ -62,8 +62,7 @@
 /* USER CODE BEGIN PV */
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
-bool ready_signal;
-bool charge_signal;
+bool shutdown_power = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -132,6 +131,24 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+  while (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_RESET) {
+	  // BLOCK; Shutdown Power not detected yet.
+  }
+  shutdown_power = true;
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+  // ADBMS6830 + ADC INITIALIZATION
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  startADC();
+
+  // SET BMS STATE
+  determine_startup_mode();
+
+  // CAN CONFIGURATION
   FDCAN_FilterTypeDef sStdFilter= {0};
   sStdFilter.IdType = FDCAN_STANDARD_ID;
   sStdFilter.FilterIndex = 0;
@@ -162,23 +179,12 @@ int main(void)
 	  Error_Handler();
   }
 
-  // CONFIGURE ALL CAN MESSAGES!
   configureTemp_TxMsg();
   configureVoltage_TxMsg();
   configureSoc_Curr_Pack_TxMsg();
   configureChargeTxMsg();
   configurePrchgTxMsg();
   configureDCL_CCL_TxMsg();
-
-  adBms6830_init_config(TOTAL_IC, IC);
-  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  get_initial_soc(); // TODO: Needs initial voltages and temperatures calculated!
-  startADC();
-
-  // SETS BMS STATE
-  determineStartupMode();
-
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

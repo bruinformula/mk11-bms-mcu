@@ -28,7 +28,7 @@ void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
 	}
 }
 
-void prechargeLoop() {
+void precharge_loop() {
 	switch (precharge_state) {
 		case PRECHARGE_IDLE:
 			break;
@@ -38,9 +38,7 @@ void prechargeLoop() {
                 break;
             }
 
-            osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
             float delta = fabsf(voltage_context.estimated_pack_voltage - inverter_dc_volts);
-            osMutexRelease(VOLTAGE_MUTEXHandle);
 
             if (delta <= PRECHARGE_VOLTAGE_DELTA) {
         		inverter_precharged = true;
@@ -54,6 +52,7 @@ void prechargeLoop() {
         		osMutexRelease(CAN_MUTEXHandle);
 
     			bms_state = BMS_DRIVE;
+    			wakeup_tasks();
             } else {
             	inverter_precharged = false;
             	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);

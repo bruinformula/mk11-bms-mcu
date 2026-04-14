@@ -1,2 +1,1 @@
-../Charging/Src/charging.c:12:6:change_baud_rate	8	static
-../Charging/Src/charging.c:22:6:charging_loop	8	static
+../Charging/Src/charging.c:12:6:charging_loop	24	static

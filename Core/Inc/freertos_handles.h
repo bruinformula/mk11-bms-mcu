@@ -18,6 +18,7 @@ extern osThreadId dataloggingTaskHandle;
 extern osThreadId prchgTaskHandle;
 extern osThreadId currLimitTaskHandle;
 extern osThreadId balancingTaskHandle;
+extern osThreadId chargingTaskHandle;
 extern osMutexId SPI_MUTEXHandle;
 extern osMutexId CAN_MUTEXHandle;
 extern osMutexId VOLTAGE_MUTEXHandle;

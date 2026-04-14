@@ -12,9 +12,11 @@
 #include <math.h>
 #include "adc.h"
 #include "tim.h"
+#include "cmsis_os.h"
 
 #define PP_VOLTAGE_EPSILON 0.1
 #define TIMER_CLOCK 1000000
+#define EVT_CP_UPDATE        (1 << 1)
 
 // J1772 CONTROL PILOT
 typedef enum {
@@ -25,6 +27,7 @@ extern volatile STATE_CP control_pilot_state;
 
 // J1772 PROXIMITY PILOT
 typedef enum {
+	STATE_PP_UNKNOWN,
 	STATE_PP_NOT_CONNECTED, // J1772 not connected
 	STATE_PP_BUTTON_PRESSED, // J1772 latch button pressed, temporarily stops charging
 	STATE_PP_CONNECTED // J1772 connected
@@ -32,19 +35,17 @@ typedef enum {
 extern volatile STATE_PP proximity_pilot_state;
 
 typedef struct J1772_CONTEXT {
-	volatile STATE_CP control_pilot_state;
-	volatile int control_pilot_advertised_amps;
-	volatile float control_pilot_freq;
-	volatile float control_pilot_duty_cycle;
-	volatile STATE_PP proximity_pilot_state;
+	volatile uint32_t control_pilot_period;
+	volatile uint32_t control_pilot_pulse;
 	volatile uint16_t proximity_pilot_adc;
-	volatile float proximity_pilot_voltage;
 } J1772_CONTEXT;
+extern volatile J1772_CONTEXT j1772_context;
 
-extern J1772_CONTEXT j1772_context;
+extern int advertised_amps;
 
-void readControlPilot();
-void stopReadingControlPilot();
-void readProximityPilot();
+void startPWM_Capture();
+void stopPWM_Capture();
+STATE_PP readProximityPilot(uint16_t adc);
+STATE_CP readControlPilot(uint32_t period, uint32_t pulse);
 
 #endif /* INC_J_PLUG_H_ */

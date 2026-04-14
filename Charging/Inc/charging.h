@@ -28,7 +28,6 @@ extern CHARGING_STATE charging_state;
 #define MAX_CELL_VOLTAGE_CHARGING_THRESHOLD 4.0
 #define CURRENT_SENSOR_EPSILON 1.0
 
-void change_baud_rate();
 void charging_loop();
 
 #endif /* INC_CHARGING_H_ */

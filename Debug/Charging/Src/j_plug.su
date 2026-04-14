@@ -1,4 +1,5 @@
-../Charging/Src/j_plug.c:12:6:HAL_TIM_IC_CaptureCallback	24	static
-../Charging/Src/j_plug.c:44:6:readControlPilot	8	static
-../Charging/Src/j_plug.c:49:6:stopReadingControlPilot	8	static
-../Charging/Src/j_plug.c:54:6:readProximityPilot	8	static
+../Charging/Src/j_plug.c:14:6:HAL_TIM_IC_CaptureCallback	40	static,ignoring_inline_asm
+../Charging/Src/j_plug.c:28:6:startPWM_Capture	8	static
+../Charging/Src/j_plug.c:33:6:stopPWM_Capture	8	static
+../Charging/Src/j_plug.c:38:10:readProximityPilot	24	static
+../Charging/Src/j_plug.c:51:10:readControlPilot	24	static

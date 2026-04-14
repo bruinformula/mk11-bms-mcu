@@ -330,7 +330,8 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	j1772_context.proximity_pilot_adc = adc_val[1] & 0xFFFF;
 
 	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	vTaskNotifyGiveFromISR(currTaskHandle, &xHigherPriorityTaskWoken);
+	xTaskNotifyFromISR(currTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
+	xTaskNotifyFromISR(chargingTaskHandle, EVT_PP_ADC_READY, eSetBits, &xHigherPriorityTaskWoken);
 	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 1 */

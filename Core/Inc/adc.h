@@ -40,7 +40,7 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 
 /* USER CODE BEGIN Private defines */
-
+#define EVT_PP_ADC_READY        (1 << 0)
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);
