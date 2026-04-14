@@ -60,6 +60,7 @@ void get_initial_soc() {
 	float v_high;
 	float v_low;
 
+	// CRITICAL REGION
 	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
 	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
 	temp = temp_context.avg_cell_temp;

@@ -16,13 +16,13 @@ static BalanceState balance_state = BALANCE_COMPUTE_DISCHARGE;
 void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
 	switch (balance_state) {
 		case BALANCE_COMPUTE_DISCHARGE:
+			// CRITICAL REGION
 			osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
 			memcpy(voltage_conversions_snapshot, voltage_context.voltage_conversions, sizeof(voltage_conversions_snapshot));
 			local_lowest_cell_voltage = voltage_context.lowest_cell_voltage;
 			osMutexRelease(VOLTAGE_MUTEXHandle);
 
             num_unbalanced_cells = 0;
-
             for (size_t i = 0; i < tIC; ++i) {
                 uint16_t dcc_mask = 0x0000;
                 for (size_t j = 0; j < CELLS_PER_IC; ++j) {
@@ -44,9 +44,11 @@ void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
             break;
 
 		case BALANCE_DISCHARGE:
+			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
             adBms6830_write_config(tIC, ic);
             osMutexRelease(SPI_MUTEXHandle);
+
             if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
                 for (size_t i = 0; i < tIC; ++i) {
                     ic[i].tx_cfgb.dcc = 0x0000;
@@ -57,9 +59,11 @@ void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
             break;
 
 		case BALANCE_WAIT:
+			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
             adBms6830_write_config(tIC, ic);
             osMutexRelease(SPI_MUTEXHandle);
+
             if (HAL_GetTick() - phase_start_time >= BALANCE_WAIT_PERIOD) {
                 balance_state = BALANCE_COMPUTE_DISCHARGE;
             }

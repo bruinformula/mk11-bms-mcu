@@ -265,7 +265,7 @@ void currFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Based on ADC ISR; ~200 Hz.
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Based on ADC ISR; ~70 Hz.
 	  calculateCurrent();
   }
   /* USER CODE END currFunction */

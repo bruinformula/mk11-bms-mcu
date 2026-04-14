@@ -81,6 +81,16 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 		local_avg = NAN;
 	}
 
+	// CRITICAL REGION
+	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
+	temp_context.num_valid_cell_temps = local_valid_cells;
+	temp_context.lowest_cell_temp = local_lowest;
+	temp_context.highest_cell_temp = local_highest;
+	temp_context.avg_cell_temp = local_avg;
+	memcpy(temp_context.temp_conversions, local_temp_conversions, sizeof(local_temp_conversions));
+	osMutexRelease(TEMP_MUTEXHandle);
+
+	// FAULT HANDLING
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
 	if (local_highest > OVER_TEMP_THRESHOLD) {
@@ -94,15 +104,6 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	} else {
 		faults_clear |= FAULT_UNDERTEMP;
 	}
-
-	// CRITICAL REGION
-	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
-	temp_context.num_valid_cell_temps = local_valid_cells;
-	temp_context.lowest_cell_temp = local_lowest;
-	temp_context.highest_cell_temp = local_highest;
-	temp_context.avg_cell_temp = local_avg;
-	memcpy(temp_context.temp_conversions, local_temp_conversions, sizeof(local_temp_conversions));
-	osMutexRelease(TEMP_MUTEXHandle);
 
     if (faults_set) {
     	BMS_SetFault(faults_set);

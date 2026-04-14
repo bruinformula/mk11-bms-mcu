@@ -69,12 +69,12 @@ static const CurvePoint DCL_Curve[DCL_CURVE_POINTS] = {
     {60.0f, 0.0f}
 };
 
-void calculateDCL() {
-	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, temp_context.highest_cell_temp);
+void calculateDCL(float highest_cell_temp) {
+	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, highest_cell_temp);
 }
 
-void calculateCCL() {
-	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, temp_context.highest_cell_temp);
+void calculateCCL(float highest_cell_temp) {
+	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, highest_cell_temp);
 }
 
 void configureDCL_CCL_TxMsg() {
@@ -82,8 +82,9 @@ void configureDCL_CCL_TxMsg() {
 }
 
 void sendDCL_CCL() {
-	calculateDCL();
-	calculateCCL();
+	float highest_cell_temp = temp_context.highest_cell_temp;
+	calculateDCL(highest_cell_temp);
+	calculateCCL(highest_cell_temp);
 	dcl_ccl_df.data.pack_dcl = (uint16_t)(dcl*100);
 	dcl_ccl_df.data.pack_ccl = (uint16_t)(ccl*100);
 

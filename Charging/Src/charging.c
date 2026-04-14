@@ -17,6 +17,7 @@ void charging_loop() {
     uint32_t cp_period;
     uint32_t cp_pulse;
 
+    // CRITICAL REGION
     taskENTER_CRITICAL();
     pp_adc = j1772_context.proximity_pilot_adc;
     cp_period = j1772_context.control_pilot_period;

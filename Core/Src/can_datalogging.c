@@ -28,6 +28,7 @@ void configureSoc_Curr_Pack_TxMsg() {
 }
 
 void sendVoltage() {
+	// CRITICAL REGION
 	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
 	voltage_df.data.avg_cell_voltage = (voltage_context.avg_cell_voltage*100);
 	voltage_df.data.highest_cell_voltage = (voltage_context.highest_cell_voltage*100);
@@ -35,12 +36,14 @@ void sendVoltage() {
 	voltage_df.data.num_valid_voltages = (voltage_context.num_valid_cell_voltages);
 	osMutexRelease(VOLTAGE_MUTEXHandle);
 
+	// CRITICAL REGION
 	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Voltage_TxHeader, voltage_df.array);
 	osMutexRelease(CAN_MUTEXHandle);
 }
 
 void sendTemp() {
+	// CRITICAL REGION
 	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
 	temp_df.data.avg_temp = (temp_context.avg_cell_temp*100);
 	temp_df.data.highest_temp = (temp_context.highest_cell_temp*100);
@@ -48,17 +51,18 @@ void sendTemp() {
 	temp_df.data.num_valid_temps = (temp_context.num_valid_cell_temps);
 	osMutexRelease(TEMP_MUTEXHandle);
 
+	// CRITICAL REGION
 	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Temp_TxHeader, temp_df.array);
 	osMutexRelease(CAN_MUTEXHandle);
 }
 
-// TODO: Deal w/ mutexes, race conditions
 void sendSoc_Curr_Pack() {
 	soc_curr_pack_df.data.curr = (current_context.current_sensor_val*100);
 	soc_curr_pack_df.data.soc = (soc*100);
 	soc_curr_pack_df.data.pack_voltage = (voltage_context.estimated_pack_voltage*100);
 
+	// CRITICAL REGION
 	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Soc_Curr_Pack_TxHeader, soc_curr_pack_df.array);
 	osMutexRelease(CAN_MUTEXHandle);

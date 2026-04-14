@@ -47,6 +47,7 @@ void precharge_loop() {
         		precharge_state = PRECHARGE_SUCCESS;
         		Precharge_Complete_DF.data.inverter_precharged = 1;
 
+        		// CRITICAL REGION
         		osMutexWait(CAN_MUTEXHandle, osWaitForever);
         		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Precharge_Complete_TxHeader, Precharge_Complete_DF.array);
         		osMutexRelease(CAN_MUTEXHandle);
@@ -60,6 +61,7 @@ void precharge_loop() {
             	precharge_state = PRECHARGE_FAIL;
             	Precharge_Complete_DF.data.inverter_precharged = 0;
 
+            	// CRITICAL REGION
         		osMutexWait(CAN_MUTEXHandle, osWaitForever);
             	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Precharge_Complete_TxHeader, Precharge_Complete_DF.array);
         		osMutexRelease(CAN_MUTEXHandle);

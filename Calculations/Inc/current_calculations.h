@@ -10,7 +10,8 @@
 
 #include <stdint.h>
 #include <math.h>
-#include <stdbool.h>
+#include "cmsis_os.h"
+#include "safety_handler.h"
 
 #define OVERCURRENT_THRESHOLD 180
 

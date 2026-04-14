@@ -1,4 +1,4 @@
 ../Core/Src/safety_handler.c:12:6:BMS_SetFault	1
-../Core/Src/safety_handler.c:18:6:BMS_ClearFault	1
-../Core/Src/safety_handler.c:24:9:BMS_GetFaultRegister	1
-../Core/Src/safety_handler.c:32:6:BMS_CheckFaultRegister	2
+../Core/Src/safety_handler.c:19:6:BMS_ClearFault	1
+../Core/Src/safety_handler.c:26:9:BMS_GetFaultRegister	1
+../Core/Src/safety_handler.c:35:6:BMS_CheckFaultRegister	2

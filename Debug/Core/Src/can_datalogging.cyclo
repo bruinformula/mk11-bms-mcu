@@ -2,5 +2,5 @@
 ../Core/Src/can_datalogging.c:22:6:configureTemp_TxMsg	1
 ../Core/Src/can_datalogging.c:26:6:configureSoc_Curr_Pack_TxMsg	1
 ../Core/Src/can_datalogging.c:30:6:sendVoltage	1
-../Core/Src/can_datalogging.c:43:6:sendTemp	1
-../Core/Src/can_datalogging.c:57:6:sendSoc_Curr_Pack	1
+../Core/Src/can_datalogging.c:45:6:sendTemp	1
+../Core/Src/can_datalogging.c:60:6:sendSoc_Curr_Pack	1

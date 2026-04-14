@@ -10,12 +10,14 @@
 volatile BMS_FaultRegister fault_register;
 
 void BMS_SetFault(uint8_t fault) {
+	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	fault_register.reg |= fault;
     osMutexRelease(FAULT_MUTEXHandle);
 }
 
 void BMS_ClearFault(uint8_t fault) {
+	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
     fault_register.reg &= ~fault;
     osMutexRelease(FAULT_MUTEXHandle);
@@ -23,6 +25,7 @@ void BMS_ClearFault(uint8_t fault) {
 
 uint8_t BMS_GetFaultRegister() {
 	uint8_t snapshot;
+	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	snapshot = fault_register.reg;
 	osMutexRelease(FAULT_MUTEXHandle);
@@ -30,9 +33,7 @@ uint8_t BMS_GetFaultRegister() {
 }
 
 void BMS_CheckFaultRegister() {
-	// TODO: Note that in charging, Shutdown logic is INVERTED
-	// i.e. 3.3V NO FAULT, 0V = FAULT
-
+	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	if (fault_register.reg != 0) {
 		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);

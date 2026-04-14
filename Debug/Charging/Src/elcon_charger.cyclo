@@ -1,4 +1,4 @@
 ../Charging/Src/elcon_charger.c:12:6:configureChargeTxMsg	1
 ../Charging/Src/elcon_charger.c:16:6:parseChargerBroadcast	1
 ../Charging/Src/elcon_charger.c:22:6:sendChargerRequest	1
-../Charging/Src/elcon_charger.c:36:6:chargerFaultDetected	6
+../Charging/Src/elcon_charger.c:39:6:chargerFaultDetected	6

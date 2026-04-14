@@ -30,7 +30,10 @@ void sendChargerRequest(float max_charging_voltage, float max_charging_current, 
 	elcon_charger_context.chgmsg_1806E5F4_DF.data.max_charging_current_lsb = current_raw & 0xFF;
 	elcon_charger_context.chgmsg_1806E5F4_DF.data.charging_control = stop_charging;
 
+	// CRITICAL REGION
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &elcon_charger_context.TxHeader_1806E5F4, elcon_charger_context.chgmsg_1806E5F4_DF.array);
+	osMutexRelease(CAN_MUTEXHandle);
 }
 
 bool chargerFaultDetected() {

@@ -9,6 +9,8 @@
 #define INC_ELCON_CHARGER_H_
 
 #include "fdcan.h"
+#include "cmsis_os.h"
+#include "freertos_handles.h"
 #include <stdbool.h>
 
 #define ELCON_CHARGER_TX_ID 0x1806E5F4

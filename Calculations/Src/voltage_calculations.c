@@ -45,6 +45,17 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 		local_estimated_pack = NAN;
 	}
 
+	// CRITICAL REGION
+	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
+	voltage_context.num_valid_cell_voltages = local_valid_cells;
+	voltage_context.lowest_cell_voltage = local_lowest;
+	voltage_context.highest_cell_voltage = local_highest;
+	voltage_context.avg_cell_voltage = local_avg;
+	voltage_context.estimated_pack_voltage = local_estimated_pack;
+	memcpy(voltage_context.voltage_conversions, local_voltage_conversions, sizeof(local_voltage_conversions));
+    osMutexRelease(VOLTAGE_MUTEXHandle);
+
+    // FAULT HANDLING
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
 	if (local_highest > OVER_VOLTAGE_THRESHOLD) {
@@ -58,16 +69,6 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 	} else {
 		faults_clear |= FAULT_UNDERVOLTAGE;
 	}
-
-	// CRITICAL REGION
-	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
-	voltage_context.num_valid_cell_voltages = local_valid_cells;
-	voltage_context.lowest_cell_voltage = local_lowest;
-	voltage_context.highest_cell_voltage = local_highest;
-	voltage_context.avg_cell_voltage = local_avg;
-	voltage_context.estimated_pack_voltage = local_estimated_pack;
-	memcpy(voltage_context.voltage_conversions, local_voltage_conversions, sizeof(local_voltage_conversions));
-    osMutexRelease(VOLTAGE_MUTEXHandle);
 
     if (faults_set) {
     	BMS_SetFault(faults_set);
