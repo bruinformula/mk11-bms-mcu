@@ -9,10 +9,11 @@
 #define INC_CAN_DATALOGGING_H_
 
 #include "fdcan.h"
-#include "state_of_charge.h"
+#include "safety_handler.h"
 #include "current_calculations.h"
 #include "voltage_calculations.h"
 #include "thermistor.h"
+#include "state_of_charge.h"
 #include "freertos_handles.h"
 #include "cmsis_os.h"
 
@@ -47,7 +48,7 @@ typedef union SOC_CURR_PACK_DF {
 		uint16_t soc;
 		uint16_t curr;
 		uint16_t pack_voltage;
-		uint8_t reserved6;
+		uint8_t fault_register;
 		uint8_t reserved7;
 	} data;
 	uint8_t array[8];

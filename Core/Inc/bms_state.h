@@ -8,16 +8,15 @@
 #ifndef INC_BMS_STATE_H_
 #define INC_BMS_STATE_H_
 
-#include <can_datalogging.h>
-#include <curr_limiting.h>
-#include "gpio.h"
-#include "charging.h"
-#include "balancing.h"
 #include "adBms_Application.h"
+#include "fdcan.h"
+#include "gpio.h"
+#include "j_plug.h"
+#include "cmsis_os.h"
 
 typedef enum {
 	BMS_IDLE = 0,
-	BMS_SHUTDOWN_FAULT,
+	BMS_EXTERNAL_FAULT,
 	BMS_INTERNAL_FAULT,
 	BMS_CHARGING,
 	BMS_BALANCING,

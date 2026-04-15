@@ -5,7 +5,7 @@
  *      Author: ishanchitale
  */
 
-#include <can_datalogging.h>
+#include "can_datalogging.h"
 
 static TEMP_DF temp_df;
 static VOLTAGE_DF voltage_df;
@@ -61,6 +61,7 @@ void sendSoc_Curr_Pack() {
 	soc_curr_pack_df.data.curr = (current_context.current_sensor_val*100);
 	soc_curr_pack_df.data.soc = (soc*100);
 	soc_curr_pack_df.data.pack_voltage = (voltage_context.estimated_pack_voltage*100);
+	soc_curr_pack_df.data.fault_register = fault_register.reg;
 
 	// CRITICAL REGION
 	osMutexWait(CAN_MUTEXHandle, osWaitForever);

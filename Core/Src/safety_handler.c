@@ -36,8 +36,8 @@ void BMS_CheckFaultRegister() {
 	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	if (fault_register.reg != 0) {
-		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
 		bms_state = BMS_INTERNAL_FAULT;
+		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
 	} else {
 		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
 	}

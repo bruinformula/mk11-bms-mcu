@@ -8,10 +8,10 @@
 #ifndef INC_CURRENT_CALCULATIONS_H_
 #define INC_CURRENT_CALCULATIONS_H_
 
+#include "safety_handler.h"
+#include "cmsis_os.h"
 #include <stdint.h>
 #include <math.h>
-#include "cmsis_os.h"
-#include "safety_handler.h"
 
 #define OVERCURRENT_THRESHOLD 180
 

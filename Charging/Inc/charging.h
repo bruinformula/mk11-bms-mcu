@@ -8,12 +8,10 @@
 #ifndef INC_CHARGING_H_
 #define INC_CHARGING_H_
 
+#include "fdcan.h"
 #include "j_plug.h"
 #include "elcon_charger.h"
-#include "fdcan.h"
-#include "state_of_charge.h"
 #include "voltage_calculations.h"
-#include "thermistor.h"
 
 typedef enum {
 	CHG_IDLE = 0,

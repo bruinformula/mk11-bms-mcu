@@ -8,13 +8,12 @@
 #ifndef INC_BALANCING_H_
 #define INC_BALANCING_H_
 
-#include "current_calculations.h"
-#include "voltage_calculations.h"
 #include "adBms_Application.h"
 #include "adBms6830GenericType.h"
 #include "adBms6830CmdList.h"
-#include "cmsis_os.h"
+#include "voltage_calculations.h"
 #include "freertos_handles.h"
+#include "cmsis_os.h"
 
 #define BALANCE_VOLTAGE_THRESHOLD 0.001
 #define BALANCE_BLEED_PERIOD 60000

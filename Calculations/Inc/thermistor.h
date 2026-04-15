@@ -11,8 +11,8 @@
 #include "adBms_Application.h"
 #include "serialPrintResult.h"
 #include "safety_handler.h"
-#include "cmsis_os.h"
 #include "freertos_handles.h"
+#include "cmsis_os.h"
 #include <math.h>
 
 #define OVER_TEMP_THRESHOLD 60

@@ -30,16 +30,11 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "adBms_Application.h"
-#include "elcon_charger.h"
-#include "j_plug.h"
-#include "prchg.h"
-#include "current_calculations.h"
-#include "thermistor.h"
-#include "voltage_calculations.h"
-#include "current_calculations.h"
-#include "balancing.h"
 #include "bms_state.h"
-#include "gui_test.h"
+#include "can_datalogging.h"
+#include "elcon_charger.h"
+#include "prchg.h"
+#include "curr_limiting.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -85,11 +80,17 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+// TODO: SOFTWARE DEBOUNCE ON SHUTDOWN POWER!
+// ALSO, OPEN AIRS
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		bms_state = BMS_SHUTDOWN_FAULT;
-		Error_Handler();
-	}
+//	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
+//		if (bms_state != BMS_INTERNAL_FAULT) {
+//			bms_state = BMS_EXTERNAL_FAULT;
+//		}
+//		Error_Handler();
+//	}
+
 }
 /* USER CODE END 0 */
 
@@ -133,12 +134,12 @@ int main(void)
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
 
-  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
-  while (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_RESET) {
-	  // BLOCK; Shutdown Power not detected yet.
-  }
-  shutdown_power = true;
-  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+//  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+//  while (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_RESET) {
+//	  // BLOCK; Shutdown Power not detected yet.
+//  }
+//  shutdown_power = true;
+//  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
   // ADBMS6830 + ADC INITIALIZATION
   adBms6830_init_config(TOTAL_IC, IC);
@@ -149,43 +150,44 @@ int main(void)
   // SET BMS STATE
   determine_startup_mode();
 
-  // CAN CONFIGURATION
-  FDCAN_FilterTypeDef sStdFilter= {0};
-  sStdFilter.IdType = FDCAN_STANDARD_ID;
-  sStdFilter.FilterIndex = 0;
-  sStdFilter.FilterType = FDCAN_FILTER_RANGE;
-  sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-  sStdFilter.FilterID1 = 0x000;
-  sStdFilter.FilterID2 = 0x7FF;
-  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter) != HAL_OK) {
-	  Error_Handler();
-  }
+    // CAN CONFIGURATION
+    FDCAN_FilterTypeDef sStdFilter= {0};
+    sStdFilter.IdType = FDCAN_STANDARD_ID;
+    sStdFilter.FilterIndex = 0;
+    sStdFilter.FilterType = FDCAN_FILTER_RANGE;
+    sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+    sStdFilter.FilterID1 = 0x000;
+    sStdFilter.FilterID2 = 0x7FF;
+    if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter) != HAL_OK) {
+  	  Error_Handler();
+    }
 
-  FDCAN_FilterTypeDef sExtFilter = {0};
-  sExtFilter.IdType = FDCAN_EXTENDED_ID;
-  sExtFilter.FilterIndex = 0;
-  sExtFilter.FilterType = FDCAN_FILTER_RANGE;
-  sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
-  sExtFilter.FilterID1 = 0x00000000;
-  sExtFilter.FilterID2 = 0x1FFFFFFF;
-  if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter) != HAL_OK) {
-	  Error_Handler();
-  }
+    FDCAN_FilterTypeDef sExtFilter = {0};
+    sExtFilter.IdType = FDCAN_EXTENDED_ID;
+    sExtFilter.FilterIndex = 0;
+    sExtFilter.FilterType = FDCAN_FILTER_RANGE;
+    sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+    sExtFilter.FilterID1 = 0x00000000;
+    sExtFilter.FilterID2 = 0x1FFFFFFF;
+    if (HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter) != HAL_OK) {
+  	  Error_Handler();
+    }
 
-  if (HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
-	  Error_Handler();
-  }
+    if (HAL_FDCAN_Start(&hfdcan1)!= HAL_OK) {
+  	  Error_Handler();
+    }
 
-  if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
-	  Error_Handler();
-  }
+    if (HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0) != HAL_OK) {
+  	  Error_Handler();
+    }
 
-  configureTemp_TxMsg();
-  configureVoltage_TxMsg();
-  configureSoc_Curr_Pack_TxMsg();
-  configureChargeTxMsg();
-  configurePrchgTxMsg();
-  configureDCL_CCL_TxMsg();
+    configureTemp_TxMsg();
+    configureVoltage_TxMsg();
+    configureSoc_Curr_Pack_TxMsg();
+    configureChargeTxMsg();
+    configurePrchgTxMsg();
+    configureDCL_CCL_TxMsg();
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

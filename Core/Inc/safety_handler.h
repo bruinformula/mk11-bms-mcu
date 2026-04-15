@@ -12,9 +12,10 @@
 
 #include "gpio.h"
 #include "bms_state.h"
-#include <stdint.h>
-#include "cmsis_os.h"
 #include "freertos_handles.h"
+#include "cmsis_os.h"
+#include <stdint.h>
+
 
 typedef struct {
     uint8_t overvoltage  : 1;

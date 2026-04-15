@@ -8,8 +8,8 @@
 #ifndef INC_CURR_LIMITING_H_
 #define INC_CURR_LIMITING_H_
 
-#include "thermistor.h"
 #include "fdcan.h"
+#include "thermistor.h"
 #include "freertos_handles.h"
 #include "cmsis_os.h"
 

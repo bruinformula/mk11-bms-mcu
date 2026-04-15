@@ -8,11 +8,11 @@
 #ifndef INC_J_PLUG_H_
 #define INC_J_PLUG_H_
 
-#include <stdint.h>
-#include <math.h>
 #include "adc.h"
 #include "tim.h"
 #include "cmsis_os.h"
+#include <stdint.h>
+#include <math.h>
 
 #define PP_VOLTAGE_EPSILON 0.1
 #define TIMER_CLOCK 1000000

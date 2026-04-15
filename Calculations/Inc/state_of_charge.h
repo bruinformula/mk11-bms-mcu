@@ -9,9 +9,9 @@
 #define INC_STATE_OF_CHARGE_H_
 
 #include "ocv_table.h"
-#include "current_calculations.h"
 #include "voltage_calculations.h"
 #include "thermistor.h"
+#include "current_calculations.h"
 #include <stdlib.h>
 #include <math.h>
 #include <stdint.h>

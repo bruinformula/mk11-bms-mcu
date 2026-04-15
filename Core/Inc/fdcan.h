@@ -30,7 +30,6 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include "prchg.h"
-#include "charging.h"
 #include "elcon_charger.h"
 #include "cmsis_os.h"
 /* USER CODE END Includes */

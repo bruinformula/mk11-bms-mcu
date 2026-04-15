@@ -29,8 +29,12 @@
 #include "voltage_calculations.h"
 #include "thermistor.h"
 #include "current_calculations.h"
+#include "can_datalogging.h"
+#include "state_of_charge.h"
 #include "prchg.h"
 #include "curr_limiting.h"
+#include "charging.h"
+#include "balancing.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -329,7 +333,7 @@ void currLimitFunction(void const * argument)
   {
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_DRIVE) {
-		  sendDCL_CCL();
+//		  sendDCL_CCL();
 		  osDelay(100);
 	  }
   }
