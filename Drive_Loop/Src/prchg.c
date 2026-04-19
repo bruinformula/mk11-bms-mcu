@@ -42,7 +42,7 @@ void precharge_loop() {
             float delta = fabsf(voltage_context.estimated_pack_voltage - inverter_dc_volts);
 
 
-            if (delta <= PRECHARGE_VOLTAGE_DELTA) {
+            if (delta <= PRECHARGE_VOLTAGE_DELTA && inverter_dc_volts_slope <= INVERTER_VOLTS_SLOPE_THRESH) {
         		inverter_precharged = true;
         		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
         		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
@@ -77,17 +77,4 @@ void precharge_loop() {
 			break;
 
 	}
-}
-
-void prechargeFail() {
-	inverter_precharged = false;
-	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
-	//		delay_10ms();
-	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
-	//		delay_10ms();
-	precharge_state = PRECHARGE_FAIL;
-	Precharge_Complete_DF.data.inverter_precharged = 0;
-	HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Precharge_Complete_TxHeader, Precharge_Complete_DF.array);
-	HAL_TIM_Base_Stop_IT(&htim1);
-
 }

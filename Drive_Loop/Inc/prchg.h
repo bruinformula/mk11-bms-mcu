@@ -25,6 +25,8 @@
 #define INVERTER_VOLTAGE_RX_ID 0xA7
 #define PRECHARGE_VOLTAGE_DELTA 25
 #define PRECHARGE_TIMEOUT_MS 5000
+#define INVERTER_VOLTS_SLOPE_THRESH 0.1
+#define INVERTER_VOLTS_SLOPE_SPIKE_THRESH 10
 
 typedef union PRECHARGE_COMPLETE_DF {
 	struct __attribute__((packed)) {
@@ -56,6 +58,5 @@ extern volatile float inverter_dc_volts_slope;
 void configurePrchgTxMsg();
 void prechargeStart();
 void precharge_loop();
-void prechargeFail();
 
 #endif /* INC_PRCHG_H_ */

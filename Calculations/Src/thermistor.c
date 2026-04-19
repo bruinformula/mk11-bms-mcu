@@ -20,10 +20,6 @@ static const float temp_table[33] = {
 		55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120
 };
 
-bool cell_is_broken_t[TOTAL_IC][CELLS_PER_IC];
-BrokenCell_T broken_cells_t[TOTAL_CELLS];
-size_t broken_cell_count_t = 0;
-
 float voltageToTemp(float V) {
 	if (V > voltage_table[0] || V < voltage_table[32]) {
 		return NAN; // OUT OF RANGE

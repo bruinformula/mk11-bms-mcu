@@ -63,6 +63,8 @@
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
 bool shutdown_power = false;
+volatile bool shutdown_power_irq_pending = false;
+volatile uint32_t shutdown_power_irq_tick = 0U;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,6 +89,24 @@ int iar_fputc(int ch);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
+		shutdown_power_irq_pending = true;
+		shutdown_power_irq_tick = HAL_GetTick();
+	}
+}
+
+void ProcessShutdownPowerDebounce(void) {
+	if (!shutdown_power_irq_pending) {
+		return;
+	}
+
+	if ((HAL_GetTick() - shutdown_power_irq_tick) < SHUTDOWN_POWER_DEBOUNCE_MS) {
+		return;
+	}
+
+	shutdown_power_irq_pending = false;
+	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_RESET) {
+		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
 		bms_state = BMS_SHUTDOWN_FAULT;
 		Error_Handler();
 	}

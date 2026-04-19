@@ -211,11 +211,11 @@ void BMS_CAN_RxHandler() {
 
 		if (precharge_started) {
 			float time_s = (float)((curr_time - start_time) * 0.001f);
-			exp_curve = bms_pack_voltage * (1.0f - expf(-(time_s / RC)));
+			exp_curve = voltage_context.estimated_pack_voltage * (1.0f - expf(-(time_s / RC)));
 
+			//TODO: integrate with precharge_loop()
 			if ((fabsf(exp_curve - inverter_dc_volts) / exp_curve) > 0.10f) {
 				// fail precharge if curve fit is not close enough
-				prechargeFail();
 			}
 			if (curr_time - start_time < 200) {
 				prev_inverter_dc_volts = inverter_dc_volts;
