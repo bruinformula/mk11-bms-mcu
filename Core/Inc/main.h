@@ -53,7 +53,7 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void ProcessShutdownPowerDebounce(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
@@ -94,6 +94,8 @@ void Error_Handler(void);
 #define SPI2_CS_GPIO_Port GPIOB
 #define CHARGE_SIGNAL_Pin GPIO_PIN_9
 #define CHARGE_SIGNAL_GPIO_Port GPIOA
+
+#define SHUTDOWN_POWER_DEBOUNCE_MS 5000U
 
 /* USER CODE BEGIN Private defines */
 

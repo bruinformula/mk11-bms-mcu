@@ -250,8 +250,9 @@ void safetyFunction(void const * argument)
 		  bmsInitialized = true;
 		  wakeup_tasks();
 	  }
-	BMS_CheckFaultRegister();
-    osDelay(50);
+      ProcessShutdownPowerDebounce();
+      BMS_CheckFaultRegister();
+      osDelay(50);
   }
   /* USER CODE END safetyFunction */
 }
