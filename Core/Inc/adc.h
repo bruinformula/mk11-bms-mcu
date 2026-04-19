@@ -31,8 +31,8 @@ extern "C" {
 /* USER CODE BEGIN Includes */
 #include "current_calculations.h"
 #include "j_plug.h"
-#include <stdbool.h>
-#include <math.h>
+#include "freertos_handles.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 extern ADC_HandleTypeDef hadc1;
@@ -40,7 +40,7 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 
 /* USER CODE BEGIN Private defines */
-
+#define EVT_PP_ADC_READY        (1 << 0)
 /* USER CODE END Private defines */
 
 void MX_ADC1_Init(void);

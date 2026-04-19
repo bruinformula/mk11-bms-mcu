@@ -7,12 +7,15 @@
 
 #include "thermistor.h"
 
-const float voltage_table[33] = {
+volatile TEMP_CONTEXT temp_context;
+static float local_temp_conversions[TOTAL_IC][CELLS_PER_IC];
+
+static const float voltage_table[33] = {
 		2.44, 2.42, 2.40, 2.38, 2.35, 2.32, 2.27, 2.23, 2.17, 2.11, 2.05, 1.99, 1.92, 1.86, 1.8, 1.74, 1.68,
 		1.63, 1.59, 1.55, 1.51, 1.48, 1.45, 1.43, 1.40, 1.38, 1.37, 1.35, 1.34, 1.33, 1.32, 1.31, 1.30
 };
 
-const float temp_table[33] = {
+static const float temp_table[33] = {
 		-40, -35, -30, -25, -20, -15, -10, -5, 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
 		55, 60, 65, 70, 75, 80, 85, 90, 95, 100, 105, 110, 115, 120
 };
@@ -21,21 +24,14 @@ bool cell_is_broken_t[TOTAL_IC][CELLS_PER_IC];
 BrokenCell_T broken_cells_t[TOTAL_CELLS];
 size_t broken_cell_count_t = 0;
 
-float avg_cell_temp = 0;
-float lowest_cell_temp = INFINITY;
-float highest_cell_temp = -INFINITY;
-float temp_conversions[TOTAL_IC][CELLS_PER_IC];
-
-
-// TODO: ACCOMODATE FOR BROKEN TEMP READINGS, THINK ABOUT RACE CONDITIONS
 float voltageToTemp(float V) {
 	if (V > voltage_table[0] || V < voltage_table[32]) {
-		return 999.0; // Out of range
+		return NAN; // OUT OF RANGE
 	}
 
 	for (size_t i = 0; i < 32; i++) {
-		float v_high = voltage_table[i];      // higher voltage, lower temp
-		float v_low = voltage_table[i + 1];   // lower voltage, higher temp
+		float v_high = voltage_table[i];      // Higher voltage, lower temp
+		float v_low = voltage_table[i + 1];   // Lower voltage, higher temp
 
 		if (V <= v_high && V >= v_low) {
 			float t_high = temp_table[i];
@@ -47,45 +43,76 @@ float voltageToTemp(float V) {
 		}
 	}
 
-	return 999;
+	return NAN; // SHOULD NOT REACH HERE!
 }
 
 void computeAllTemps(uint8_t tIC, cell_asic *ic) {
-	avg_cell_temp = 0.0f;
-	lowest_cell_temp = INFINITY;
-	highest_cell_temp = -INFINITY;
+    float local_lowest = INFINITY;
+    float local_highest = -INFINITY;
+    float local_avg = 0.0f;
+    float tempSum = 0.0f;
+    int local_valid_cells = TOTAL_CELLS;
 
+	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	adBms6830_read_aux_voltages(tIC, ic);
+	osMutexRelease(SPI_MUTEXHandle);
 
 	for (size_t i = 0; i < tIC; ++i) {
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
-			float raw_voltage = getVoltage(ic[i].aux.a_codes[j]);
-			float cell_temp = voltageToTemp(raw_voltage);
+			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
+			local_temp_conversions[i][j] = cell_temp;
 
-			if (raw_voltage > MAX_VALID_CELL_T || raw_voltage < MIN_VALID_CELL_T) {
-				cell_is_broken_t[i][j] = true;
-
-				if (broken_cell_count_t < TOTAL_CELLS) {
-					broken_cells_t[broken_cell_count_t].cell_index = j;
-					broken_cells_t[broken_cell_count_t].ic_index = i;
-					broken_cells_t[broken_cell_count_t].measured_temp = cell_temp;
-					broken_cell_count_t++;
-				}
-
-				temp_conversions[i][j] = NAN;
+			if (isnan(cell_temp)) {
+				local_valid_cells--;
+				continue;
 			}
 
-			temp_conversions[i][j] = cell_temp;
-			if (cell_temp < lowest_cell_temp && cell_temp != 999) {
-				lowest_cell_temp = cell_temp;
+			if (cell_temp < local_lowest) {
+				local_lowest = cell_temp;
 			}
-			if (cell_temp > highest_cell_temp && cell_temp != 999) {
-				highest_cell_temp = cell_temp;
+
+			if (cell_temp > local_highest) {
+				local_highest = cell_temp;
 			}
-			avg_cell_temp += cell_temp;
+
+			tempSum+=cell_temp;
 		}
 	}
 
-	if (TOTAL_CELLS - broken_cell_count_t == 0) avg_cell_temp = -1.0;
-	else avg_cell_temp/=(TOTAL_CELLS);
+	if (local_valid_cells > 0) {
+		local_avg = tempSum/(local_valid_cells);
+	} else {
+		local_avg = NAN;
+	}
+
+	// CRITICAL REGION
+	osMutexWait(TEMP_MUTEXHandle, osWaitForever);
+	temp_context.num_valid_cell_temps = local_valid_cells;
+	temp_context.lowest_cell_temp = local_lowest;
+	temp_context.highest_cell_temp = local_highest;
+	temp_context.avg_cell_temp = local_avg;
+	memcpy(temp_context.temp_conversions, local_temp_conversions, sizeof(local_temp_conversions));
+	osMutexRelease(TEMP_MUTEXHandle);
+
+	// FAULT HANDLING
+	uint8_t faults_set = 0;
+	uint8_t faults_clear = 0;
+	if (local_highest > OVER_TEMP_THRESHOLD) {
+		faults_set |= FAULT_OVERTEMP;
+	} else {
+		faults_clear |= FAULT_OVERTEMP;
+	}
+
+	if (local_lowest < UNDER_TEMP_THRESHOLD) {
+		faults_set |= FAULT_UNDERTEMP;
+	} else {
+		faults_clear |= FAULT_UNDERTEMP;
+	}
+
+    if (faults_set) {
+    	BMS_SetFault(faults_set);
+    }
+    if (faults_clear) {
+    	BMS_ClearFault(faults_clear);
+    }
 }

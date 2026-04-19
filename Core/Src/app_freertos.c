@@ -25,11 +25,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "freertos_handles.h"
 #include "voltage_calculations.h"
 #include "thermistor.h"
-#include "currLimiting.h"
-#include "datalogging.h"
-#include "gui_test.h"
+#include "current_calculations.h"
+#include "prchg.h"
+#include "curr_limiting.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -49,14 +50,24 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+volatile bool temp_ready;
+volatile bool voltage_ready;
 /* USER CODE END Variables */
 osThreadId voltageTaskHandle;
 osThreadId tempTaskHandle;
-osThreadId currLimitTaskHandle;
+osThreadId safetyTaskHandle;
+osThreadId currTaskHandle;
 osThreadId dataloggingTaskHandle;
+osThreadId prchgTaskHandle;
+osThreadId currLimitTaskHandle;
+osThreadId balancingTaskHandle;
+osThreadId chargingTaskHandle;
+osThreadId socTaskHandle;
 osMutexId SPI_MUTEXHandle;
 osMutexId CAN_MUTEXHandle;
+osMutexId VOLTAGE_MUTEXHandle;
+osMutexId TEMP_MUTEXHandle;
+osMutexId FAULT_MUTEXHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -65,8 +76,16 @@ osMutexId CAN_MUTEXHandle;
 
 void voltageFunction(void const * argument);
 void tempFunction(void const * argument);
-void currLimitFunction(void const * argument);
+void safetyFunction(void const * argument);
+void currFunction(void const * argument);
 void dataloggingFunction(void const * argument);
+void prchgFunction(void const * argument);
+void currLimitFunction(void const * argument);
+void balancingFunction(void const * argument);
+void chargingFunction(void const * argument);
+void socFunction(void const * argument);
+
+void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
 /**
   * @brief  FreeRTOS initialization
@@ -86,6 +105,18 @@ void MX_FREERTOS_Init(void) {
   osMutexDef(CAN_MUTEX);
   CAN_MUTEXHandle = osMutexCreate(osMutex(CAN_MUTEX));
 
+  /* definition and creation of VOLTAGE_MUTEX */
+  osMutexDef(VOLTAGE_MUTEX);
+  VOLTAGE_MUTEXHandle = osMutexCreate(osMutex(VOLTAGE_MUTEX));
+
+  /* definition and creation of TEMP_MUTEX */
+  osMutexDef(TEMP_MUTEX);
+  TEMP_MUTEXHandle = osMutexCreate(osMutex(TEMP_MUTEX));
+
+  /* definition and creation of FAULT_MUTEX */
+  osMutexDef(FAULT_MUTEX);
+  FAULT_MUTEXHandle = osMutexCreate(osMutex(FAULT_MUTEX));
+
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
@@ -104,20 +135,44 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* definition and creation of voltageTask */
-  osThreadDef(voltageTask, voltageFunction, osPriorityNormal, 0, 512);
+  osThreadDef(voltageTask, voltageFunction, osPriorityAboveNormal, 0, 512);
   voltageTaskHandle = osThreadCreate(osThread(voltageTask), NULL);
 
   /* definition and creation of tempTask */
-  osThreadDef(tempTask, tempFunction, osPriorityNormal, 0, 512);
+  osThreadDef(tempTask, tempFunction, osPriorityAboveNormal, 0, 512);
   tempTaskHandle = osThreadCreate(osThread(tempTask), NULL);
 
-  /* definition and creation of currLimitTask */
-  osThreadDef(currLimitTask, currLimitFunction, osPriorityBelowNormal, 0, 256);
-  currLimitTaskHandle = osThreadCreate(osThread(currLimitTask), NULL);
+  /* definition and creation of safetyTask */
+  osThreadDef(safetyTask, safetyFunction, osPriorityHigh, 0, 512);
+  safetyTaskHandle = osThreadCreate(osThread(safetyTask), NULL);
+
+  /* definition and creation of currTask */
+  osThreadDef(currTask, currFunction, osPriorityAboveNormal, 0, 512);
+  currTaskHandle = osThreadCreate(osThread(currTask), NULL);
 
   /* definition and creation of dataloggingTask */
-  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityLow, 0, 256);
+  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityBelowNormal, 0, 512);
   dataloggingTaskHandle = osThreadCreate(osThread(dataloggingTask), NULL);
+
+  /* definition and creation of prchgTask */
+  osThreadDef(prchgTask, prchgFunction, osPriorityNormal, 0, 1024);
+  prchgTaskHandle = osThreadCreate(osThread(prchgTask), NULL);
+
+  /* definition and creation of currLimitTask */
+  osThreadDef(currLimitTask, currLimitFunction, osPriorityNormal, 0, 512);
+  currLimitTaskHandle = osThreadCreate(osThread(currLimitTask), NULL);
+
+  /* definition and creation of balancingTask */
+  osThreadDef(balancingTask, balancingFunction, osPriorityNormal, 0, 1024);
+  balancingTaskHandle = osThreadCreate(osThread(balancingTask), NULL);
+
+  /* definition and creation of chargingTask */
+  osThreadDef(chargingTask, chargingFunction, osPriorityNormal, 0, 1024);
+  chargingTaskHandle = osThreadCreate(osThread(chargingTask), NULL);
+
+  /* definition and creation of socTask */
+  osThreadDef(socTask, socFunction, osPriorityNormal, 0, 512);
+  socTaskHandle = osThreadCreate(osThread(socTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -135,12 +190,15 @@ void MX_FREERTOS_Init(void) {
 void voltageFunction(void const * argument)
 {
   /* USER CODE BEGIN voltageFunction */
+    static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
-	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllVoltages(TOTAL_IC, IC);
-	osMutexRelease(SPI_MUTEXHandle);
+	  if (!first_run) {
+		  first_run = true;
+		  voltage_ready = true;
+	  }
 	osDelay(500);
   }
   /* USER CODE END voltageFunction */
@@ -156,36 +214,61 @@ void voltageFunction(void const * argument)
 void tempFunction(void const * argument)
 {
   /* USER CODE BEGIN tempFunction */
+    static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
-	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	computeAllTemps(TOTAL_IC, IC);
-	osMutexRelease(SPI_MUTEXHandle);
+	  if (!first_run) {
+		  first_run = true;
+		  temp_ready = true;
+	  }
     osDelay(1000);
   }
   /* USER CODE END tempFunction */
 }
 
-/* USER CODE BEGIN Header_currLimitFunction */
+/* USER CODE BEGIN Header_safetyFunction */
 /**
-* @brief Function implementing the currLimitTask thread.
+* @brief Function implementing the safetyTask thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_currLimitFunction */
-void currLimitFunction(void const * argument)
+/* USER CODE END Header_safetyFunction */
+void safetyFunction(void const * argument)
 {
-  /* USER CODE BEGIN currLimitFunction */
+  /* USER CODE BEGIN safetyFunction */
+	static bool bmsInitialized = false;
   /* Infinite loop */
   for(;;)
   {
-	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-	sendDCL_CCL();
-	osMutexRelease(CAN_MUTEXHandle);
-    osDelay(500);
+	  if (!bmsInitialized) { // ON STARTUP!
+		  bmsInitialized = true;
+		  wakeup_tasks();
+	  }
+	BMS_CheckFaultRegister();
+    osDelay(50);
   }
-  /* USER CODE END currLimitFunction */
+  /* USER CODE END safetyFunction */
+}
+
+/* USER CODE BEGIN Header_currFunction */
+/**
+* @brief Function implementing the currTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_currFunction */
+void currFunction(void const * argument)
+{
+  /* USER CODE BEGIN currFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY); // Based on ADC ISR; ~70 Hz.
+	  calculateCurrent();
+  }
+  /* USER CODE END currFunction */
 }
 
 /* USER CODE BEGIN Header_dataloggingFunction */
@@ -201,22 +284,135 @@ void dataloggingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	osMutexWait(CAN_MUTEXHandle, osWaitForever);
-	sendTemp();
-	osMutexRelease(CAN_MUTEXHandle);
-
-	osMutexWait(CAN_MUTEXHandle, osWaitForever);
 	sendVoltage();
-	osMutexRelease(CAN_MUTEXHandle);
-
-	// GUI TEST
-	taskENTER_CRITICAL();
-	send_bms_json();
-	taskEXIT_CRITICAL();
-
-    osDelay(2000);
+	sendTemp();
+	sendSoc_Curr_Pack();
+    osDelay(1000);
   }
   /* USER CODE END dataloggingFunction */
+}
+
+/* USER CODE BEGIN Header_prchgFunction */
+/**
+* @brief Function implementing the prchgTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_prchgFunction */
+void prchgFunction(void const * argument)
+{
+  /* USER CODE BEGIN prchgFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_PRECHARGING) {
+		  precharge_loop();
+		  osDelay(50);
+	  }
+  }
+  /* USER CODE END prchgFunction */
+}
+
+/* USER CODE BEGIN Header_currLimitFunction */
+/**
+* @brief Function implementing the currLimitTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_currLimitFunction */
+void currLimitFunction(void const * argument)
+{
+  /* USER CODE BEGIN currLimitFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_DRIVE) {
+		  sendDCL_CCL();
+		  osDelay(100);
+	  }
+  }
+  /* USER CODE END currLimitFunction */
+}
+
+/* USER CODE BEGIN Header_balancingFunction */
+/**
+* @brief Function implementing the balancingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_balancingFunction */
+void balancingFunction(void const * argument)
+{
+  /* USER CODE BEGIN balancingFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_BALANCING) {
+		  fastBalancingLoop(TOTAL_IC, IC);
+		  osDelay(500); // Discharge Timer is ~2 Seconds.
+	  }
+  }
+  /* USER CODE END balancingFunction */
+}
+
+/* USER CODE BEGIN Header_chargingFunction */
+/**
+* @brief Function implementing the chargingTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_chargingFunction */
+void chargingFunction(void const * argument)
+{
+  /* USER CODE BEGIN chargingFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  while (bms_state == BMS_CHARGING) {
+		  // Waits for ISR Notifications, w/ 50 ms timeout.
+		  charging_loop();
+	  }
+  }
+  /* USER CODE END chargingFunction */
+}
+
+/* USER CODE BEGIN Header_socFunction */
+/**
+* @brief Function implementing the socTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_socFunction */
+void socFunction(void const * argument)
+{
+  /* USER CODE BEGIN socFunction */
+	static bool socInitialized = false;
+	static uint32_t last_tick;
+  /* Infinite loop */
+  for(;;)
+  {
+	  if (!socInitialized) {
+		  if (voltage_ready && temp_ready) {
+			  get_initial_soc();
+			  socInitialized = true;
+			  last_tick = HAL_GetTick();
+		  } else {
+			  osDelay(50);
+			  continue;
+		  }
+	  }
+
+	  uint32_t now = HAL_GetTick();
+	  uint32_t delta = now - last_tick;
+	  last_tick = now;
+	  coulomb_count(delta);
+	  osDelay(500);
+  }
+  /* USER CODE END socFunction */
 }
 
 /* Private application code --------------------------------------------------*/

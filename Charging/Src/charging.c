@@ -7,83 +7,73 @@
 
 #include "charging.h"
 
-static CHARGING_STATE charging_state = CHG_IDLE;
+CHARGING_STATE charging_state = CHG_IDLE;
 
-void change_baud_rate() {
-	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON CHARGER
-	HAL_FDCAN_Stop(&hfdcan1);
-	HAL_FDCAN_DeInit(&hfdcan1);
-	hfdcan1.Init.DataPrescaler = 40;
-	HAL_FDCAN_Init(&hfdcan1);
-	HAL_FDCAN_Start(&hfdcan1);
-}
+void charging_loop() {
+	uint32_t events;
+    xTaskNotifyWait(0, UINT32_MAX, &events, 50);
 
-void charging_sequence_startup() {
-	change_baud_rate();
-	while (proximity_pilot_state != STATE_PP_CONNECTED) {
-		// BLOCK
-	}
+    uint16_t pp_adc;
+    uint32_t cp_period;
+    uint32_t cp_pulse;
 
-	uint32_t start_time = HAL_GetTick();
-	readControlPilot();
-	while (HAL_GetTick() - start_time < 3000) {
-		// WAIT 3 SECONDS
-	}
-	stopReadingControlPilot();
+    // CRITICAL REGION
+    taskENTER_CRITICAL();
+    pp_adc = j1772_context.proximity_pilot_adc;
+    cp_period = j1772_context.control_pilot_period;
+    cp_pulse = j1772_context.control_pilot_pulse;
+    taskEXIT_CRITICAL();
 
-	if (advertised_amps > 0 && control_pilot_state == STATE_CP_CONNECTED) {
-		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
-		get_initial_soc();
-		charging_sequence();
-	}
-}
+    proximity_pilot_state = readProximityPilot(pp_adc);
+    control_pilot_state = readControlPilot(cp_period, cp_pulse);
 
-static uint32_t last_tx_time = 0;
-static float requested_voltage = 0;
-static float requested_amps = 0;
-void charging_sequence() {
-	charging_state = CHG_ACTIVE;
+    if (events & EVT_ELCON_FAULT) {
+    	charging_state = CHG_ELCON_FAULT;
+    }
 
-	while(1) {
-		computeAllVoltages(TOTAL_IC, IC);
-		computeAllTemps(TOTAL_IC, IC);
+    switch (charging_state) {
+    	case CHG_IDLE:
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+            sendChargerRequest(0, 0, 1);
+            if (proximity_pilot_state == STATE_PP_CONNECTED &&
+            	control_pilot_state == STATE_CP_PWM_PRESENT) {
+            		charging_state = CHG_WAITING;
+            }
+            break;
 
-		if (chargerFaultDetected()) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_ELCON_FAULT;
+    	case CHG_WAITING:
+    		if (proximity_pilot_state != STATE_PP_CONNECTED ||
+    				control_pilot_state == STATE_CP_ERROR) {
+    			charging_state = CHG_IDLE;
+    			break;
+    		}
+
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+    		charging_state = CHG_ACTIVE;
+    		break;
+
+    	case CHG_ACTIVE:
+    		if (proximity_pilot_state != STATE_PP_CONNECTED ||
+    				control_pilot_state == STATE_CP_ERROR) {
+    			charging_state = CHG_IDLE;
+    			break;
+    		}
+
+    		if (voltage_context.highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
+    			charging_state = CHG_COMPLETE;
+    		} else {
+    			sendChargerRequest(CHARGER_VOLTAGE, advertised_amps, 0);
+    		}
+    		break;
+
+		case CHG_ELCON_FAULT:
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			sendChargerRequest(0,0,1);
 			break;
-		}
 
-		if (highest_cell_temp > MAX_TEMPERATURE_CHARGING_THRESHOLD) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_TEMP_FAULT;
+		case CHG_COMPLETE:
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			sendChargerRequest(0,0,1);
 			break;
-		}
-
-		if (fabsf(current_sensor_val - requested_amps) > CURRENT_SENSOR_EPSILON) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_CURRENT_FAULT;
-			break;
-		}
-
-		if (highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
-			sendChargerRequest(0, 0, 1);
-			charging_state = CHG_COMPLETE;
-			break;
-		}
-
-		if (proximity_pilot_state != STATE_PP_CONNECTED) {
-			requested_voltage = 0;
-			requested_amps = 0;
-		} else {
-			requested_voltage = CHARGER_VOLTAGE;
-			requested_amps = advertised_amps;
-		}
-
-		if (HAL_GetTick() - last_tx_time >= 1000) {
-			coulomb_count(HAL_GetTick() - last_tx_time);
-			sendChargerRequest(requested_voltage, requested_amps, 0);
-			last_tx_time = HAL_GetTick();
-		}
-	}
+    }
 }

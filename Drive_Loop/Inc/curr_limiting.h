@@ -5,17 +5,19 @@
  *      Author: ishanchitale
  */
 
-#ifndef INC_CURRLIMITING_H_
-#define INC_CURRLIMITING_H_
+#ifndef INC_CURR_LIMITING_H_
+#define INC_CURR_LIMITING_H_
 
 #include "thermistor.h"
 #include "fdcan.h"
+#include "freertos_handles.h"
+#include "cmsis_os.h"
 
-#define CCL_DCL_TX_ID 0x202
-#define CCL_CURVE_POINTS 13
+#define DCL_CCL_TX_ID 0x202
 #define DCL_CURVE_POINTS 13
+#define CCL_CURVE_POINTS 13
 
-typedef union CCL_DCL_DF {
+typedef union DCL_CCL_DF {
 	struct __attribute__((packed)) {
 		uint16_t pack_dcl;
 		uint16_t pack_ccl;
@@ -25,19 +27,19 @@ typedef union CCL_DCL_DF {
 		uint8_t reserved7;
 	} data;
 	uint8_t array[8];
-} CCL_DCL_DF;
+} DCL_CCL_DF;
 
 typedef struct CurvePoint {
 	float temp;
 	float current;
 } CurvePoint;
 
-extern float ccl;
 extern float dcl;
+extern float ccl;
 
-void calculateCCL();
-void calculateDCL();
-void configureCCL_DCL_TxMsg();
+void calculateDCL(float highest_cell_temp);
+void calculateCCL(float highest_cell_temp);
+void configureDCL_CCL_TxMsg();
 void sendDCL_CCL();
 
-#endif /* INC_CURRLIMITING_H_ */
+#endif /* INC_CURR_LIMITING_H_ */

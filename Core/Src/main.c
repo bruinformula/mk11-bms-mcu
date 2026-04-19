@@ -33,13 +33,13 @@
 #include "elcon_charger.h"
 #include "j_plug.h"
 #include "prchg.h"
+#include "current_calculations.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
 #include "current_calculations.h"
 #include "balancing.h"
 #include "bms_state.h"
 #include "gui_test.h"
-#include "currLimiting.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -62,8 +62,7 @@
 /* USER CODE BEGIN PV */
 uint8_t HeaderTxBuffer[] =
 		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
-bool ready_signal;
-bool charge_signal;
+bool shutdown_power = false;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,7 +87,7 @@ int iar_fputc(int ch);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		bms_state = BMS_FAULT;
+		bms_state = BMS_SHUTDOWN_FAULT;
 		Error_Handler();
 	}
 }
@@ -131,8 +130,26 @@ int main(void)
   MX_ADC2_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
-  MX_TIM1_Init();
+  MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
+
+  HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+  while (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_RESET) {
+	  // BLOCK; Shutdown Power not detected yet.
+  }
+  shutdown_power = true;
+  HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+
+  // ADBMS6830 + ADC INITIALIZATION
+  adBms6830_init_config(TOTAL_IC, IC);
+  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
+  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
+  startADC();
+
+  // SET BMS STATE
+  determine_startup_mode();
+
+  // CAN CONFIGURATION
   FDCAN_FilterTypeDef sStdFilter= {0};
   sStdFilter.IdType = FDCAN_STANDARD_ID;
   sStdFilter.FilterIndex = 0;
@@ -163,13 +180,19 @@ int main(void)
 	  Error_Handler();
   }
 
-  adBms6830_init_config(TOTAL_IC, IC);
-  adBms6830_start_adc_cell_voltage_measurment(TOTAL_IC);
-  adBms6830_start_aux_voltage_measurment(TOTAL_IC, IC);
-  startADC();
-
-  determineStartupMode();
+  configureTemp_TxMsg();
+  configureVoltage_TxMsg();
+  configureSoc_Curr_Pack_TxMsg();
+  configureChargeTxMsg();
+  configurePrchgTxMsg();
+  configureDCL_CCL_TxMsg();
   /* USER CODE END 2 */
+
+  /* Call init function for freertos objects (in cmsis_os2.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -197,7 +220,7 @@ void SystemClock_Config(void)
 
   /** Configure the main internal regulator output voltage
   */
-  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1);
+  HAL_PWREx_ControlVoltageScaling(PWR_REGULATOR_VOLTAGE_SCALE1_BOOST);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -207,11 +230,11 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV1;
-  RCC_OscInitStruct.PLL.PLLN = 10;
+  RCC_OscInitStruct.PLL.PLLM = RCC_PLLM_DIV4;
+  RCC_OscInitStruct.PLL.PLLN = 85;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = RCC_PLLQ_DIV2;
-  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV4;
+  RCC_OscInitStruct.PLL.PLLR = RCC_PLLR_DIV2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
   {
     Error_Handler();
@@ -222,11 +245,11 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV2;
+  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV1;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_4) != HAL_OK)
   {
     Error_Handler();
   }
@@ -294,9 +317,7 @@ GETCHAR_PROTOTYPE
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
   /* USER CODE BEGIN Callback 0 */
-  if (htim->Instance == TIM1) {
-	  prechargeCheck();
-  }
+
   /* USER CODE END Callback 0 */
   if (htim->Instance == TIM6)
   {

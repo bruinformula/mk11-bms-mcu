@@ -30,17 +30,15 @@ extern "C" {
 
 /* USER CODE BEGIN Includes */
 #include "prchg.h"
+#include "charging.h"
 #include "elcon_charger.h"
+#include "cmsis_os.h"
 /* USER CODE END Includes */
 
 extern FDCAN_HandleTypeDef hfdcan1;
 
 /* USER CODE BEGIN Private defines */
-
-// TODO: GENERAL TX CAN IDs
-#define CURR_VOLTAGE_SOC_TX_ID 0x6B0
-#define DCL_CCL_TEMP_TX_ID 0x6B1
-#define HIGH_LOW_CELL_VOLTAGE_TX_ID 0x6B2
+#define EVT_ELCON_FAULT    (1 << 2)
 /* USER CODE END Private defines */
 
 void MX_FDCAN1_Init(void);

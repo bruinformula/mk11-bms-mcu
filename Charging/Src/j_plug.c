@@ -7,53 +7,70 @@
 
 #include "j_plug.h"
 
-volatile STATE_CP control_pilot_state = STATE_CP_IDLE;
-volatile STATE_PP proximity_pilot_state = STATE_PP_IDLE;
-
-// PROXIMITY PILOT VOLTAGE LEVEL CALCULATIONS HANDLED IN "adc.c" CALLBACK!
-volatile uint16_t proximity_pilot_adc;
-volatile float proximity_pilot_voltage;
-
-volatile int advertised_amps = 0;
-static volatile float duty = 0;
-static volatile float frequency = 0;
+volatile STATE_CP control_pilot_state;
+volatile STATE_PP proximity_pilot_state;
+volatile J1772_CONTEXT j1772_context;
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	// Compute PWM of Control Pilot
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
     	uint32_t period = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     	uint32_t pulse  = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
-    	if (period != 0) {
-            duty = ((float)pulse * 100.0f) / period;
-            frequency = (float)TIMER_CLOCK / period;
 
-            if (frequency < 995 || frequency > 1005) {
-            	// frequency should be ~1000
-            	control_pilot_state = STATE_CP_ERROR;
-            	return;
-            }
+    	j1772_context.control_pilot_period = period;
+    	j1772_context.control_pilot_pulse = pulse;
 
-            if (HAL_GPIO_ReadPin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin) == GPIO_PIN_RESET) {
-            		control_pilot_state = STATE_CP_CONNECTED;
-            } else {
-            	control_pilot_state = STATE_CP_CHARGING;
-            }
-
-            if (duty <= 85) {
-                advertised_amps = (int)(duty*0.6);
-            } else {
-                advertised_amps = (int)((duty-64)*2.5);
-            }
-    	}
+    	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    	xTaskNotifyFromISR(chargingTaskHandle, EVT_CP_UPDATE, eSetBits, &xHigherPriorityTaskWoken);
+    	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
     }
 }
 
-void readControlPilot() {
+void startPWM_Capture() {
 	HAL_TIM_IC_Start_IT(&htim2, TIM_CHANNEL_1);
 	HAL_TIM_IC_Start(&htim2, TIM_CHANNEL_2);
 }
 
-void stopReadingControlPilot() {
+void stopPWM_Capture() {
 	HAL_TIM_IC_Stop_IT(&htim2, TIM_CHANNEL_1);
 	HAL_TIM_IC_Stop(&htim2, TIM_CHANNEL_2);
+}
+
+STATE_PP readProximityPilot(uint16_t adc) {
+	float pp_voltage = (adc/4095.0f)*3.3f;
+	if (fabsf(pp_voltage - 3.0f) < PP_VOLTAGE_EPSILON) {
+		return STATE_PP_NOT_CONNECTED;
+	} else if (fabsf(pp_voltage - 2.0f) < PP_VOLTAGE_EPSILON) {
+		return STATE_PP_BUTTON_PRESSED;
+	} else if (fabsf(pp_voltage - 1.0f) < PP_VOLTAGE_EPSILON) {
+		return STATE_PP_CONNECTED;
+	}
+	return STATE_PP_UNKNOWN;
+}
+
+int advertised_amps;
+STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
+	if (period != 0) {
+		float duty_cycle = ((float)pulse * 100.0f) / period;
+		float freq = (float)TIMER_CLOCK / period;
+
+		if (freq < 995.0f || freq > 1005.0f) {
+			return STATE_CP_ERROR;
+		}
+
+		if (duty_cycle < 3.0f || duty_cycle > 97.0f) {
+			// Duty Cycle too low ==> 0 Amps Advertised
+		    // Duty Cycle too high ==> Weird idle voltage signal
+		    return STATE_CP_ERROR;
+		}
+
+		if (duty_cycle <= 85.0f) {
+			advertised_amps = (int)(duty_cycle*0.6f);
+		} else {
+			advertised_amps = (int)((duty_cycle-64.0f)*2.5f);
+		}
+
+		return STATE_CP_PWM_PRESENT;
+	}
+
+	return STATE_CP_ERROR;
 }

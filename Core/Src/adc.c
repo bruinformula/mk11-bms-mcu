@@ -21,8 +21,7 @@
 #include "adc.h"
 
 /* USER CODE BEGIN 0 */
-static float current_sensor_low_voltage;
-static float current_sensor_high_voltage;
+
 /* USER CODE END 0 */
 
 ADC_HandleTypeDef hadc1;
@@ -47,18 +46,18 @@ void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.GainCompensation = 0;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
-  hadc1.Init.ContinuousConvMode = ENABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.NbrOfConversion = 2;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIG_T3_TRGO;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
   hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_PRESERVED;
   hadc1.Init.OversamplingMode = DISABLE;
@@ -81,7 +80,7 @@ void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_247CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_92CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -120,14 +119,14 @@ void MX_ADC2_Init(void)
   /** Common config
   */
   hadc2.Instance = ADC2;
-  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV256;
+  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV4;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.GainCompensation = 0;
   hadc2.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc2.Init.EOCSelection = ADC_EOC_SEQ_CONV;
   hadc2.Init.LowPowerAutoWait = DISABLE;
-  hadc2.Init.ContinuousConvMode = ENABLE;
+  hadc2.Init.ContinuousConvMode = DISABLE;
   hadc2.Init.NbrOfConversion = 2;
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.DMAContinuousRequests = DISABLE;
@@ -142,7 +141,7 @@ void MX_ADC2_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_247CYCLES_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_92CYCLES_5;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
   sConfig.OffsetNumber = ADC_OFFSET_NONE;
   sConfig.Offset = 0;
@@ -317,43 +316,23 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 }
 
 /* USER CODE BEGIN 1 */
-static bool using_high_range = false;
 static uint32_t adc_val[2];
 
 void startADC() {
+	HAL_TIM_Base_Start(&htim3);
 	HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 	HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
 	HAL_ADCEx_MultiModeStart_DMA(&hadc1, adc_val, 2);
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
-	// CURRENT SENSOR HANDLING
-	current_sensor_low_adc = adc_val[0] & 0xFFFF;
-	current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
+	current_context.current_sensor_low_adc = adc_val[0] & 0xFFFF;
+	current_context.current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
+	j1772_context.proximity_pilot_adc = adc_val[1] & 0xFFFF;
 
-	current_sensor_low_voltage = (current_sensor_low_adc/4095.0)*3.3;
-	current_sensor_high_voltage = (current_sensor_high_adc/4095.0)*3.3;
-
-	current_sensor_low = (current_sensor_low_adc - 2104)/53.4;
-	current_sensor_high = (current_sensor_high_adc + 447)/0.217;
-
-	if (!using_high_range && fabsf(current_sensor_low) > 30.0f) {
-		using_high_range = true;
-	} else if (using_high_range && fabsf(current_sensor_low) < 25.0f) {
-		using_high_range = false;
-	}
-
-	current_sensor_val = using_high_range ? current_sensor_high : current_sensor_low;
-
-	proximity_pilot_adc = adc_val[1] & 0xFFFF;
-	proximity_pilot_voltage = (proximity_pilot_adc/4095.0)*3.3;
-	// TODO; NEED TO EXAMINE ACTUAL VOLTAGE VALUES AFTER DIVIDER AND SET THRESHOLDS
-	if (fabsf(proximity_pilot_voltage - 4.4) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state = STATE_PP_NOT_CONNECTED;
-	} else if (fabsf(proximity_pilot_voltage - 2.7) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state = STATE_PP_BUTTON_PRESSED;
-	} else if (fabsf(proximity_pilot_voltage - 1.5) < PP_VOLTAGE_EPSILON) {
-		proximity_pilot_state= STATE_PP_CONNECTED;
-	}
+	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	xTaskNotifyFromISR(currTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
+	xTaskNotifyFromISR(chargingTaskHandle, EVT_PP_ADC_READY, eSetBits, &xHigherPriorityTaskWoken);
+	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 /* USER CODE END 1 */

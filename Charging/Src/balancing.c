@@ -7,53 +7,71 @@
 
 #include "balancing.h"
 
-static int num_unbalanced_cells = TOTAL_CELLS;
-static BalanceState balance_state = BALANCE_IDLE;
+static float voltage_conversions_snapshot[TOTAL_IC][CELLS_PER_IC];
+static float local_lowest_cell_voltage;
+static int num_unbalanced_cells;
+static uint32_t phase_start_time;
+static BalanceState balance_state = BALANCE_COMPUTE_DISCHARGE;
 
 void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
-	// SETUP: SET DCTO (Discharge Timeout) to nonzero value
-	for (size_t i = 0; i < tIC; ++i) {
-		ic[i].tx_cfgb.dcto = NONZERO_DCTO;
-	}
-	adBms6830_write_config(tIC, ic);
-	adBms6830_read_config(tIC, ic);
+	switch (balance_state) {
+		case BALANCE_COMPUTE_DISCHARGE:
+			// CRITICAL REGION
+			osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
+			memcpy(voltage_conversions_snapshot, voltage_context.voltage_conversions, sizeof(voltage_conversions_snapshot));
+			local_lowest_cell_voltage = voltage_context.lowest_cell_voltage;
+			osMutexRelease(VOLTAGE_MUTEXHandle);
 
-	while (num_unbalanced_cells > 0) {
-		// RECOMPUTE VOLTAGES
-		computeAllVoltages(tIC, IC);
-		adBms6830_Adcv(RD_ON, CONTINUOUS, DCP_ON, RSTF_OFF, OW_OFF_ALL_CH);
-		num_unbalanced_cells = 0;
+            num_unbalanced_cells = 0;
+            for (size_t i = 0; i < tIC; ++i) {
+                uint16_t dcc_mask = 0x0000;
+                for (size_t j = 0; j < CELLS_PER_IC; ++j) {
+                    if (voltage_conversions_snapshot[i][j] > local_lowest_cell_voltage + BALANCE_VOLTAGE_THRESHOLD) {
+                        dcc_mask |= (1 << j);
+                        num_unbalanced_cells++;
+                    }
+                }
 
-		// CALCULATE DCC BITMASK
-		for (size_t i = 0; i < tIC; ++i) {
-			uint16_t dcc_mask = 0x0000;
-			for (size_t j = 0; j < CELLS_PER_IC; ++j) {
-				if (voltage_conversions[i][j] > lowest_cell_voltage + BALANCE_VOLTAGE_THRESHOLD) {
-					num_unbalanced_cells+=1;
-					dcc_mask |= (1 << j);
-				}
-			}
-			ic[i].tx_cfgb.dcc = dcc_mask;
-		}
+                ic[i].tx_cfgb.dcc = dcc_mask;
+            }
 
-		// DISCHARGE FOR 60 SECONDS (BALANCE_BLEED_PERIOD)
-		balance_state = BALANCE_DISCHARGE;
-		uint32_t discharge_start_time = HAL_GetTick();
-		while (HAL_GetTick() - discharge_start_time <= BALANCE_BLEED_PERIOD) {
-			adBms6830_write_config(tIC, ic);
-			HAL_Delay(500);
-		}
+            if (num_unbalanced_cells > 0) {
+                balance_state = BALANCE_DISCHARGE;
+                phase_start_time = HAL_GetTick();
+            } else {
+            	balance_state = BALANCE_COMPLETE;
+            }
+            break;
 
-		// WAIT FOR 60 SECONDS (BALANCE_WAIT_PERIOD)
-		for (size_t i = 0; i < tIC; ++i) {
-			ic[i].tx_cfgb.dcc = 0x0000;
-		}
-		balance_state = BALANCE_WAIT;
-		uint32_t wait_period_start_time = HAL_GetTick();
-		while (HAL_GetTick() - wait_period_start_time <= BALANCE_WAIT_PERIOD) {
-			adBms6830_write_config(tIC, ic);
-			HAL_Delay(500);
-		}
+		case BALANCE_DISCHARGE:
+			// CRITICAL REGION
+			osMutexWait(SPI_MUTEXHandle, osWaitForever);
+            adBms6830_write_config(tIC, ic);
+            osMutexRelease(SPI_MUTEXHandle);
+
+            if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
+                for (size_t i = 0; i < tIC; ++i) {
+                    ic[i].tx_cfgb.dcc = 0x0000;
+                }
+                balance_state = BALANCE_WAIT;
+                phase_start_time = HAL_GetTick();
+            }
+            break;
+
+		case BALANCE_WAIT:
+			// CRITICAL REGION
+			osMutexWait(SPI_MUTEXHandle, osWaitForever);
+            adBms6830_write_config(tIC, ic);
+            osMutexRelease(SPI_MUTEXHandle);
+
+            if (HAL_GetTick() - phase_start_time >= BALANCE_WAIT_PERIOD) {
+                balance_state = BALANCE_COMPUTE_DISCHARGE;
+            }
+            break;
+
+		case BALANCE_COMPLETE:
+			// DO NOTHING, BLOCK
+			break;
 
 	}
 }
