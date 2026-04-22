@@ -242,10 +242,11 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	  if (!bmsInitialized) { // ON STARTUP!
-		  bmsInitialized = true;
-		  wakeup_tasks();
-	  }
+	if (!bmsInitialized) { // ON STARTUP!
+		bmsInitialized = true;
+		wakeup_tasks();
+	}
+
 	BMS_CheckFaultRegister();
     osDelay(50);
   }

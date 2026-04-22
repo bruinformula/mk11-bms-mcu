@@ -47,21 +47,41 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
     float local_highest = -INFINITY;
     float local_avg = 0.0f;
     float tempSum = 0.0f;
-    int local_valid_cells = TOTAL_CELLS;
+    int local_valid_cells = 0;
+    bool any_ic_disconnect = false;
 
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	adBms6830_read_aux_voltages(tIC, ic);
 	osMutexRelease(SPI_MUTEXHandle);
 
 	for (size_t i = 0; i < tIC; ++i) {
+		int potential_invalid_codes = 0;
+
+		// FIRST PASS: Scan for IC Disconnect.
+		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
+			if (ic[i].aux.a_codes[j] == -1) {
+				potential_invalid_codes++;
+			}
+		}
+
+		if (potential_invalid_codes == CELLS_PER_IC) {
+			any_ic_disconnect = true;
+			for (size_t j = 0; j < CELLS_PER_IC; ++j) {
+				local_temp_conversions[i][j] = NAN;
+			}
+			continue;
+		}
+
+		// SECOND PASS: IC is connected.
 		for (size_t j = 0; j < CELLS_PER_IC; ++j) {
 			float cell_temp = voltageToTemp(getVoltage(ic[i].aux.a_codes[j]));
 			local_temp_conversions[i][j] = cell_temp;
 
 			if (isnan(cell_temp)) {
-				local_valid_cells--;
 				continue;
 			}
+
+			local_valid_cells++;
 
 			if (cell_temp < local_lowest) {
 				local_lowest = cell_temp;
@@ -71,7 +91,7 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 				local_highest = cell_temp;
 			}
 
-			tempSum+=cell_temp;
+            tempSum += cell_temp;
 		}
 	}
 
@@ -93,6 +113,13 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	// FAULT HANDLING
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
+
+	if (any_ic_disconnect) {
+		faults_set |= FAULT_ISOSPI_DISCONNECT;
+	} else {
+		faults_clear |= FAULT_ISOSPI_DISCONNECT;
+	}
+
 	if (local_highest > OVER_TEMP_THRESHOLD) {
 		faults_set |= FAULT_OVERTEMP;
 	} else {
@@ -105,10 +132,10 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 		faults_clear |= FAULT_UNDERTEMP;
 	}
 
-    if (faults_set) {
-    	BMS_SetFault(faults_set);
-    }
-    if (faults_clear) {
-    	BMS_ClearFault(faults_clear);
-    }
+	if (faults_set) {
+		BMS_SetFault(faults_set);
+	}
+	if (faults_clear) {
+		BMS_ClearFault(faults_clear);
+	}
 }

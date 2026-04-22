@@ -21,7 +21,8 @@
 #include "fdcan.h"
 
 /* USER CODE BEGIN 0 */
-
+FDCAN_FilterTypeDef sStdFilter= {0};
+FDCAN_FilterTypeDef sExtFilter = {0};
 /* USER CODE END 0 */
 
 FDCAN_HandleTypeDef hfdcan1;
@@ -101,7 +102,7 @@ void HAL_FDCAN_MspInit(FDCAN_HandleTypeDef* fdcanHandle)
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
     /* FDCAN1 interrupt Init */
-    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 7, 0);
+    HAL_NVIC_SetPriority(FDCAN1_IT0_IRQn, 6, 0);
     HAL_NVIC_EnableIRQ(FDCAN1_IT0_IRQn);
   /* USER CODE BEGIN FDCAN1_MspInit 1 */
 
@@ -135,6 +136,22 @@ void HAL_FDCAN_MspDeInit(FDCAN_HandleTypeDef* fdcanHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void configureFilters() {
+	sStdFilter.IdType = FDCAN_STANDARD_ID;
+	sStdFilter.FilterIndex = 0;
+	sStdFilter.FilterType = FDCAN_FILTER_RANGE;
+	sStdFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+	sStdFilter.FilterID1 = 0x000;
+	sStdFilter.FilterID2 = 0x7FF;
+
+	sExtFilter.IdType = FDCAN_EXTENDED_ID;
+	sExtFilter.FilterIndex = 0;
+	sExtFilter.FilterType = FDCAN_FILTER_RANGE;
+    sExtFilter.FilterConfig = FDCAN_FILTER_TO_RXFIFO0;
+	sExtFilter.FilterID1 = 0x00000000;
+	sExtFilter.FilterID2 = 0x1FFFFFFF;
+}
+
 void configureFDCAN_TxMessage_STD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id) {
 	tx_msg->Identifier = std_id;
 	tx_msg->IdType = FDCAN_STANDARD_ID;

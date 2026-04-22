@@ -47,11 +47,14 @@ void MX_FDCAN1_Init(void);
 void configureFDCAN_TxMessage_STD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id);
 void configureFDCAN_TxMessage_EXTD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t extd_id);
 
+extern FDCAN_FilterTypeDef sStdFilter;
+extern FDCAN_FilterTypeDef sExtFilter;
+void configureFilters();
+
 extern FDCAN_RxHeaderTypeDef BMS_RxHeader;
 extern uint8_t BMS_RxData[8];
 extern uint32_t fdcan_rx_count;
 void BMS_CAN_RxHandler();
-
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

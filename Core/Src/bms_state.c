@@ -10,6 +10,8 @@
 volatile BMS_STATE bms_state = BMS_IDLE;
 
 void determine_startup_mode() {
+	HAL_FDCAN_DeInit(&hfdcan1);
+
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
 		if (HAL_GPIO_ReadPin(BALANCING_EN_GPIO_Port, BALANCING_EN_Pin) == GPIO_PIN_SET) {
 			bms_state = BMS_BALANCING;
@@ -21,12 +23,18 @@ void determine_startup_mode() {
 
 		} else {
 			bms_state = BMS_CHARGING;
-			change_baud_rate_250(); // Change to 250 Kbps!
+			change_baud_rate_250(); // Change CAN Baud Rate to 250 Kbps via Clock Prescaler.
 			startPWM_Capture();
 		}
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		bms_state = BMS_PRECHARGING;
 	}
+
+	HAL_FDCAN_Init(&hfdcan1);
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter);
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter);
+	HAL_FDCAN_Start(&hfdcan1);
+	HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
 }
 
 void wakeup_tasks() {
@@ -51,7 +59,5 @@ void wakeup_tasks() {
 
 void change_baud_rate_250() {
 	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON CHARGER
-	HAL_FDCAN_DeInit(&hfdcan1);
 	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;
-	HAL_FDCAN_Init(&hfdcan1);
 }

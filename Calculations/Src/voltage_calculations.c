@@ -64,7 +64,9 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 		faults_clear |= FAULT_OVERVOLTAGE;
 	}
 
-	if (local_lowest < UNDER_VOLTAGE_THRESHOLD) {
+	// Assert this is a real under-voltage fault, NOT an ISOSPI Disconnect in which cell voltages read ~1.5V.
+	// ISOSPI Disconnect fault detection is handled in thermistor.c.
+	if (local_lowest < UNDER_VOLTAGE_THRESHOLD && local_lowest > BROKEN_CELL_VOLTAGE_THRESHOLD) {
 		faults_set |= FAULT_UNDERVOLTAGE;
 	} else {
 		faults_clear |= FAULT_UNDERVOLTAGE;

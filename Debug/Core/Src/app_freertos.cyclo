@@ -2,10 +2,10 @@
 ../Core/Src/app_freertos.c:190:6:voltageFunction	2
 ../Core/Src/app_freertos.c:214:6:tempFunction	2
 ../Core/Src/app_freertos.c:238:6:safetyFunction	2
-../Core/Src/app_freertos.c:262:6:currFunction	1
-../Core/Src/app_freertos.c:281:6:dataloggingFunction	1
-../Core/Src/app_freertos.c:302:6:prchgFunction	2
-../Core/Src/app_freertos.c:324:6:currLimitFunction	2
-../Core/Src/app_freertos.c:346:6:balancingFunction	2
-../Core/Src/app_freertos.c:368:6:chargingFunction	2
-../Core/Src/app_freertos.c:390:6:socFunction	4
+../Core/Src/app_freertos.c:263:6:currFunction	1
+../Core/Src/app_freertos.c:282:6:dataloggingFunction	1
+../Core/Src/app_freertos.c:303:6:prchgFunction	2
+../Core/Src/app_freertos.c:325:6:currLimitFunction	2
+../Core/Src/app_freertos.c:347:6:balancingFunction	2
+../Core/Src/app_freertos.c:369:6:chargingFunction	2
+../Core/Src/app_freertos.c:391:6:socFunction	4
