@@ -11,7 +11,10 @@ volatile STATE_CP control_pilot_state;
 volatile STATE_PP proximity_pilot_state;
 volatile J1772_CONTEXT j1772_context;
 
+int debug_cb = 0;
+
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	debug_cb++;
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
     	uint32_t period = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     	uint32_t pulse  = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
@@ -37,9 +40,9 @@ void stopPWM_Capture() {
 
 STATE_PP readProximityPilot(uint16_t adc) {
 	float pp_voltage = (adc/4095.0f)*3.3f;
-	if (fabsf(pp_voltage - 3.0f) < PP_VOLTAGE_EPSILON) {
+	if (fabsf(pp_voltage - 2.9f) < PP_VOLTAGE_EPSILON) {
 		return STATE_PP_NOT_CONNECTED;
-	} else if (fabsf(pp_voltage - 2.0f) < PP_VOLTAGE_EPSILON) {
+	} else if (fabsf(pp_voltage - 1.8f) < PP_VOLTAGE_EPSILON) {
 		return STATE_PP_BUTTON_PRESSED;
 	} else if (fabsf(pp_voltage - 1.0f) < PP_VOLTAGE_EPSILON) {
 		return STATE_PP_CONNECTED;

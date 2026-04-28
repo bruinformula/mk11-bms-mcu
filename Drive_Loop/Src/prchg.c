@@ -52,8 +52,7 @@ void precharge_loop() {
         		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Precharge_Complete_TxHeader, Precharge_Complete_DF.array);
         		osMutexRelease(CAN_MUTEXHandle);
 
-    			bms_state = BMS_DRIVE;
-    			wakeup_tasks();
+        		enter_drive_mode();
             } else {
             	inverter_precharged = false;
             	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);

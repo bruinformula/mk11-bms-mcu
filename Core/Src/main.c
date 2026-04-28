@@ -60,9 +60,7 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-uint8_t HeaderTxBuffer[] =
-		"****SPI - Two Boards communication based on Polling **** SPI Message ******** SPI Message ******** SPI Message ****";
-bool shutdown_power = false;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -85,23 +83,26 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+void shutdownCallback() {
+	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
+		bms_state = BMS_IDLE;
+		shutdown_power = true;
+		determine_startup_mode();
+	} else {
+		// OPEN AIRs!
+		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+
+		if (bms_state != BMS_INTERNAL_FAULT) {
+			bms_state = BMS_EXTERNAL_FAULT;
+		}
+		shutdown_power = false;
+	}
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
-			bms_state = BMS_IDLE;
-			shutdown_power = true;
-			determine_startup_mode();
-		} else {
-			if (bms_state != BMS_INTERNAL_FAULT) {
-				bms_state = BMS_EXTERNAL_FAULT;
-			}
-			shutdown_power = false;
-
-			// OPEN AIRs!
-			HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
-			HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
-
-		}
+		shutdownCallback();
 	}
 }
 /* USER CODE END 0 */
@@ -160,8 +161,9 @@ int main(void)
   configurePrchgTxMsg();
   configureDCL_CCL_TxMsg();
 
-  // CAN FILTER CONFIGURATION
+  // CAN STARTUP
   configureFilters();
+  startCAN_Tx_Rx();
 
   /* USER CODE END 2 */
 
@@ -177,7 +179,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
 	while (1)
 	{
-
 	}
     /* USER CODE END WHILE */
 

@@ -190,15 +190,15 @@ void MX_FREERTOS_Init(void) {
 void voltageFunction(void const * argument)
 {
   /* USER CODE BEGIN voltageFunction */
-    static bool first_run = false;
+  static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
 	computeAllVoltages(TOTAL_IC, IC);
-	  if (!first_run) {
-		  first_run = true;
-		  voltage_ready = true;
-	  }
+	if (!first_run) {
+		first_run = true;
+		voltage_ready = true;
+	}
 	osDelay(500);
   }
   /* USER CODE END voltageFunction */
@@ -214,15 +214,15 @@ void voltageFunction(void const * argument)
 void tempFunction(void const * argument)
 {
   /* USER CODE BEGIN tempFunction */
-    static bool first_run = false;
+  static bool first_run = false;
   /* Infinite loop */
   for(;;)
   {
 	computeAllTemps(TOTAL_IC, IC);
-	  if (!first_run) {
-		  first_run = true;
-		  temp_ready = true;
-	  }
+	if (!first_run) {
+		first_run = true;
+		temp_ready = true;
+	}
     osDelay(1000);
   }
   /* USER CODE END tempFunction */
@@ -238,15 +238,9 @@ void tempFunction(void const * argument)
 void safetyFunction(void const * argument)
 {
   /* USER CODE BEGIN safetyFunction */
-	static bool bmsInitialized = false;
   /* Infinite loop */
   for(;;)
   {
-	if (!bmsInitialized) { // ON STARTUP!
-		bmsInitialized = true;
-		wakeup_tasks();
-	}
-
 	BMS_CheckFaultRegister();
     osDelay(50);
   }
@@ -391,22 +385,15 @@ void chargingFunction(void const * argument)
 void socFunction(void const * argument)
 {
   /* USER CODE BEGIN socFunction */
-	static bool socInitialized = false;
-	static uint32_t last_tick;
+  static uint32_t last_tick;
+  while (!(voltage_ready && temp_ready)) {
+	  osDelay(50);
+  }
+  get_initial_soc();
+  last_tick = HAL_GetTick();
   /* Infinite loop */
   for(;;)
   {
-	  if (!socInitialized) {
-		  if (voltage_ready && temp_ready) {
-			  get_initial_soc();
-			  socInitialized = true;
-			  last_tick = HAL_GetTick();
-		  } else {
-			  osDelay(50);
-			  continue;
-		  }
-	  }
-
 	  uint32_t now = HAL_GetTick();
 	  uint32_t delta = now - last_tick;
 	  last_tick = now;

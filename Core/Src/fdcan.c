@@ -152,6 +152,13 @@ void configureFilters() {
 	sExtFilter.FilterID2 = 0x1FFFFFFF;
 }
 
+void startCAN_Tx_Rx() {
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &sStdFilter);
+	HAL_FDCAN_ConfigFilter(&hfdcan1, &sExtFilter);
+	HAL_FDCAN_Start(&hfdcan1);
+	HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+}
+
 void configureFDCAN_TxMessage_STD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t std_id) {
 	tx_msg->Identifier = std_id;
 	tx_msg->IdType = FDCAN_STANDARD_ID;

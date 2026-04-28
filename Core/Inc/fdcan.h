@@ -50,6 +50,7 @@ void configureFDCAN_TxMessage_EXTD(FDCAN_TxHeaderTypeDef* tx_msg, uint32_t extd_
 extern FDCAN_FilterTypeDef sStdFilter;
 extern FDCAN_FilterTypeDef sExtFilter;
 void configureFilters();
+void startCAN_Tx_Rx();
 
 extern FDCAN_RxHeaderTypeDef BMS_RxHeader;
 extern uint8_t BMS_RxData[8];

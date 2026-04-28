@@ -1,3 +1,8 @@
-../Core/Src/bms_state.c:12:6:determine_startup_mode	5
-../Core/Src/bms_state.c:40:6:wakeup_tasks	5
-../Core/Src/bms_state.c:60:6:change_baud_rate_250	1
+../Core/Src/bms_state.c:16:6:HAL_UARTEx_RxEventCallback	6
+../Core/Src/bms_state.c:48:6:determine_startup_mode	3
+../Core/Src/bms_state.c:57:6:enter_precharge_mode	1
+../Core/Src/bms_state.c:62:6:enter_drive_mode	1
+../Core/Src/bms_state.c:67:6:enter_charging_mode	1
+../Core/Src/bms_state.c:74:6:enter_balancing_mode	2
+../Core/Src/bms_state.c:84:6:wakeup_tasks	6
+../Core/Src/bms_state.c:108:6:change_baud_rate_250	1

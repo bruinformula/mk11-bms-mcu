@@ -256,7 +256,7 @@ void adBms6830_write_config(uint8_t tIC, cell_asic *ic)
   adBmsWakeupIc(tIC);
   adBmsWriteData(tIC, &ic[0], WRCFGA, Config, A);
   adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B);
-  printWriteConfig(tIC, &ic[0], Config, ALL_GRP);
+//  printWriteConfig(tIC, &ic[0], Config, ALL_GRP);
 }
 
 /**
@@ -269,7 +269,7 @@ void adBms6830_read_config(uint8_t tIC, cell_asic *ic)
   adBmsWakeupIc(tIC);
   adBmsReadData(tIC, &ic[0], RDCFGA, Config, A);
   adBmsReadData(tIC, &ic[0], RDCFGB, Config, B);
-  printReadConfig(tIC, &ic[0], Config, ALL_GRP);
+//  printReadConfig(tIC, &ic[0], Config, ALL_GRP);
 }
 
 /**
@@ -306,7 +306,7 @@ void adBms6830_read_cell_voltages(uint8_t tIC, cell_asic *ic)
   adBmsReadData(tIC, &ic[0], RDCVE, Cell, E);
   adBmsReadData(tIC, &ic[0], RDCVF, Cell, F);
   adBms6830_Unsnap();
-  printVoltages(tIC, &ic[0], Cell);
+//  printVoltages(tIC, &ic[0], Cell);
 }
 
 /**
@@ -453,7 +453,7 @@ void adBms6830_read_aux_voltages(uint8_t tIC, cell_asic *ic)
   adBmsReadData(tIC, &ic[0], RDAUXB, Aux, B);
   adBmsReadData(tIC, &ic[0], RDAUXC, Aux, C);
   adBmsReadData(tIC, &ic[0], RDAUXD, Aux, D);
-  printVoltages(tIC, &ic[0], Aux);
+//  printVoltages(tIC, &ic[0], Aux);
 }
 
 /**

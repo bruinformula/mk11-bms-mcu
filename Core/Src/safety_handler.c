@@ -39,7 +39,7 @@ void BMS_CheckFaultRegister() {
 		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
 		bms_state = BMS_INTERNAL_FAULT;
 	} else {
-		// Shutdown Reset needs to be hit for fault to clear on Shutdown Board
+		// Shutdown Reset needs to be hit for fault to clear on Shutdown Board.
 		// Even if the pin is driven high (NO FAULT) on the BMS.
 		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_SET);
 	}
