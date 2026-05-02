@@ -10,17 +10,20 @@
 
 #include <stdint.h>
 #include <math.h>
+#include <stdbool.h>
 #include "adc.h"
 #include "tim.h"
 #include "cmsis_os.h"
 
 #define PP_VOLTAGE_EPSILON 0.1
-#define TIMER_CLOCK 1000000
-#define EVT_CP_UPDATE        (1 << 1)
+#define TIMER_CLOCK 1000000 // 1 Mhz
+#define CP_TIMEOUT_MS 500
+#define EVT_CP_UPDATE (1 << 1)
 
 // J1772 CONTROL PILOT
 typedef enum {
-	STATE_CP_ERROR,
+	STATE_CP_NOT_AVAILABLE,
+	STATE_CP_FAULT,
 	STATE_CP_PWM_PRESENT, // J1772 Connected, 1 Khz PWM Present; actual charging dependent on J1772_PILOT_SWITCH State
 } STATE_CP;
 extern volatile STATE_CP control_pilot_state;
@@ -38,6 +41,7 @@ typedef struct J1772_CONTEXT {
 	volatile uint32_t control_pilot_period;
 	volatile uint32_t control_pilot_pulse;
 	volatile uint16_t proximity_pilot_adc;
+	volatile uint32_t last_cp_update_tick;
 } J1772_CONTEXT;
 extern volatile J1772_CONTEXT j1772_context;
 
@@ -45,6 +49,7 @@ extern int advertised_amps;
 
 void startPWM_Capture();
 void stopPWM_Capture();
+bool isControlPilotTimedOut(uint32_t tick);
 STATE_PP readProximityPilot(uint16_t adc);
 STATE_CP readControlPilot(uint32_t period, uint32_t pulse);
 

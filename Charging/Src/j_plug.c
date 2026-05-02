@@ -11,16 +11,14 @@ volatile STATE_CP control_pilot_state;
 volatile STATE_PP proximity_pilot_state;
 volatile J1772_CONTEXT j1772_context;
 
-int debug_cb = 0;
-
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
-	debug_cb++;
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
     	uint32_t period = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     	uint32_t pulse  = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
 
     	j1772_context.control_pilot_period = period;
     	j1772_context.control_pilot_pulse = pulse;
+    	j1772_context.last_cp_update_tick = HAL_GetTick();
 
     	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     	xTaskNotifyFromISR(chargingTaskHandle, EVT_CP_UPDATE, eSetBits, &xHigherPriorityTaskWoken);
@@ -38,6 +36,10 @@ void stopPWM_Capture() {
 	HAL_TIM_IC_Stop(&htim2, TIM_CHANNEL_2);
 }
 
+bool isControlPilotTimedOut(tick) {
+	return (HAL_GetTick() - tick) > CP_TIMEOUT_MS;
+}
+
 STATE_PP readProximityPilot(uint16_t adc) {
 	float pp_voltage = (adc/4095.0f)*3.3f;
 	if (fabsf(pp_voltage - 2.9f) < PP_VOLTAGE_EPSILON) {
@@ -52,28 +54,19 @@ STATE_PP readProximityPilot(uint16_t adc) {
 
 int advertised_amps;
 STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
-	if (period != 0) {
-		float duty_cycle = ((float)pulse * 100.0f) / period;
-		float freq = (float)TIMER_CLOCK / period;
+	if (period == 0) return STATE_CP_FAULT;
 
-		if (freq < 995.0f || freq > 1005.0f) {
-			return STATE_CP_ERROR;
-		}
+	float duty_cycle = ((float)pulse * 100.0f) / period;
+	float freq = (float)TIMER_CLOCK / period;
 
-		if (duty_cycle < 3.0f || duty_cycle > 97.0f) {
-			// Duty Cycle too low ==> 0 Amps Advertised
-		    // Duty Cycle too high ==> Weird idle voltage signal
-		    return STATE_CP_ERROR;
-		}
+	if (freq < 995.0f || freq > 1005.0f) return STATE_CP_FAULT;
+	if (duty_cycle < 3.0f || duty_cycle > 97.0f) return STATE_CP_FAULT;
 
-		if (duty_cycle <= 85.0f) {
-			advertised_amps = (int)(duty_cycle*0.6f);
-		} else {
-			advertised_amps = (int)((duty_cycle-64.0f)*2.5f);
-		}
-
-		return STATE_CP_PWM_PRESENT;
+	if (duty_cycle <= 85.0f) {
+		advertised_amps = (int)(duty_cycle * 0.6f);
+	} else {
+		advertised_amps = (int)((duty_cycle-64.0f)*2.5f);
 	}
 
-	return STATE_CP_ERROR;
+    return STATE_CP_PWM_PRESENT;
 }

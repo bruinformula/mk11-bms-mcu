@@ -1,5 +1,6 @@
-../Charging/Src/j_plug.c:16:6:HAL_TIM_IC_CaptureCallback	40	static,ignoring_inline_asm
-../Charging/Src/j_plug.c:31:6:startPWM_Capture	8	static
-../Charging/Src/j_plug.c:36:6:stopPWM_Capture	8	static
-../Charging/Src/j_plug.c:41:10:readProximityPilot	24	static
-../Charging/Src/j_plug.c:54:10:readControlPilot	24	static
+../Charging/Src/j_plug.c:14:6:HAL_TIM_IC_CaptureCallback	40	static,ignoring_inline_asm
+../Charging/Src/j_plug.c:29:6:startPWM_Capture	8	static
+../Charging/Src/j_plug.c:34:6:stopPWM_Capture	8	static
+../Charging/Src/j_plug.c:39:6:isControlPilotTimedOut	8	static
+../Charging/Src/j_plug.c:43:10:readProximityPilot	24	static
+../Charging/Src/j_plug.c:56:10:readControlPilot	24	static

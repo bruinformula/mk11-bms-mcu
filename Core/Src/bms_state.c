@@ -66,7 +66,7 @@ void enter_drive_mode() {
 
 void enter_charging_mode() {
 	bms_state = BMS_CHARGING;
-	change_baud_rate_250(); // Change CAN Baud Rate to 250 Kbps via altering Clock Prescaler.
+//	change_baud_rate_250();
 	startPWM_Capture();
 	wakeup_tasks();
 }
