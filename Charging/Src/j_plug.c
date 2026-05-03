@@ -36,7 +36,7 @@ void stopPWM_Capture() {
 	HAL_TIM_IC_Stop(&htim2, TIM_CHANNEL_2);
 }
 
-bool isControlPilotTimedOut(tick) {
+bool isControlPilotTimedOut(uint32_t tick) {
 	return (HAL_GetTick() - tick) > CP_TIMEOUT_MS;
 }
 
@@ -46,27 +46,30 @@ STATE_PP readProximityPilot(uint16_t adc) {
 		return STATE_PP_NOT_CONNECTED;
 	} else if (fabsf(pp_voltage - 1.8f) < PP_VOLTAGE_EPSILON) {
 		return STATE_PP_BUTTON_PRESSED;
-	} else if (fabsf(pp_voltage - 1.0f) < PP_VOLTAGE_EPSILON) {
+	} else if (fabsf(pp_voltage - 0.9f) < PP_VOLTAGE_EPSILON) {
 		return STATE_PP_CONNECTED;
 	}
 	return STATE_PP_UNKNOWN;
 }
 
-int advertised_amps;
+float advertised_amps_ac;
+float advertised_amps_dc;
 STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
 	if (period == 0) return STATE_CP_FAULT;
 
 	float duty_cycle = ((float)pulse * 100.0f) / period;
 	float freq = (float)TIMER_CLOCK / period;
 
-	if (freq < 995.0f || freq > 1005.0f) return STATE_CP_FAULT;
-	if (duty_cycle < 3.0f || duty_cycle > 97.0f) return STATE_CP_FAULT;
+	if (freq < 990.0f || freq > 1000.0f) return STATE_CP_FAULT;
+	if (duty_cycle < 5.0f || duty_cycle > 95.0f) return STATE_CP_FAULT;
 
 	if (duty_cycle <= 85.0f) {
-		advertised_amps = (int)(duty_cycle * 0.6f);
+		advertised_amps_ac = (duty_cycle * 0.6f);
 	} else {
-		advertised_amps = (int)((duty_cycle-64.0f)*2.5f);
+		advertised_amps_ac = ((duty_cycle-64.0f)*2.5f);
 	}
+
+	advertised_amps_dc = (WALL_V_AC * advertised_amps_ac * EFFICIENCY)/MAX_PACK_V_DC;
 
     return STATE_CP_PWM_PRESENT;
 }

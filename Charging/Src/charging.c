@@ -9,6 +9,9 @@
 
 CHARGING_STATE charging_state = CHG_IDLE;
 
+static uint32_t charger_tx_count;
+static uint32_t last_charger_tx_time = 0;
+
 void charging_loop() {
 	uint32_t events;
     xTaskNotifyWait(0, UINT32_MAX, &events, 50);
@@ -16,6 +19,7 @@ void charging_loop() {
     uint16_t pp_adc;
     uint32_t cp_period;
     uint32_t cp_pulse;
+    uint32_t last_cp_tick;
 
     // CRITICAL REGION
     taskENTER_CRITICAL();
@@ -34,9 +38,10 @@ void charging_loop() {
     	control_pilot_state = readControlPilot(cp_period, cp_pulse);
     }
 
-    if (events & EVT_ELCON_FAULT) {
-    	charging_state = CHG_ELCON_FAULT;
-    }
+    // TODO: ELCON has intermittent fault on startup?
+//    if (events & EVT_ELCON_FAULT) {
+//    	charging_state = CHG_ELCON_FAULT;
+//    }
 
     switch (charging_state) {
     	case CHG_IDLE:
@@ -58,6 +63,8 @@ void charging_loop() {
     		break;
 
         case CHG_ACTIVE:
+        	if (HAL_GetTick() - last_charger_tx_time < 1000) break;
+
         	if (proximity_pilot_state != STATE_PP_CONNECTED ||
         			control_pilot_state != STATE_CP_PWM_PRESENT) {
         		charging_state = CHG_IDLE;
@@ -67,7 +74,9 @@ void charging_loop() {
         	if (voltage_context.highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
         		charging_state = CHG_COMPLETE;
         	} else {
-        		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps, 0);
+        		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+        		last_charger_tx_time = HAL_GetTick();
+        		charger_tx_count++;
         	}
         	break;
 

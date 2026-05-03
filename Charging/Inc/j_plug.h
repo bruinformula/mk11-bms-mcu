@@ -15,7 +15,7 @@
 #include "tim.h"
 #include "cmsis_os.h"
 
-#define PP_VOLTAGE_EPSILON 0.1
+#define PP_VOLTAGE_EPSILON 0.15
 #define TIMER_CLOCK 1000000 // 1 Mhz
 #define CP_TIMEOUT_MS 500
 #define EVT_CP_UPDATE (1 << 1)
@@ -37,6 +37,7 @@ typedef enum {
 } STATE_PP;
 extern volatile STATE_PP proximity_pilot_state;
 
+// TODO: Make clearer with duty cycle, frequency, voltage?
 typedef struct J1772_CONTEXT {
 	volatile uint32_t control_pilot_period;
 	volatile uint32_t control_pilot_pulse;
@@ -45,7 +46,11 @@ typedef struct J1772_CONTEXT {
 } J1772_CONTEXT;
 extern volatile J1772_CONTEXT j1772_context;
 
-extern int advertised_amps;
+#define WALL_V_AC 120
+#define EFFICIENCY 0.91
+#define MAX_PACK_V_DC 415
+extern float advertised_amps_ac;
+extern float advertised_amps_dc;
 
 void startPWM_Capture();
 void stopPWM_Capture();

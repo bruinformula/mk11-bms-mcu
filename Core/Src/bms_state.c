@@ -47,8 +47,10 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 
 void determine_startup_mode() {
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_WAIT_FOR_GUI;
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+//		bms_state = BMS_WAIT_FOR_GUI;
+//		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+
+		enter_charging_mode();
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		enter_precharge_mode();
 	}
@@ -66,7 +68,12 @@ void enter_drive_mode() {
 
 void enter_charging_mode() {
 	bms_state = BMS_CHARGING;
-//	change_baud_rate_250();
+
+	// Close AIRs to begin charging.
+	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_SET);
+	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
+
+	change_baud_rate_250();
 	startPWM_Capture();
 	wakeup_tasks();
 }

@@ -14,6 +14,9 @@ void configureChargeTxMsg() {
 }
 
 void parseChargerBroadcast() {
+	if (bms_state != BMS_CHARGING) return;
+
+	// TODO: A bit unclear, should just put the 0.1 scaling into software?
 	elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_voltage = ((BMS_RxData[0] << 8) | BMS_RxData[1]);
 	elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_current = ((BMS_RxData[2] << 8) | BMS_RxData[3]);
 	elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.raw = BMS_RxData[4];

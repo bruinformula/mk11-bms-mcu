@@ -164,10 +164,6 @@ int main(void)
   // CAN STARTUP
   configureFilters();
   startCAN_Tx_Rx();
-
-  // TEMPORARY
-  determine_startup_mode();
-
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
