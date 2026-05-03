@@ -28,6 +28,11 @@ void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
 	}
 }
 
+void prechargeReset() {
+	precharge_state = PRECHARGE_IDLE;
+	inverter_precharged = false;
+}
+
 void precharge_loop() {
 	switch (precharge_state) {
 		case PRECHARGE_IDLE:

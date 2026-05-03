@@ -13,6 +13,7 @@
 #include "gpio.h"
 #include "j_plug.h"
 #include "cmsis_os.h"
+#include <stdbool.h>
 
 typedef enum {
 	BMS_IDLE = 0,
@@ -25,6 +26,7 @@ typedef enum {
 } BMS_STATE;
 
 extern volatile BMS_STATE bms_state;
+extern bool shutdown_power;
 
 void determine_startup_mode();
 void wakeup_tasks();

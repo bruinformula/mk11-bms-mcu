@@ -81,16 +81,44 @@ int iar_fputc(int ch);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-// TODO: SOFTWARE DEBOUNCE ON SHUTDOWN POWER!
-// ALSO, OPEN AIRS
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
-//	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-//		if (bms_state != BMS_INTERNAL_FAULT) {
-//			bms_state = BMS_EXTERNAL_FAULT;
-//		}
-//		Error_Handler();
-//	}
+// Shutdown Power Handler (rising + falling edge — see gpio.c)
+void shutdownCallback() {
+	static uint32_t last_trigger = 0;
+	uint32_t now = HAL_GetTick();
 
+	// 50ms debounce — relay EMI causes false edges
+	if (now - last_trigger < 50) {
+		return;
+	}
+	last_trigger = now;
+
+	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
+		// SHUTDOWN POWER RESTORED — re-arm for precharge
+		shutdown_power = true;
+		bms_state = BMS_PRECHARGING;
+
+		// Wake prchg task so it's ready for the next VCU CAN request
+		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xTaskNotifyFromISR(prchgTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	} else {
+		// SHUTDOWN POWER LOST — open all relays, reset precharge state
+		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+		prechargeReset();
+
+		if (bms_state != BMS_INTERNAL_FAULT) {
+			bms_state = BMS_EXTERNAL_FAULT;
+		}
+		shutdown_power = false;
+	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
+		shutdownCallback();
+	}
 }
 /* USER CODE END 0 */
 
