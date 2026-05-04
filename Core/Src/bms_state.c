@@ -6,12 +6,31 @@
  */
 
 #include "bms_state.h"
+#include "task.h"
 
 bool shutdown_power = false;
 volatile BMS_STATE bms_state = BMS_IDLE;
 
 #define RX_BUF_SIZE 16
 static uint8_t uart_rx_buffer[RX_BUF_SIZE];
+
+static void notify_task(osThreadId task_handle) {
+	if (task_handle == NULL) {
+		return;
+	}
+
+	if (xTaskGetSchedulerState() != taskSCHEDULER_RUNNING) {
+		return;
+	}
+
+	if (__get_IPSR() != 0U) {
+		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		vTaskNotifyGiveFromISR(task_handle, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	} else {
+		xTaskNotifyGive(task_handle);
+	}
+}
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 	if (huart->Instance == LPUART1) {
@@ -89,27 +108,23 @@ void enter_balancing_mode() {
 }
 
 void wakeup_tasks() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
 	switch(bms_state) {
 		case BMS_BALANCING:
-			xTaskNotifyFromISR(balancingTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			notify_task(balancingTaskHandle);
 			break;
 		case BMS_CHARGING:
-			xTaskNotifyFromISR(chargingTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			notify_task(chargingTaskHandle);
 			break;
 		case BMS_PRECHARGING:
-			xTaskNotifyFromISR(prchgTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			notify_task(prchgTaskHandle);
 			break;
 		case BMS_DRIVE:
-            xTaskNotifyFromISR(currLimitTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+            notify_task(currLimitTaskHandle);
             break;
 
 		default:
 			break;
 	}
-
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void change_baud_rate_250() {

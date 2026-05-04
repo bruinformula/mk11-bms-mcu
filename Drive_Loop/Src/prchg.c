@@ -20,12 +20,35 @@ void configurePrchgTxMsg() {
 }
 
 void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
+	if (!shutdown_power) {
+		return;
+	}
+
+	if (bms_state == BMS_CHARGING || bms_state == BMS_BALANCING
+			|| bms_state == BMS_INTERNAL_FAULT) {
+		return;
+	}
+
 	if (precharge_state == PRECHARGE_IDLE || precharge_state == PRECHARGE_FAIL) { // Able to re-attempt precharge!
+		inverter_precharged = false;
 		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
 		precharge_start_time = HAL_GetTick();
 	    precharge_state = PRECHARGE_ACTIVE;
+	    enter_precharge_mode();
 	}
+}
+
+void prechargeReset() {
+	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+
+	inverter_dc_volts = 0.0f;
+	inverter_precharged = false;
+	precharge_start_time = 0;
+	precharge_state = PRECHARGE_IDLE;
+	Precharge_Complete_DF.data.inverter_precharged = 0;
 }
 
 void precharge_loop() {
@@ -58,6 +81,7 @@ void precharge_loop() {
             	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
             	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
             	precharge_state = PRECHARGE_FAIL;
+            	bms_state = BMS_IDLE;
             	Precharge_Complete_DF.data.inverter_precharged = 0;
 
             	// CRITICAL REGION

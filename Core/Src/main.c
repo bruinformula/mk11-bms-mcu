@@ -84,14 +84,20 @@ int iar_fputc(int ch);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 void shutdownCallback() {
+	static uint32_t last_trigger = 0;
+	uint32_t now = HAL_GetTick();
+
+	if (now - last_trigger < 50) {
+		return;
+	}
+	last_trigger = now;
+
 	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
 		bms_state = BMS_IDLE;
 		shutdown_power = true;
 		determine_startup_mode();
 	} else {
-		// OPEN AIRs!
-		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+		prechargeReset();
 
 		if (bms_state != BMS_INTERNAL_FAULT) {
 			bms_state = BMS_EXTERNAL_FAULT;
@@ -164,6 +170,11 @@ int main(void)
   // CAN STARTUP
   configureFilters();
   startCAN_Tx_Rx();
+
+  shutdown_power = (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET);
+  if (!shutdown_power) {
+	  prechargeReset();
+  }
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
