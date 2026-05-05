@@ -6,4 +6,4 @@
 ../Core/Src/fdcan.c:162:6:configureFDCAN_TxMessage_STD	16	static
 ../Core/Src/fdcan.c:174:6:configureFDCAN_TxMessage_EXTD	16	static
 ../Core/Src/fdcan.c:190:6:HAL_FDCAN_RxFifo0Callback	16	static
-../Core/Src/fdcan.c:203:6:BMS_CAN_RxHandler	32	static,ignoring_inline_asm
+../Core/Src/fdcan.c:205:6:BMS_CAN_RxHandler	32	static,ignoring_inline_asm

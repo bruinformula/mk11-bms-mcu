@@ -83,19 +83,10 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void shutdownCallback() {
-	static uint32_t last_trigger = 0;
-	uint32_t now = HAL_GetTick();
-
-	if (now - last_trigger < 50) {
-		return;
-	}
-	last_trigger = now;
-
-	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
+static void applyShutdownPowerState(bool shutdown_asserted) {
+	if (shutdown_asserted) {
 		bms_state = BMS_IDLE;
 		shutdown_power = true;
-		determine_startup_mode();
 	} else {
 		prechargeReset();
 
@@ -106,9 +97,46 @@ void shutdownCallback() {
 	}
 }
 
+void shutdownCallback() {
+	static uint32_t last_trigger = 0;
+	uint32_t now = HAL_GetTick();
+
+	if (now - last_trigger < 50) {
+		return;
+	}
+	last_trigger = now;
+
+	applyShutdownPowerState(HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port,
+			SHUTDOWN_POWER_Pin) == GPIO_PIN_SET);
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
 		shutdownCallback();
+	}
+}
+
+void serviceShutdownPowerSignal(void) {
+	static GPIO_PinState last_sample = GPIO_PIN_RESET;
+	static uint32_t stable_since = 0;
+
+	GPIO_PinState sample = HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port,
+			SHUTDOWN_POWER_Pin);
+	uint32_t now = HAL_GetTick();
+
+	if (sample != last_sample) {
+		last_sample = sample;
+		stable_since = now;
+		return;
+	}
+
+	if ((now - stable_since) < 20U) {
+		return;
+	}
+
+	bool shutdown_asserted = (sample == GPIO_PIN_SET);
+	if (shutdown_asserted != shutdown_power) {
+		applyShutdownPowerState(shutdown_asserted);
 	}
 }
 /* USER CODE END 0 */
@@ -172,7 +200,9 @@ int main(void)
   startCAN_Tx_Rx();
 
   shutdown_power = (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET);
-  if (!shutdown_power) {
+  if (shutdown_power) {
+	  determine_startup_mode();
+  } else {
 	  prechargeReset();
   }
   /* USER CODE END 2 */

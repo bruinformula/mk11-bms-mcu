@@ -5,5 +5,5 @@
 ../Core/Src/fdcan.c:155:6:startCAN_Tx_Rx	1
 ../Core/Src/fdcan.c:162:6:configureFDCAN_TxMessage_STD	1
 ../Core/Src/fdcan.c:174:6:configureFDCAN_TxMessage_EXTD	1
-../Core/Src/fdcan.c:190:6:HAL_FDCAN_RxFifo0Callback	2
-../Core/Src/fdcan.c:203:6:BMS_CAN_RxHandler	9
+../Core/Src/fdcan.c:190:6:HAL_FDCAN_RxFifo0Callback	4
+../Core/Src/fdcan.c:205:6:BMS_CAN_RxHandler	9

@@ -1,3 +1,5 @@
-../Drive_Loop/Src/prchg.c:18:6:configurePrchgTxMsg	1
-../Drive_Loop/Src/prchg.c:22:6:prechargeStart	3
-../Drive_Loop/Src/prchg.c:31:6:precharge_loop	5
+../Drive_Loop/Src/prchg.c:19:6:configurePrchgTxMsg	1
+../Drive_Loop/Src/prchg.c:23:6:prechargeStart	7
+../Drive_Loop/Src/prchg.c:44:6:prechargeReset	7
+../Drive_Loop/Src/prchg.c:63:6:prechargeServiceResetNotification	4
+../Drive_Loop/Src/prchg.c:78:6:precharge_loop	5

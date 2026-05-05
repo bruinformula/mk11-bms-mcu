@@ -14,6 +14,7 @@ static uint32_t precharge_start_time = 0;
 static FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 static PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
 volatile static PRECHARGE_STATE precharge_state = PRECHARGE_IDLE;
+static volatile uint8_t precharge_reset_notification_retries = 0;
 
 void configurePrchgTxMsg() {
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
@@ -30,6 +31,7 @@ void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
 	}
 
 	if (precharge_state == PRECHARGE_IDLE || precharge_state == PRECHARGE_FAIL) { // Able to re-attempt precharge!
+		precharge_reset_notification_retries = 0;
 		inverter_precharged = false;
 		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);
 		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_SET);
@@ -40,6 +42,12 @@ void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
 }
 
 void prechargeReset() {
+	bool should_notify_reset = inverter_precharged
+			|| precharge_state == PRECHARGE_ACTIVE
+			|| precharge_state == PRECHARGE_SUCCESS
+			|| bms_state == BMS_PRECHARGING
+			|| bms_state == BMS_DRIVE;
+
 	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
@@ -49,6 +57,22 @@ void prechargeReset() {
 	precharge_start_time = 0;
 	precharge_state = PRECHARGE_IDLE;
 	Precharge_Complete_DF.data.inverter_precharged = 0;
+	precharge_reset_notification_retries = should_notify_reset ? 5U : 0U;
+}
+
+void prechargeServiceResetNotification() {
+	if (precharge_reset_notification_retries == 0U) {
+		return;
+	}
+
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
+	HAL_StatusTypeDef status = HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1,
+			&Precharge_Complete_TxHeader, Precharge_Complete_DF.array);
+	osMutexRelease(CAN_MUTEXHandle);
+
+	if (status == HAL_OK && precharge_reset_notification_retries > 0U) {
+		precharge_reset_notification_retries--;
+	}
 }
 
 void precharge_loop() {

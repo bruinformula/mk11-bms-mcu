@@ -241,7 +241,9 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	serviceShutdownPowerSignal();
 	BMS_CheckFaultRegister();
+	prechargeServiceResetNotification();
     osDelay(50);
   }
   /* USER CODE END safetyFunction */
@@ -324,7 +326,7 @@ void currLimitFunction(void const * argument)
   {
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_DRIVE) {
-		  sendDCL_CCL();
+//		  sendDCL_CCL();
 		  osDelay(100);
 	  }
   }
