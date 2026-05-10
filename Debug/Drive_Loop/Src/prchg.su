@@ -1,3 +1,3 @@
-../Drive_Loop/Src/prchg.c:18:6:configurePrchgTxMsg	8	static
-../Drive_Loop/Src/prchg.c:22:6:prechargeStart	8	static
+../Drive_Loop/Src/prchg.c:17:6:configurePrchgTxMsg	8	static
+../Drive_Loop/Src/prchg.c:21:6:prechargeStart	8	static
 ../Drive_Loop/Src/prchg.c:31:6:precharge_loop	16	static

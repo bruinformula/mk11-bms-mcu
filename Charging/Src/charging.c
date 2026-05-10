@@ -7,7 +7,7 @@
 
 #include "charging.h"
 
-CHARGING_STATE charging_state = CHG_IDLE;
+volatile CHARGING_STATE charging_state = CHG_IDLE;
 
 static uint32_t charger_tx_count;
 static uint32_t last_charger_tx_time = 0;
@@ -38,10 +38,11 @@ void charging_loop() {
     	control_pilot_state = readControlPilot(cp_period, cp_pulse);
     }
 
-    // TODO: ELCON has intermittent fault on startup?
-//    if (events & EVT_ELCON_FAULT) {
-//    	charging_state = CHG_ELCON_FAULT;
-//    }
+    // TODO: ELCON seems to have intermittent fault on startup --> Figure out what this fault is.
+    // Add some sort of debouncing to prevent latching of this intermittent fault.
+    // if (events & EVT_ELCON_FAULT) {
+    	// charging_state = CHG_ELCON_FAULT;
+    // }
 
     switch (charging_state) {
     	case CHG_IDLE:
@@ -63,8 +64,8 @@ void charging_loop() {
     		break;
 
         case CHG_ACTIVE:
-        	if (HAL_GetTick() - last_charger_tx_time < 1000) break;
-
+        	// Charger expects CAN every 1 second, MUST be rate limited.
+        	// Output voltage/current seemed to oscillate between 0 and actual value without rate limiting.
         	if (proximity_pilot_state != STATE_PP_CONNECTED ||
         			control_pilot_state != STATE_CP_PWM_PRESENT) {
         		charging_state = CHG_IDLE;
@@ -74,6 +75,8 @@ void charging_loop() {
         	if (voltage_context.highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
         		charging_state = CHG_COMPLETE;
         	} else {
+            	if (HAL_GetTick() - last_charger_tx_time < 1000) break;
+
         		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
         		last_charger_tx_time = HAL_GetTick();
         		charger_tx_count++;

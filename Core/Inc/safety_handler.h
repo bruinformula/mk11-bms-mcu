@@ -44,4 +44,12 @@ void BMS_ClearFault(uint8_t fault);
 uint8_t BMS_GetFaultRegister();
 void BMS_CheckFaultRegister();
 
+extern volatile GPIO_PinState new_shutdown_state;
+extern volatile bool shutdown_debounce_active;
+extern volatile uint32_t shutdown_debounce_start;
+
+void process_shutdown_signal();
+void debounce_shutdown_signal();
+
+
 #endif /* INC_SAFETY_HANDLER_H_ */

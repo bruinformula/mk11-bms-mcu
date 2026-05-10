@@ -10,11 +10,55 @@
 static float voltage_conversions_snapshot[TOTAL_IC][CELLS_PER_IC];
 static float local_lowest_cell_voltage;
 static int num_unbalanced_cells;
+static uint8_t balance_percent;
+static uint8_t balance_pwm;
 static uint32_t phase_start_time;
-static BalanceState balance_state = BALANCE_COMPUTE_DISCHARGE;
+volatile BalanceState balance_state = BALANCE_IDLE;
 
-void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
+void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
+	uint8_t byte;
+	if (cell_num < PWMA) {
+		byte = cell_num/2;
+		if ((cell_num %2 == 0)) {
+			ic[ic_num].PwmA.pwma[byte] |= balance_pwm;
+		} else {
+			ic[ic_num].PwmA.pwma[byte] |= (balance_pwm << 4);
+		}
+	} else {
+		// PWMB Range.
+		uint8_t cell_num_temp = cell_num-12;
+		byte = cell_num_temp/2;
+		if ((cell_num_temp %2 == 0)) {
+			ic[ic_num].PwmB.pwmb[byte] |= balance_pwm;
+		} else {
+			ic[ic_num].PwmB.pwmb[byte] |= (balance_pwm << 4);
+		}
+	}
+}
+
+void startBalancingLoop(int percent) {
+	if (bms_state != BMS_BALANCING) return;
+
+	if (percent < 0) balance_percent = 0;
+	if (percent > 100) balance_percent = 100;
+	balance_percent = (uint8_t)percent;
+	balance_pwm = (uint8_t)((percent*15)/100);
+
+	if (percent > 0 && balance_pwm == 0) {
+		// Prevent non-zero balancing if user requested low percentage.
+		// i.e. % ranging from 1-15.
+		balance_pwm = 1;
+	}
+
+	balance_state = BALANCE_COMPUTE_DISCHARGE;
+}
+
+void balancingLoop(uint8_t tIC, cell_asic *ic) {
 	switch (balance_state) {
+		case BALANCE_IDLE:
+			// DO NOTHING, BLOCK
+			break;
+
 		case BALANCE_COMPUTE_DISCHARGE:
 			// CRITICAL REGION
 			osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
@@ -24,15 +68,12 @@ void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
 
             num_unbalanced_cells = 0;
             for (size_t i = 0; i < tIC; ++i) {
-                uint16_t dcc_mask = 0x0000;
                 for (size_t j = 0; j < CELLS_PER_IC; ++j) {
                     if (voltage_conversions_snapshot[i][j] > local_lowest_cell_voltage + BALANCE_VOLTAGE_THRESHOLD) {
-                        dcc_mask |= (1 << j);
+                    	set_cell_pwm(ic, i, j);
                         num_unbalanced_cells++;
                     }
                 }
-
-                ic[i].tx_cfgb.dcc = dcc_mask;
             }
 
             if (num_unbalanced_cells > 0) {
@@ -50,9 +91,10 @@ void fastBalancingLoop(uint8_t tIC, cell_asic *ic) {
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
-                for (size_t i = 0; i < tIC; ++i) {
-                    ic[i].tx_cfgb.dcc = 0x0000;
-                }
+            	for (size_t i = 0; i < tIC; ++i) {
+            		memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
+            		memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+            	}
                 balance_state = BALANCE_WAIT;
                 phase_start_time = HAL_GetTick();
             }

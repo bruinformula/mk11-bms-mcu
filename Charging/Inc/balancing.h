@@ -21,13 +21,16 @@
 #define BALANCE_WAIT_PERIOD 60000
 
 typedef enum {
+	BALANCE_IDLE,
 	BALANCE_COMPUTE_DISCHARGE,
 	BALANCE_DISCHARGE,
 	BALANCE_WAIT,
 	BALANCE_COMPLETE
 } BalanceState;
+extern volatile BalanceState balance_state;
 
-void fastBalancingLoop(uint8_t tIC, cell_asic *ic);
-void pwmBalancingLoop(uint8_t tIC, cell_asic *ic); // TODO, for <100% DISCHARGE CURRENT
+void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num);
+void startBalancingLoop(int balance_percent);
+void balancingLoop(uint8_t tIC, cell_asic *ic);
 
 #endif /* INC_BALANCING_H_ */

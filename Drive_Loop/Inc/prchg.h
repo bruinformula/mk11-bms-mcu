@@ -47,9 +47,9 @@ typedef enum {
     PRECHARGE_SUCCESS,
 	PRECHARGE_FAIL,
 } PRECHARGE_STATE;
+extern volatile PRECHARGE_STATE precharge_state;
 
 extern volatile float inverter_dc_volts;
-extern volatile bool inverter_precharged;
 
 void configurePrchgTxMsg();
 void prechargeStart();

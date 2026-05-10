@@ -1,4 +1,6 @@
-../Core/Src/safety_handler.c:12:6:BMS_SetFault	1
-../Core/Src/safety_handler.c:19:6:BMS_ClearFault	1
-../Core/Src/safety_handler.c:26:9:BMS_GetFaultRegister	1
-../Core/Src/safety_handler.c:35:6:BMS_CheckFaultRegister	2
+../Core/Src/safety_handler.c:14:6:process_shutdown_signal	6
+../Core/Src/safety_handler.c:35:6:debounce_shutdown_signal	4
+../Core/Src/safety_handler.c:48:6:BMS_SetFault	1
+../Core/Src/safety_handler.c:55:6:BMS_ClearFault	1
+../Core/Src/safety_handler.c:62:9:BMS_GetFaultRegister	1
+../Core/Src/safety_handler.c:71:6:BMS_CheckFaultRegister	2

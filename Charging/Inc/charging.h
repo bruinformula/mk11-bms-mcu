@@ -22,7 +22,7 @@ typedef enum {
 	CHG_COMPLETE,
 	CHG_ELCON_FAULT
 } CHARGING_STATE;
-extern CHARGING_STATE charging_state;
+extern volatile CHARGING_STATE charging_state;
 
 #define CHARGER_VOLTAGE 415
 #define MAX_CELL_VOLTAGE_CHARGING_THRESHOLD 4.0

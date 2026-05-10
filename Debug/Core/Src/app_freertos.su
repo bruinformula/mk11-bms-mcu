@@ -2,10 +2,10 @@
 ../Core/Src/app_freertos.c:190:6:voltageFunction	16	static
 ../Core/Src/app_freertos.c:214:6:tempFunction	16	static
 ../Core/Src/app_freertos.c:238:6:safetyFunction	16	static
-../Core/Src/app_freertos.c:257:6:currFunction	16	static
-../Core/Src/app_freertos.c:276:6:dataloggingFunction	16	static
-../Core/Src/app_freertos.c:297:6:prchgFunction	16	static
-../Core/Src/app_freertos.c:319:6:currLimitFunction	16	static
-../Core/Src/app_freertos.c:341:6:balancingFunction	16	static
-../Core/Src/app_freertos.c:363:6:chargingFunction	16	static
-../Core/Src/app_freertos.c:385:6:socFunction	24	static
+../Core/Src/app_freertos.c:258:6:currFunction	16	static
+../Core/Src/app_freertos.c:277:6:dataloggingFunction	16	static
+../Core/Src/app_freertos.c:298:6:prchgFunction	16	static
+../Core/Src/app_freertos.c:320:6:currLimitFunction	16	static
+../Core/Src/app_freertos.c:342:6:balancingFunction	16	static
+../Core/Src/app_freertos.c:364:6:chargingFunction	16	static
+../Core/Src/app_freertos.c:386:6:socFunction	24	static

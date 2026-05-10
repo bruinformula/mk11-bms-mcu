@@ -11,14 +11,12 @@ volatile CURRENT_CONTEXT current_context;
 static bool using_high_range = false;
 
 void calculateCurrent() {
-	// TODO: Re-calibrate!
-
 	// CRITICAL REGION
 	taskENTER_CRITICAL();
 	current_context.current_sensor_low_voltage = (current_context.current_sensor_low_adc/4095.0)*3.3;
 	current_context.current_sensor_high_voltage = (current_context.current_sensor_high_adc/4095.0)*3.3;
-	current_context.current_sensor_low = (current_context.current_sensor_low_adc - 2104)/53.4;
-	current_context.current_sensor_high = (current_context.current_sensor_high_adc + 447)/0.217;
+	current_context.current_sensor_low = ((float) current_context.current_sensor_low_adc) * 0.01877f - 37.412f;
+	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc) * 0.2159f - 429.326f;
 	taskEXIT_CRITICAL();
 
 	if (!using_high_range && fabsf(current_context.current_sensor_low) > 30.0f) {
@@ -32,18 +30,18 @@ void calculateCurrent() {
 			current_context.current_sensor_low;
 
 	// FAULT HANDLING
-//	uint8_t faults_set = 0;
-//	uint8_t faults_clear = 0;
-//	if (current_context.current_sensor_val > OVERCURRENT_THRESHOLD) {
-//		faults_set |= FAULT_OVERCURRENT;
-//	} else {
-//		faults_clear |= FAULT_OVERCURRENT;
-//	}
-//
-//	if (faults_set) {
-//		BMS_SetFault(faults_set);
-//	}
-//	if (faults_clear) {
-//		BMS_ClearFault(faults_clear);
-//	}
+	uint8_t faults_set = 0;
+	uint8_t faults_clear = 0;
+	if (current_context.current_sensor_val > OVERCURRENT_THRESHOLD) {
+		faults_set |= FAULT_OVERCURRENT;
+	} else {
+		faults_clear |= FAULT_OVERCURRENT;
+	}
+
+	if (faults_set) {
+		BMS_SetFault(faults_set);
+	}
+	if (faults_clear) {
+		BMS_ClearFault(faults_clear);
+	}
 }

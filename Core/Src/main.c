@@ -83,26 +83,12 @@ int iar_fputc(int ch);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-void shutdownCallback() {
-	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_IDLE;
-		shutdown_power = true;
-		determine_startup_mode();
-	} else {
-		// OPEN AIRs!
-		HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
-		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
-
-		if (bms_state != BMS_INTERNAL_FAULT) {
-			bms_state = BMS_EXTERNAL_FAULT;
-		}
-		shutdown_power = false;
-	}
-}
-
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		shutdownCallback();
+		if (shutdown_debounce_active) return;
+		shutdown_debounce_active = true;
+        shutdown_debounce_start = HAL_GetTick();
+        new_shutdown_state = HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin);
 	}
 }
 /* USER CODE END 0 */
@@ -176,8 +162,8 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-	while (1)
-	{
+	while (1) {
+
 	}
     /* USER CODE END WHILE */
 

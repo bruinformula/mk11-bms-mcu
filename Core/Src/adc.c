@@ -319,7 +319,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
 static uint32_t adc_val[2];
 
 void startADC() {
-	HAL_TIM_Base_Start(&htim3);
+	HAL_TIM_Base_Start(&htim3); // ADC Conversions clocked by TIM3 Internal Clock.
 	HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 	HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
 	HAL_ADCEx_MultiModeStart_DMA(&hadc1, adc_val, 2);

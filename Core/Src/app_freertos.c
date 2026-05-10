@@ -242,6 +242,7 @@ void safetyFunction(void const * argument)
   for(;;)
   {
 	BMS_CheckFaultRegister();
+	debounce_shutdown_signal();
     osDelay(50);
   }
   /* USER CODE END safetyFunction */
@@ -346,7 +347,7 @@ void balancingFunction(void const * argument)
   {
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_BALANCING) {
-		  fastBalancingLoop(TOTAL_IC, IC);
+		  balancingLoop(TOTAL_IC, IC);
 		  osDelay(500); // Discharge Timer is ~2 Seconds.
 	  }
   }
