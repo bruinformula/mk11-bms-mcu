@@ -34,7 +34,7 @@ void process_shutdown_signal() {
 
 void debounce_shutdown_signal() {
 	if (shutdown_debounce_active) {
-		if (HAL_GetTick() - shutdown_debounce_start < 500) return;
+		if (HAL_GetTick() - shutdown_debounce_start < 100) return;
 		if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == new_shutdown_state) {
 			// Stable change detected!
 			process_shutdown_signal();
