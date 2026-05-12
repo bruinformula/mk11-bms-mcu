@@ -117,7 +117,7 @@ void enter_precharge_mode() {
 void enter_drive_mode() {
 	bms_state = BMS_DRIVE;
 	// No specialized state machine for driving.
-	// prechsrge_state should be PRECHARGE_SUCCESS.
+	// precharge_state should be PRECHARGE_SUCCESS.
 	wakeup_tasks();
 }
 
@@ -169,7 +169,7 @@ void exit_charging_mode() {
 	// Still want to use CAN even if we are not actively charging.
 
      stopPWM_Capture();
-	// Control Pilot readings not necessary if charging is not active.
+	// Control Pilot readings NOT necessary if charging is not active.
 
 	bms_state = BMS_IDLE;
 }

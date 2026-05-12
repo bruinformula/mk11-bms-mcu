@@ -18,7 +18,8 @@ void configurePrchgTxMsg() {
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
 }
 
-void prechargeStart() { // Triggered by CAN Request from VCU; check fdcan.c.
+// Triggered by CAN Request from VCU; check fdcan.c.
+void prechargeStart() {
 	if (precharge_state == PRECHARGE_IDLE || precharge_state == PRECHARGE_FAIL) {
 		// Able to re-attempt precharge!
 		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);

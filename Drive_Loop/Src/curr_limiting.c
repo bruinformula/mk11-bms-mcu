@@ -82,6 +82,8 @@ void configureDCL_CCL_TxMsg() {
 }
 
 void sendDCL_CCL() {
+	if (bms_state != BMS_DRIVE) return;
+
 	float highest_cell_temp = temp_context.highest_cell_temp;
 	calculateDCL(highest_cell_temp);
 	calculateCCL(highest_cell_temp);

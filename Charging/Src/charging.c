@@ -16,6 +16,8 @@ void charging_loop() {
 	uint32_t events;
     xTaskNotifyWait(0, UINT32_MAX, &events, 50);
 
+    if (bms_state != BMS_CHARGING) return;
+
     uint16_t pp_adc;
     uint32_t cp_period;
     uint32_t cp_pulse;
