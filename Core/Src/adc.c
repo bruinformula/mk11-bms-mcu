@@ -326,13 +326,17 @@ void startADC() {
 }
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
+	bool scheduler_running = (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING);
+
 	current_context.current_sensor_low_adc = adc_val[0] & 0xFFFF;
 	current_context.current_sensor_high_adc = (adc_val[0] >> 16) & 0xFFFF;
 	j1772_context.proximity_pilot_adc = adc_val[1] & 0xFFFF;
 
-	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	xTaskNotifyFromISR(currTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
-	xTaskNotifyFromISR(chargingTaskHandle, EVT_PP_ADC_READY, eSetBits, &xHigherPriorityTaskWoken);
-	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	if (scheduler_running) {
+		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+		xTaskNotifyFromISR(currTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
+		xTaskNotifyFromISR(chargingTaskHandle, EVT_PP_ADC_READY, eSetBits, &xHigherPriorityTaskWoken);
+		portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
 }
 /* USER CODE END 1 */

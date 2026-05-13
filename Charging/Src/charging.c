@@ -66,20 +66,36 @@ void charging_loop() {
     		break;
 
         case CHG_ACTIVE:
-        	// Charger expects CAN every 1 second, MUST be rate limited.
-        	// Output voltage/current seemed to oscillate between 0 and actual value without rate limiting.
         	if (proximity_pilot_state != STATE_PP_CONNECTED ||
         			control_pilot_state != STATE_CP_PWM_PRESENT) {
         		charging_state = CHG_IDLE;
         	    break;
         	}
 
-        	if (voltage_context.highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
+        	float current_highest_cell_voltage = voltage_context.highest_cell_voltage;
+
+        	if (current_highest_cell_voltage > MAX_CELL_VOLTAGE_CHARGING_THRESHOLD) {
         		charging_state = CHG_COMPLETE;
         	} else {
+        		// Charger expects CAN every 1 second, MUST be rate limited.
+        		// Output voltage/current seemed to oscillate between 0 and actual value without rate limiting.
             	if (HAL_GetTick() - last_charger_tx_time < 1000) break;
 
-        		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+            	if (current_highest_cell_voltage > RAMP_CELL_VOLTAGE_CHARGING_THRESHOLD) {
+            		float scaling_factor = (current_highest_cell_voltage - RAMP_CELL_VOLTAGE_CHARGING_THRESHOLD)
+            				/ SCALING_RANGE;
+
+            		if (scaling_factor < 0.0f) scaling_factor = 0.0f;
+            		else if (scaling_factor > 1.0f) scaling_factor = 1.0f;
+
+            		sendChargerRequest(CHARGER_VOLTAGE,
+            				advertised_amps_dc -
+							((advertised_amps_dc - MIN_CHARGING_CURRENT) * scaling_factor),
+							0);
+            	} else {
+            		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+            	}
+
         		last_charger_tx_time = HAL_GetTick();
         		charger_tx_count++;
         	}

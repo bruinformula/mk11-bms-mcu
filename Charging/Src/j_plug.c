@@ -12,6 +12,8 @@ volatile STATE_PP proximity_pilot_state;
 volatile J1772_CONTEXT j1772_context;
 
 void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
+	bool scheduler_running = (xTaskGetSchedulerState() == taskSCHEDULER_RUNNING);
+
     if (htim->Channel == HAL_TIM_ACTIVE_CHANNEL_1) {
     	uint32_t period = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
     	uint32_t pulse  = HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
@@ -20,9 +22,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim) {
     	j1772_context.control_pilot_pulse = pulse;
     	j1772_context.last_cp_update_tick = HAL_GetTick();
 
-    	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    	xTaskNotifyFromISR(chargingTaskHandle, EVT_CP_UPDATE, eSetBits, &xHigherPriorityTaskWoken);
-    	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    	if (scheduler_running) {
+        	BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+        	xTaskNotifyFromISR(chargingTaskHandle, EVT_CP_UPDATE, eSetBits, &xHigherPriorityTaskWoken);
+        	portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    	}
     }
 }
 
