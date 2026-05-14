@@ -150,7 +150,6 @@ void enter_balancing_mode() {
 // Reset any specialized state machines and associated necessary variables.
 void exit_precharge_mode() {
 	precharge_state = PRECHARGE_IDLE;
-	bms_state = BMS_IDLE;
 }
 
 void exit_drive_mode() {
@@ -158,7 +157,6 @@ void exit_drive_mode() {
 	// However, successful precharge is necessary for transition to driving.
 	// Thus, we effectively are exiting precharge mode.
 	precharge_state = PRECHARGE_IDLE;
-	bms_state = BMS_IDLE;
 }
 
 void exit_charging_mode() {
@@ -170,8 +168,6 @@ void exit_charging_mode() {
 
      stopPWM_Capture();
 	// Control Pilot readings NOT necessary if charging is not active.
-
-	bms_state = BMS_IDLE;
 }
 
 void exit_balancing_mode() {
@@ -187,5 +183,4 @@ void exit_balancing_mode() {
 		IC[i].tx_cfgb.dcto = 0;
 	}
 	adBms6830_write_config(TOTAL_IC, IC);
-	bms_state = BMS_IDLE;
 }
