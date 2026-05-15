@@ -55,15 +55,20 @@ void reset_operating_state(BMS_STATE prev_state) {
     switch (prev_state) {
     	case BMS_CHARGING:
     		exit_charging_mode();
+    		break;
     	case BMS_BALANCING:
     		exit_balancing_mode();
+    		break;
     	case BMS_PRECHARGING:
     		exit_precharge_mode();
+    		break;
     	case BMS_DRIVE:
     		exit_drive_mode();
+    		break;
     	default:
+    		// TODO: Check for race conditions.
     		// BMS_INTERNAL_FAULT or BMS_EXTERNAL_FAULT
-    		// Should never reach here!
+    		// Should never reach here, ideally...
     		break;
     }
 }

@@ -85,10 +85,7 @@ int iar_fputc(int ch);
 /* USER CODE BEGIN 0 */
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if (GPIO_Pin == SHUTDOWN_POWER_Pin) {
-		if (shutdown_debounce_active) return;
-		shutdown_debounce_active = true;
-        shutdown_debounce_start = HAL_GetTick();
-        new_shutdown_state = HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin);
+		// DO NOTHING
 	}
 }
 /* USER CODE END 0 */
@@ -146,7 +143,7 @@ int main(void)
   configureChargeTxMsg();
   configurePrchgTxMsg();
   configureDCL_CCL_TxMsg();
-
+  configureShutdownLostTxMsg();
   // CAN STARTUP
   configureFilters();
   startCAN_Tx_Rx();

@@ -7,12 +7,43 @@
 
 #include "safety_handler.h"
 
-volatile GPIO_PinState new_shutdown_state;
-volatile bool shutdown_debounce_active = false;
-volatile uint32_t shutdown_debounce_start;
+static FDCAN_TxHeaderTypeDef Shutdown_Lost_TxHeader;
+static uint8_t Shutdown_Lost_TxData[8];
 
-void process_shutdown_signal() {
-	if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == GPIO_PIN_SET) {
+void configureShutdownLostTxMsg() {
+	configureFDCAN_TxMessage_STD(&Shutdown_Lost_TxHeader, BMS_SHUTDOWN_LOST_TX_ID);
+}
+
+void service_shutdown_power_signal(void)
+{
+    static GPIO_PinState last_sample = GPIO_PIN_RESET;
+    static GPIO_PinState debounced_state = GPIO_PIN_RESET;
+
+    static uint32_t last_change_time = 0;
+
+    GPIO_PinState sample = HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin);
+
+    uint32_t now = HAL_GetTick();
+
+    if (sample != last_sample) {
+        last_sample = sample;
+        last_change_time = now;
+    }
+
+    if ((now - last_change_time) < 50U) {
+        return;
+    }
+
+    if (sample != debounced_state) {
+        debounced_state = sample;
+        bool shutdown_asserted =
+            (sample == GPIO_PIN_SET);
+        apply_shutdown_power_state(shutdown_asserted);
+    }
+}
+
+void apply_shutdown_power_state(bool shutdown_asserted) {
+	if (shutdown_asserted) {
 		if (bms_state == BMS_IDLE || bms_state == BMS_INTERNAL_FAULT || bms_state == BMS_EXTERNAL_FAULT) {
 			bms_state = BMS_IDLE;
 			determine_operating_state();
@@ -25,21 +56,14 @@ void process_shutdown_signal() {
 		// Still, we assert that it is open.
 		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
 
+		reset_operating_state(bms_state);
 		if (bms_state != BMS_INTERNAL_FAULT) {
 			bms_state = BMS_EXTERNAL_FAULT;
 		}
-		reset_operating_state(bms_state);
-	}
-}
 
-void debounce_shutdown_signal() {
-	if (shutdown_debounce_active) {
-		if (HAL_GetTick() - shutdown_debounce_start < 100) return;
-		if (HAL_GPIO_ReadPin(SHUTDOWN_POWER_GPIO_Port, SHUTDOWN_POWER_Pin) == new_shutdown_state) {
-			// Stable change detected!
-			process_shutdown_signal();
-		}
-		shutdown_debounce_active = false;
+		osMutexWait(CAN_MUTEXHandle, osWaitForever);
+		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Shutdown_Lost_TxHeader, Shutdown_Lost_TxData);
+		osMutexRelease(CAN_MUTEXHandle);
 	}
 }
 
