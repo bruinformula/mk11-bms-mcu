@@ -30,7 +30,7 @@ void service_shutdown_power_signal(void)
         last_change_time = now;
     }
 
-    if ((now - last_change_time) < 50U) {
+    if ((now - last_change_time) < 100U) {
         return;
     }
 

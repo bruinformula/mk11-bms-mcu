@@ -37,8 +37,6 @@ void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
 }
 
 void startBalancingLoop(int percent) {
-	if (bms_state != BMS_BALANCING) return;
-
 	if (percent < 0) balance_percent = 0;
 	if (percent > 100) balance_percent = 100;
 	balance_percent = (uint8_t)percent;
@@ -87,7 +85,7 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		case BALANCE_DISCHARGE:
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
-            adBms6830_write_config(tIC, ic);
+            adBms6830_write_read_config(tIC, ic);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
@@ -103,7 +101,7 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		case BALANCE_WAIT:
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
-            adBms6830_write_config(tIC, ic);
+            adBms6830_write_read_config(tIC, ic);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_WAIT_PERIOD) {

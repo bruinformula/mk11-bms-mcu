@@ -11,41 +11,57 @@ volatile BMS_STATE bms_state = BMS_IDLE;
 
 #define RX_BUF_SIZE 32
 static uint8_t uart_rx_buffer[RX_BUF_SIZE];
+static char serial_cmd_buffer[RX_BUF_SIZE];
 
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 	if (huart->Instance == LPUART1) {
-		char cmd[RX_BUF_SIZE];
 		uint16_t copy_len = (len < RX_BUF_SIZE - 1) ? len : (RX_BUF_SIZE - 1);
-		memcpy(cmd, uart_rx_buffer, copy_len);
-		cmd[copy_len] = '\0';
+		memcpy(serial_cmd_buffer, uart_rx_buffer, copy_len);
+	    serial_cmd_buffer[copy_len] = '\0';
 
-		char *newline = strchr(cmd, '\n');
-		if (newline) *newline = '\0';
-		char *carriage = strchr(cmd, '\r');
-		if (carriage) *carriage = '\0';
+	    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+	    xTaskNotifyFromISR(serialCmdTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
 
-		if (strcmp(cmd, "ENTER_CHG_MODE") == 0) {
+	    HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+	    __HAL_DMA_DISABLE_IT(hlpuart1.hdmarx, DMA_IT_HT);
+
+	    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+	}
+}
+
+void processGUI_Cmd() {
+	char *newline = strchr(serial_cmd_buffer, '\n');
+	if (newline) *newline = '\0';
+
+	char *carriage = strchr(serial_cmd_buffer, '\r');
+	if (carriage) *carriage = '\0';
+
+	if (bms_state == BMS_WAIT_FOR_GUI) {
+		if (strcmp(serial_cmd_buffer, "ENTER_CHG_MODE") == 0) {
 			enter_charging_mode();
-		} else if (strcmp(cmd, "EXIT_CHG_MODE") == 0) {
-			// TODO
-		} else if (strcmp(cmd, "ENTER_BAL_MODE") == 0) {
-			enter_balancing_mode();
-		} else if (strcmp(cmd, "EXIT_BAL_MODE") == 0) {
-			// TODO
-		} else if (strncmp(cmd, "START_BAL", 10) == 0) {
-			// Parse the % sent in the serial command from GUI.
-			startBalancingLoop(atoi(&cmd[10]));
+	    } else if (strcmp(serial_cmd_buffer, "ENTER_BAL_MODE") == 0) {
+	    	enter_balancing_mode();
+	    }
+	} else if (bms_state == BMS_CHARGING) {
+		// TODO: UNTESTED
+		if (strcmp(serial_cmd_buffer, "EXIT_CHG_MODE") == 0) {
+			exit_charging_mode();
 		}
-
-        HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+	} else if (bms_state == BMS_BALANCING) {
+		// TODO: Untested
+		if (strcmp(serial_cmd_buffer, "EXIT_BAL_MODE") == 0) {
+			exit_balancing_mode();
+		} else if (strncmp(serial_cmd_buffer, "START_BAL", 9) == 0) {
+			int percent = atoi(&serial_cmd_buffer[10]);
+			startBalancingLoop(percent);
+		}
 	}
 }
 
 void determine_operating_state() {
+	// Based on Power Signal Logic.
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_WAIT_FOR_GUI;
-		// Receive commands over Serial (GUI)!
-		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+		enter_wait_for_gui_mode();
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		enter_precharge_mode();
 	}
@@ -53,6 +69,9 @@ void determine_operating_state() {
 
 void reset_operating_state(BMS_STATE prev_state) {
     switch (prev_state) {
+    	case BMS_WAIT_FOR_GUI:
+    		exit_wait_for_gui_mode();
+    		break;
     	case BMS_CHARGING:
     		exit_charging_mode();
     		break;
@@ -74,45 +93,56 @@ void reset_operating_state(BMS_STATE prev_state) {
 }
 
 void wakeup_tasks() {
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
 	switch(bms_state) {
+		case BMS_WAIT_FOR_GUI:
+			// NO CORRESPONDING TASKS TO WAKE
+			break;
 		case BMS_BALANCING:
-			xTaskNotifyFromISR(balancingTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			xTaskNotify(balancingTaskHandle, 0, eNoAction);
 			break;
 		case BMS_CHARGING:
-			xTaskNotifyFromISR(chargingTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			xTaskNotify(chargingTaskHandle, 0, eNoAction);
 			break;
 		case BMS_PRECHARGING:
-			xTaskNotifyFromISR(prchgTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+			xTaskNotify(prchgTaskHandle, 0, eNoAction);
 			break;
 		case BMS_DRIVE:
-            xTaskNotifyFromISR(currLimitTaskHandle, 0, eNoAction, &xHigherPriorityTaskWoken);
+            xTaskNotify(currLimitTaskHandle, 0, eNoAction);
             break;
 
 		default:
 			break;
 	}
-
-    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 void change_baud_rate_500() {
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
     HAL_FDCAN_DeInit(&hfdcan1);
 	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV1;
 	HAL_FDCAN_Init(&hfdcan1);
 	startCAN_Tx_Rx();
+	osMutexRelease(CAN_MUTEXHandle);
 }
 
 void change_baud_rate_250() {
 	// BAUD RATE MUST BE CHANGED TO 250 KBps TO TALK TO ELCON CHARGER!
+	osMutexWait(CAN_MUTEXHandle, osWaitForever);
     HAL_FDCAN_DeInit(&hfdcan1);
 	hfdcan1.Init.ClockDivider = FDCAN_CLOCK_DIV2;
 	HAL_FDCAN_Init(&hfdcan1);
 	startCAN_Tx_Rx();
+	osMutexRelease(CAN_MUTEXHandle);
 }
 
 // ENTER BMS STATES!
+void enter_wait_for_gui_mode() {
+	bms_state = BMS_WAIT_FOR_GUI;
+	// Receive commands over Serial (GUI)!
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+	__HAL_DMA_DISABLE_IT(hlpuart1.hdmarx, DMA_IT_HT);
+	// NO CORRESPONDING TASKS TO WAKE!
+}
+
 void enter_precharge_mode() {
 	bms_state = BMS_PRECHARGING;
 	precharge_state = PRECHARGE_IDLE;
@@ -144,7 +174,10 @@ void enter_balancing_mode() {
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		IC[i].tx_cfgb.dcto = 7;
 	}
-	adBms6830_write_config(TOTAL_IC, IC);
+
+	osMutexWait(SPI_MUTEXHandle, osWaitForever);
+	adBms6830_write_read_config(TOTAL_IC, IC);
+	osMutexRelease(SPI_MUTEXHandle);
 
 	bms_state = BMS_BALANCING;
 	balance_state = BALANCE_IDLE;
@@ -153,6 +186,10 @@ void enter_balancing_mode() {
 
 // EXIT BMS STATES!
 // Reset any specialized state machines and associated necessary variables.
+void exit_wait_for_gui_mode() {
+	HAL_UART_DMAStop(&hlpuart1);
+}
+
 void exit_precharge_mode() {
 	precharge_state = PRECHARGE_IDLE;
 }
@@ -168,9 +205,8 @@ void exit_charging_mode() {
 	charging_state = CHG_IDLE;
 	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
     // change_baud_rate_500();
-	// Keep Baud Rate at 250 Kbps for debugging reasons.
+	// Keep Baud Rate at 250 Kbps for debugging reasons!
 	// Still want to use CAN even if we are not actively charging.
-
      stopPWM_Capture();
 	// Control Pilot readings NOT necessary if charging is not active.
 }
@@ -187,5 +223,8 @@ void exit_balancing_mode() {
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		IC[i].tx_cfgb.dcto = 0;
 	}
-	adBms6830_write_config(TOTAL_IC, IC);
+
+	osMutexWait(SPI_MUTEXHandle, osWaitForever);
+	adBms6830_write_read_config(TOTAL_IC, IC);
+	osMutexRelease(SPI_MUTEXHandle);
 }

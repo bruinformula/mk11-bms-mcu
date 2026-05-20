@@ -242,8 +242,8 @@ void adBms6830_write_read_config(uint8_t tIC, cell_asic *ic)
   adBmsWriteData(tIC, &ic[0], WRCFGB, Config, B);
   adBmsReadData(tIC, &ic[0], RDCFGA, Config, A);
   adBmsReadData(tIC, &ic[0], RDCFGB, Config, B);
-  printWriteConfig(tIC, &ic[0], Config, ALL_GRP);
-  printReadConfig(tIC, &ic[0], Config, ALL_GRP);
+//  printWriteConfig(tIC, &ic[0], Config, ALL_GRP);
+//  printReadConfig(tIC, &ic[0], Config, ALL_GRP);
 }
 
 /**

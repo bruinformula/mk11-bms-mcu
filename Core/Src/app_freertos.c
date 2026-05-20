@@ -63,6 +63,7 @@ osThreadId currLimitTaskHandle;
 osThreadId balancingTaskHandle;
 osThreadId chargingTaskHandle;
 osThreadId socTaskHandle;
+osThreadId serialCmdTaskHandle;
 osMutexId SPI_MUTEXHandle;
 osMutexId CAN_MUTEXHandle;
 osMutexId VOLTAGE_MUTEXHandle;
@@ -84,6 +85,7 @@ void currLimitFunction(void const * argument);
 void balancingFunction(void const * argument);
 void chargingFunction(void const * argument);
 void socFunction(void const * argument);
+void serialCmdFunction(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -173,6 +175,10 @@ void MX_FREERTOS_Init(void) {
   /* definition and creation of socTask */
   osThreadDef(socTask, socFunction, osPriorityNormal, 0, 512);
   socTaskHandle = osThreadCreate(osThread(socTask), NULL);
+
+  /* definition and creation of serialCmdTask */
+  osThreadDef(serialCmdTask, serialCmdFunction, osPriorityNormal, 0, 512);
+  serialCmdTaskHandle = osThreadCreate(osThread(serialCmdTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -402,6 +408,25 @@ void socFunction(void const * argument)
 	  osDelay(500);
   }
   /* USER CODE END socFunction */
+}
+
+/* USER CODE BEGIN Header_serialCmdFunction */
+/**
+* @brief Function implementing the serialCmdTask thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_serialCmdFunction */
+void serialCmdFunction(void const * argument)
+{
+  /* USER CODE BEGIN serialCmdFunction */
+  /* Infinite loop */
+  for(;;)
+  {
+	ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	processGUI_Cmd();
+  }
+  /* USER CODE END serialCmdFunction */
 }
 
 /* Private application code --------------------------------------------------*/
