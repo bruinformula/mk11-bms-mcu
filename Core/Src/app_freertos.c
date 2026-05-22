@@ -31,6 +31,7 @@
 #include "current_calculations.h"
 #include "prchg.h"
 #include "curr_limiting.h"
+#include "gui_test.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -348,6 +349,7 @@ void balancingFunction(void const * argument)
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_BALANCING) {
 		  balancingLoop(TOTAL_IC, IC);
+		  send_bal_status(TOTAL_IC, IC);
 		  osDelay(500); // Discharge Timer is ~2 Seconds.
 	  }
   }

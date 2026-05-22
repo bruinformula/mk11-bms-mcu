@@ -14,9 +14,10 @@
 #include "thermistor.h"
 #include "voltage_calculations.h"
 #include "adBms_Application.h"
+#include "balancing.h"
 
 extern char json_buf[4096];
-int build_bms_json();
-void send_bms_json();
+
+void send_bal_status(uint8_t tIC, cell_asic *ic);
 
 #endif /* INC_GUI_TEST_H_ */

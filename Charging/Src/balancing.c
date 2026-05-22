@@ -53,6 +53,24 @@ void startBalancingLoop(int percent) {
 	balance_state = BALANCE_COMPUTE_DISCHARGE;
 }
 
+void stopBalancingLoop(uint8_t tIC, cell_asic *ic) {
+	// Clear all PWM duty cycles.
+	for (size_t i = 0; i < tIC; ++i) {
+		memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
+		memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+	}
+	// Write cleared config to ICs.
+	osMutexWait(SPI_MUTEXHandle, osWaitForever);
+	adBms6830_write_config(tIC, ic);
+	osMutexRelease(SPI_MUTEXHandle);
+
+	balance_state = BALANCE_IDLE;
+}
+
+uint8_t getBalancePercent(void) {
+	return balance_percent;
+}
+
 void balancingLoop(uint8_t tIC, cell_asic *ic) {
 	switch (balance_state) {
 		case BALANCE_IDLE:

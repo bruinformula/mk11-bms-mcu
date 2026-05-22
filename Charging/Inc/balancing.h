@@ -31,6 +31,8 @@ extern volatile BalanceState balance_state;
 
 void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num);
 void startBalancingLoop(int balance_percent);
+void stopBalancingLoop(uint8_t tIC, cell_asic *ic);
 void balancingLoop(uint8_t tIC, cell_asic *ic);
+uint8_t getBalancePercent(void);
 
 #endif /* INC_BALANCING_H_ */

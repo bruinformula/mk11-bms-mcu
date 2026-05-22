@@ -27,14 +27,18 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 		if (strcmp(cmd, "ENTER_CHG_MODE") == 0) {
 			enter_charging_mode();
 		} else if (strcmp(cmd, "EXIT_CHG_MODE") == 0) {
-			// TODO
+			exit_charging_mode();
+			bms_state = BMS_WAIT_FOR_GUI;
 		} else if (strcmp(cmd, "ENTER_BAL_MODE") == 0) {
 			enter_balancing_mode();
 		} else if (strcmp(cmd, "EXIT_BAL_MODE") == 0) {
-			// TODO
-		} else if (strncmp(cmd, "START_BAL", 10) == 0) {
+			exit_balancing_mode();
+			bms_state = BMS_WAIT_FOR_GUI;
+		} else if (strncmp(cmd, "START_BAL", 9) == 0) {
 			// Parse the % sent in the serial command from GUI.
 			startBalancingLoop(atoi(&cmd[10]));
+		} else if (strcmp(cmd, "STOP_BAL") == 0) {
+			stopBalancingLoop(TOTAL_IC, IC);
 		}
 
         HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
@@ -42,12 +46,12 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 }
 
 void determine_operating_state() {
-	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
+	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET
+			|| HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		bms_state = BMS_WAIT_FOR_GUI;
 		// Receive commands over Serial (GUI)!
+		// Balancing is available with ANY power source (charge or ready).
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
-	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
-		enter_precharge_mode();
 	}
 }
 

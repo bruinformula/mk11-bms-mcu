@@ -9,48 +9,37 @@
 
 char json_buf[4096];
 
-//int build_bms_json() {
-//    int offset = 0;
-//
-//    offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
-//        "{\"voltages\":[");
-//
-//    // Voltages
-//    for (int i = 0; i < CELLS_PER_IC; i++) {
-//        offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
-//            "%.3f", voltage_conversions[0][i]);
-//
-//        if (i < CELLS_PER_IC  - 1)
-//            offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, ",");
-//    }
-//
-//    offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
-//        "],\"temperatures\":[");
-//
-//    // Temperatures
-//    for (int i = 0; i < CELLS_PER_IC; i++) {
-//        offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
-//            "%.2f", temp_conversions[0][i]);
-//
-//        if (i < CELLS_PER_IC - 1)
-//            offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, ",");
-//    }
-//
-//    // Stats + limits
-//    offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
-//        "],\"ccl\":%.2f,\"dcl\":%.2f,"
-//        "\"voltage_stats\":{\"min\":%.3f,\"max\":%.3f,\"avg\":%.3f},"
-//        "\"temperature_stats\":{\"min\":%.2f,\"max\":%.2f,\"avg\":%.2f}"
-//        "}\n",
-//        ccl, dcl,
-//        lowest_cell_voltage, highest_cell_voltage, avg_cell_voltage,
-//        lowest_cell_temp, highest_cell_temp, avg_cell_temp
-//    );
-//
-//    return offset;  // number of bytes to send
-//}
-//
-//void send_bms_json() {
-//	int len = build_bms_json();
-//	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, len, HAL_MAX_DELAY);
-//}
+/**
+ * @brief  Send balancing status telemetry over UART to the GUI.
+ *
+ * Format:  BAL:STATE=<state>,PCT=<percent>,IC<n>_DCC=0x<hex>,...\n
+ *
+ * Example: BAL:STATE=DISCHARGE,PCT=50,IC0_DCC=0x03FF,IC1_DCC=0x0000\n
+ *
+ * The GUI Python backend parses this line to display real-time balancing
+ * state and per-IC discharge control (DCC) bitmasks in the frontend.
+ */
+void send_bal_status(uint8_t tIC, cell_asic *ic) {
+    const char *state_str;
+    switch (balance_state) {
+        case BALANCE_IDLE:              state_str = "IDLE"; break;
+        case BALANCE_COMPUTE_DISCHARGE: state_str = "COMPUTE"; break;
+        case BALANCE_DISCHARGE:         state_str = "DISCHARGE"; break;
+        case BALANCE_WAIT:              state_str = "WAIT"; break;
+        case BALANCE_COMPLETE:          state_str = "COMPLETE"; break;
+        default:                        state_str = "UNKNOWN"; break;
+    }
+
+    int offset = 0;
+    offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
+        "BAL:STATE=%s,PCT=%u", state_str, getBalancePercent());
+
+    for (uint8_t i = 0; i < tIC; ++i) {
+        offset += snprintf(json_buf + offset, sizeof(json_buf) - offset,
+            ",IC%u_DCC=0x%04X", i, ic[i].tx_cfgb.dcc);
+    }
+
+    offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, "\n");
+
+    HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, offset, HAL_MAX_DELAY);
+}
