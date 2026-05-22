@@ -32,6 +32,7 @@
 #include "prchg.h"
 #include "curr_limiting.h"
 #include "gui_test.h"
+#include "serialPrintResult.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -196,6 +197,7 @@ void voltageFunction(void const * argument)
   for(;;)
   {
 	computeAllVoltages(TOTAL_IC, IC);
+	printVoltages(TOTAL_IC, IC, Cell);
 	if (!first_run) {
 		first_run = true;
 		voltage_ready = true;
@@ -220,6 +222,7 @@ void tempFunction(void const * argument)
   for(;;)
   {
 	computeAllTemps(TOTAL_IC, IC);
+	send_temp_status();
 	if (!first_run) {
 		first_run = true;
 		temp_ready = true;
@@ -239,11 +242,19 @@ void tempFunction(void const * argument)
 void safetyFunction(void const * argument)
 {
   /* USER CODE BEGIN safetyFunction */
+  extern void start_uart_listener(void);
+
   /* Infinite loop */
   for(;;)
   {
 	service_shutdown_power_signal();
 	BMS_CheckFaultRegister();
+
+	// Failsafe: if the UART listener dies for any reason, restart it.
+	if (hlpuart1.RxState == HAL_UART_STATE_READY || hlpuart1.ErrorCode != HAL_UART_ERROR_NONE) {
+		start_uart_listener();
+	}
+
     osDelay(50);
   }
   /* USER CODE END safetyFunction */
@@ -352,6 +363,18 @@ void balancingFunction(void const * argument)
 		  send_bal_status(TOTAL_IC, IC);
 		  osDelay(500); // Discharge Timer is ~2 Seconds.
 	  }
+	  
+	  // If we exited the loop, it means bms_state changed (e.g. EXIT_BAL_MODE received).
+	  // We MUST safely clear the discharge FETs and write to SPI before blocking again.
+	  for (size_t i = 0; i < TOTAL_IC; ++i) {
+		  memset(IC[i].PwmA.pwma, 0x00, sizeof(IC[i].PwmA.pwma));
+		  memset(IC[i].PwmB.pwmb, 0x00, sizeof(IC[i].PwmB.pwmb));
+		  IC[i].tx_cfgb.dcc = 0;
+	  }
+	  osMutexWait(SPI_MUTEXHandle, osWaitForever);
+	  adBms6830_write_config(TOTAL_IC, IC);
+	  osMutexRelease(SPI_MUTEXHandle);
+	  balance_state = BALANCE_IDLE;
   }
   /* USER CODE END balancingFunction */
 }

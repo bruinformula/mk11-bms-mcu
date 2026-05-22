@@ -43,3 +43,22 @@ void send_bal_status(uint8_t tIC, cell_asic *ic) {
 
     HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, offset, HAL_MAX_DELAY);
 }
+
+void send_temp_status(void) {
+    int offset = 0;
+    osMutexWait(TEMP_MUTEXHandle, osWaitForever);
+    for (uint8_t i = 0; i < TOTAL_IC; ++i) {
+        offset = snprintf(json_buf, sizeof(json_buf), "IC%u_TMP:", i + 1);
+        for (uint8_t j = 0; j < CELLS_PER_IC; ++j) {
+            float t = temp_context.temp_conversions[i][j];
+            if (j == 0) {
+                offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, "T%u=%.1f", j + 1, t);
+            } else {
+                offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, ",T%u=%.1f", j + 1, t);
+            }
+        }
+        offset += snprintf(json_buf + offset, sizeof(json_buf) - offset, "\n");
+        HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, offset, HAL_MAX_DELAY);
+    }
+    osMutexRelease(TEMP_MUTEXHandle);
+}

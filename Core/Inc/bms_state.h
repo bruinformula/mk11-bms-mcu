@@ -45,5 +45,6 @@ void exit_drive_mode();
 void exit_charging_mode();
 void exit_balancing_mode();
 
+void start_uart_listener();
 
 #endif /* INC_BMS_STATE_H_ */

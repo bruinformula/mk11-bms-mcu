@@ -12,6 +12,10 @@ volatile BMS_STATE bms_state = BMS_IDLE;
 #define RX_BUF_SIZE 32
 static uint8_t uart_rx_buffer[RX_BUF_SIZE];
 
+void start_uart_listener() {
+	HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
+}
+
 void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 	if (huart->Instance == LPUART1) {
 		char cmd[RX_BUF_SIZE];
@@ -24,35 +28,45 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 		char *carriage = strchr(cmd, '\r');
 		if (carriage) *carriage = '\0';
 
-		if (strcmp(cmd, "ENTER_CHG_MODE") == 0) {
-			enter_charging_mode();
-		} else if (strcmp(cmd, "EXIT_CHG_MODE") == 0) {
-			exit_charging_mode();
-			bms_state = BMS_WAIT_FOR_GUI;
-		} else if (strcmp(cmd, "ENTER_BAL_MODE") == 0) {
-			enter_balancing_mode();
-		} else if (strcmp(cmd, "EXIT_BAL_MODE") == 0) {
-			exit_balancing_mode();
-			bms_state = BMS_WAIT_FOR_GUI;
-		} else if (strncmp(cmd, "START_BAL", 9) == 0) {
-			// Parse the % sent in the serial command from GUI.
-			startBalancingLoop(atoi(&cmd[10]));
-		} else if (strcmp(cmd, "STOP_BAL") == 0) {
-			stopBalancingLoop(TOTAL_IC, IC);
+		// Block commands while in a fault state.
+		if (bms_state != BMS_INTERNAL_FAULT && bms_state != BMS_EXTERNAL_FAULT) {
+			if (strcmp(cmd, "ENTER_CHG_MODE") == 0) {
+				enter_charging_mode();
+			} else if (strcmp(cmd, "EXIT_CHG_MODE") == 0) {
+				exit_charging_mode();
+				bms_state = BMS_IDLE;
+			} else if (strcmp(cmd, "ENTER_BAL_MODE") == 0) {
+				enter_balancing_mode();
+			} else if (strcmp(cmd, "EXIT_BAL_MODE") == 0) {
+				exit_balancing_mode();
+				bms_state = BMS_IDLE;
+			} else if (strncmp(cmd, "START_BAL", 9) == 0) {
+				// Parse the % sent in the serial command from GUI.
+				startBalancingLoop(atoi(&cmd[10]));
+			} else if (strcmp(cmd, "STOP_BAL") == 0) {
+				stopBalancingLoop(TOTAL_IC, IC);
+			}
 		}
 
+		// Always re-arm the UART listener.
         HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
 	}
 }
 
-void determine_operating_state() {
-	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET
-			|| HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_WAIT_FOR_GUI;
-		// Receive commands over Serial (GUI)!
-		// Balancing is available with ANY power source (charge or ready).
+void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
+	if (huart->Instance == LPUART1) {
+		// If an error like Overrun (ORE) occurs, the DMA halts. We MUST restart it.
 		HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
 	}
+}
+
+void determine_operating_state() {
+	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
+		bms_state = BMS_WAIT_FOR_GUI;
+	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
+		enter_precharge_mode();
+	}
+	// UART listener is always active from boot — no need to start it here.
 }
 
 void reset_operating_state(BMS_STATE prev_state) {
@@ -148,7 +162,9 @@ void enter_balancing_mode() {
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		IC[i].tx_cfgb.dcto = 7;
 	}
-	adBms6830_write_config(TOTAL_IC, IC);
+	// NOTE: We cannot safely call adBms6830_write_config from an ISR
+	// because it uses SPI which might conflict or sleep. 
+	// The balancingTask will pick this up and write the config!
 
 	bms_state = BMS_BALANCING;
 	balance_state = BALANCE_IDLE;
@@ -170,7 +186,7 @@ void exit_drive_mode() {
 
 void exit_charging_mode() {
 	charging_state = CHG_IDLE;
-	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
+	// NOTE: UART listener stays active — GUI commands are always available.
     // change_baud_rate_500();
 	// Keep Baud Rate at 250 Kbps for debugging reasons.
 	// Still want to use CAN even if we are not actively charging.
@@ -181,7 +197,7 @@ void exit_charging_mode() {
 
 void exit_balancing_mode() {
 	balance_state = BALANCE_IDLE;
-	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
+	// NOTE: UART listener stays active — GUI commands are always available.
 	// Reset Discharge Current % to 0.
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		memset(IC[i].PwmA.pwma, 0x00, sizeof(IC[i].PwmA.pwma));
@@ -191,5 +207,5 @@ void exit_balancing_mode() {
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		IC[i].tx_cfgb.dcto = 0;
 	}
-	adBms6830_write_config(TOTAL_IC, IC);
+	// NOTE: We cannot safely call SPI from an ISR. The balancing loop will exit cleanly.
 }

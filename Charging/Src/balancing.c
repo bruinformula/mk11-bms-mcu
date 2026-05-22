@@ -16,6 +16,9 @@ static uint32_t phase_start_time;
 volatile BalanceState balance_state = BALANCE_IDLE;
 
 void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
+	// Enable the Discharge FET in the config register.
+	ic[ic_num].tx_cfgb.dcc |= (1 << cell_num);
+
 	uint8_t byte;
 	if (cell_num < PWMA) {
 		byte = cell_num/2;
@@ -54,17 +57,8 @@ void startBalancingLoop(int percent) {
 }
 
 void stopBalancingLoop(uint8_t tIC, cell_asic *ic) {
-	// Clear all PWM duty cycles.
-	for (size_t i = 0; i < tIC; ++i) {
-		memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
-		memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
-	}
-	// Write cleared config to ICs.
-	osMutexWait(SPI_MUTEXHandle, osWaitForever);
-	adBms6830_write_config(tIC, ic);
-	osMutexRelease(SPI_MUTEXHandle);
-
-	balance_state = BALANCE_IDLE;
+	// Defer the physical SPI clear to the balancingTask
+	balance_state = BALANCE_STOP_REQUESTED;
 }
 
 uint8_t getBalancePercent(void) {
@@ -85,6 +79,12 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 			osMutexRelease(VOLTAGE_MUTEXHandle);
 
             num_unbalanced_cells = 0;
+            for (size_t i = 0; i < tIC; ++i) {
+                memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
+                memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+                ic[i].tx_cfgb.dcc = 0;
+            }
+
             for (size_t i = 0; i < tIC; ++i) {
                 for (size_t j = 0; j < CELLS_PER_IC; ++j) {
                     if (voltage_conversions_snapshot[i][j] > local_lowest_cell_voltage + BALANCE_VOLTAGE_THRESHOLD) {
@@ -112,6 +112,7 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
             	for (size_t i = 0; i < tIC; ++i) {
             		memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
             		memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+            		ic[i].tx_cfgb.dcc = 0;
             	}
                 balance_state = BALANCE_WAIT;
                 phase_start_time = HAL_GetTick();
@@ -128,6 +129,18 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
                 balance_state = BALANCE_COMPUTE_DISCHARGE;
             }
             break;
+
+		case BALANCE_STOP_REQUESTED:
+			for (size_t i = 0; i < tIC; ++i) {
+				memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
+				memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+				ic[i].tx_cfgb.dcc = 0;
+			}
+			osMutexWait(SPI_MUTEXHandle, osWaitForever);
+			adBms6830_write_config(tIC, ic);
+			osMutexRelease(SPI_MUTEXHandle);
+			balance_state = BALANCE_IDLE;
+			break;
 
 		case BALANCE_COMPLETE:
 			// DO NOTHING, BLOCK

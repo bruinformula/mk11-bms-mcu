@@ -147,6 +147,9 @@ int main(void)
   // CAN STARTUP
   configureFilters();
   startCAN_Tx_Rx();
+
+  // UART — always listening for GUI commands (balancing, charging, etc.)
+  start_uart_listener();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */

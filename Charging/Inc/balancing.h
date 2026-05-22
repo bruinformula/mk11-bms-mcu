@@ -16,15 +16,16 @@
 #include "cmsis_os.h"
 #include "freertos_handles.h"
 
-#define BALANCE_VOLTAGE_THRESHOLD 0.001
-#define BALANCE_BLEED_PERIOD 60000
-#define BALANCE_WAIT_PERIOD 60000
+#define BALANCE_VOLTAGE_THRESHOLD 0.005
+#define BALANCE_BLEED_PERIOD 120000
+#define BALANCE_WAIT_PERIOD 10000
 
 typedef enum {
 	BALANCE_IDLE,
 	BALANCE_COMPUTE_DISCHARGE,
 	BALANCE_DISCHARGE,
 	BALANCE_WAIT,
+	BALANCE_STOP_REQUESTED,
 	BALANCE_COMPLETE
 } BalanceState;
 extern volatile BalanceState balance_state;

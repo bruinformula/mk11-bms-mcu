@@ -1,5 +1,5 @@
 ../Charging/Src/balancing.c:18:6:set_cell_pwm	4
-../Charging/Src/balancing.c:39:6:startBalancingLoop	6
-../Charging/Src/balancing.c:56:6:stopBalancingLoop	2
-../Charging/Src/balancing.c:70:9:getBalancePercent	1
-../Charging/Src/balancing.c:74:6:balancingLoop	12
+../Charging/Src/balancing.c:42:6:startBalancingLoop	6
+../Charging/Src/balancing.c:59:6:stopBalancingLoop	1
+../Charging/Src/balancing.c:64:9:getBalancePercent	1
+../Charging/Src/balancing.c:68:6:balancingLoop	15

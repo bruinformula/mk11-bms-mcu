@@ -1,1 +1,2 @@
 ../GUI/Src/gui_test.c:22:6:send_bal_status	48	static
+../GUI/Src/gui_test.c:47:6:send_temp_status	48	static

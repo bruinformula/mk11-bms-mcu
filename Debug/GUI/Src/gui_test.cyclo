@@ -1,1 +1,2 @@
 ../GUI/Src/gui_test.c:22:6:send_bal_status	7
+../GUI/Src/gui_test.c:47:6:send_temp_status	4
