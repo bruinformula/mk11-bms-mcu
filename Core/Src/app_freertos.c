@@ -54,6 +54,7 @@
 /* USER CODE BEGIN Variables */
 volatile bool temp_ready;
 volatile bool voltage_ready;
+volatile uint8_t charge_signal_state = 0;
 /* USER CODE END Variables */
 osThreadId voltageTaskHandle;
 osThreadId tempTaskHandle;
@@ -70,6 +71,7 @@ osMutexId CAN_MUTEXHandle;
 osMutexId VOLTAGE_MUTEXHandle;
 osMutexId TEMP_MUTEXHandle;
 osMutexId FAULT_MUTEXHandle;
+osMutexId UART_MUTEXHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -121,6 +123,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_MUTEX */
   /* add mutexes, ... */
+  osMutexDef(UART_MUTEX);
+  UART_MUTEXHandle = osMutexCreate(osMutex(UART_MUTEX));
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
@@ -222,7 +226,9 @@ void tempFunction(void const * argument)
   for(;;)
   {
 	computeAllTemps(TOTAL_IC, IC);
+	osMutexWait(UART_MUTEXHandle, osWaitForever);
 	send_temp_status();
+	osMutexRelease(UART_MUTEXHandle);
 	if (!first_run) {
 		first_run = true;
 		temp_ready = true;
@@ -247,6 +253,7 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+	charge_signal_state = HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin);
 	service_shutdown_power_signal();
 	BMS_CheckFaultRegister();
 
@@ -396,7 +403,9 @@ void chargingFunction(void const * argument)
 	  while (bms_state == BMS_CHARGING) {
 		  // Waits for ISR Notifications, w/ 50 ms timeout.
 		  charging_loop();
+		  osMutexWait(UART_MUTEXHandle, osWaitForever);
 		  send_charger_status();
+		  osMutexRelease(UART_MUTEXHandle);
 	  }
   }
   /* USER CODE END chargingFunction */

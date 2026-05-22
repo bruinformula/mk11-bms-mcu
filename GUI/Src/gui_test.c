@@ -70,6 +70,7 @@ void send_temp_status(void) {
 }
 
 void send_charger_status(void) {
+    char chg_buf[256];
     const char* pp_str;
     switch(proximity_pilot_state) {
         case STATE_PP_CONNECTED: pp_str = "CONNECTED"; break;
@@ -96,10 +97,10 @@ void send_charger_status(void) {
         default: chg_state_str = "UNKNOWN"; break;
     }
 
-	snprintf(json_buf, sizeof(json_buf), "CHG:PP=%s,CP=%lu,AD=%.1f,V=%u,I=%u|%s\n",
+	snprintf(chg_buf, sizeof(chg_buf), "CHG:PP=%s,CP=%lu,AD=%.1f,V=%u,I=%u|%s\n",
         pp_str, duty, advertised_amps_dc, 
         elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_voltage,
         elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_current,
         chg_state_str);
-	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, strlen(json_buf), HAL_MAX_DELAY);
+	HAL_UART_Transmit(&hlpuart1, (uint8_t*)chg_buf, strlen(chg_buf), HAL_MAX_DELAY);
 }

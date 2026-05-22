@@ -52,7 +52,7 @@ void charging_loop() {
 
     switch (charging_state) {
     	case CHG_IDLE:
-    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
     		sendChargerRequest(0, 0, 1);
     		if (proximity_pilot_state == STATE_PP_CONNECTED &&
     				control_pilot_state == STATE_CP_PWM_PRESENT) {
@@ -65,15 +65,29 @@ void charging_loop() {
     			charging_state = CHG_IDLE;
     			break;
     		}
-    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
     		charging_state = CHG_ACTIVE;
     		break;
 
         case CHG_ACTIVE:
-        	if (proximity_pilot_state != STATE_PP_CONNECTED ||
-        			control_pilot_state != STATE_CP_PWM_PRESENT) {
-        		charging_state = CHG_IDLE;
-        	    break;
+        {
+        	// Grace period: don't instantly drop charging on momentary CP/PP glitches
+        	static uint32_t signal_lost_tick = 0;
+        	bool signal_ok = (proximity_pilot_state == STATE_PP_CONNECTED &&
+        			control_pilot_state == STATE_CP_PWM_PRESENT);
+
+        	if (!signal_ok) {
+        		if (signal_lost_tick == 0) {
+        			signal_lost_tick = HAL_GetTick();
+        		}
+        		if (HAL_GetTick() - signal_lost_tick > CP_TIMEOUT_MS) {
+        			signal_lost_tick = 0;
+        			charging_state = CHG_IDLE;
+        			break;
+        		}
+        		// Still within grace period — keep charging
+        	} else {
+        		signal_lost_tick = 0;
         	}
 
         	float current_highest_cell_voltage = voltage_context.highest_cell_voltage;
@@ -97,21 +111,23 @@ void charging_loop() {
 							((advertised_amps_dc - MIN_CHARGING_CURRENT) * scaling_factor),
 							0);
             	} else {
-            		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+            		float clamped_current = fminf(advertised_amps_dc, 2.0f);
+            		sendChargerRequest(CHARGER_VOLTAGE, clamped_current, 0);
             	}
 
         		last_charger_tx_time = HAL_GetTick();
         		charger_tx_count++;
         	}
         	break;
+        }
 
         case CHG_ELCON_FAULT:
-			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
 			sendChargerRequest(0,0,1);
 			break;
 
         case CHG_COMPLETE:
-			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
 			sendChargerRequest(0,0,1);
 			break;
     }

@@ -24,5 +24,6 @@ extern osMutexId CAN_MUTEXHandle;
 extern osMutexId VOLTAGE_MUTEXHandle;
 extern osMutexId TEMP_MUTEXHandle;
 extern osMutexId FAULT_MUTEXHandle;
+extern osMutexId UART_MUTEXHandle;
 
 #endif /* INC_FREERTOS_HANDLES_H_ */
