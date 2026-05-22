@@ -6,6 +6,12 @@
  */
 
 #include "gui_test.h"
+#include "voltage_calculations.h"
+#include "adBms_Application.h"
+#include "balancing.h"
+#include "j_plug.h"
+#include "charging.h"
+#include "elcon_charger.h"
 
 char json_buf[4096];
 
@@ -61,4 +67,39 @@ void send_temp_status(void) {
         HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, offset, HAL_MAX_DELAY);
     }
     osMutexRelease(TEMP_MUTEXHandle);
+}
+
+void send_charger_status(void) {
+    const char* pp_str;
+    switch(proximity_pilot_state) {
+        case STATE_PP_CONNECTED: pp_str = "CONNECTED"; break;
+        case STATE_PP_BUTTON_PRESSED: pp_str = "BTN_PRESSED"; break;
+        case STATE_PP_NOT_CONNECTED: pp_str = "DISCONNECTED"; break;
+        default: pp_str = "UNKNOWN"; break;
+    }
+    
+    uint32_t duty = 0;
+    if (j1772_context.control_pilot_period > 0) {
+        duty = (j1772_context.control_pilot_pulse * 100) / j1772_context.control_pilot_period;
+    }
+    if (control_pilot_state != STATE_CP_PWM_PRESENT) {
+        duty = 0;
+    }
+    
+    const char* chg_state_str;
+    switch(charging_state) {
+        case CHG_IDLE: chg_state_str = "IDLE"; break;
+        case CHG_WAITING: chg_state_str = "WAITING"; break;
+        case CHG_ACTIVE: chg_state_str = "CHARGING_ACTIVE"; break;
+        case CHG_ELCON_FAULT: chg_state_str = "CHARGER_FAULT"; break;
+        case CHG_COMPLETE: chg_state_str = "CHARGER_COMPLETE"; break;
+        default: chg_state_str = "UNKNOWN"; break;
+    }
+
+	snprintf(json_buf, sizeof(json_buf), "CHG:PP=%s,CP=%lu,AD=%.1f,V=%u,I=%u|%s\n",
+        pp_str, duty, advertised_amps_dc, 
+        elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_voltage,
+        elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_current,
+        chg_state_str);
+	HAL_UART_Transmit(&hlpuart1, (uint8_t*)json_buf, strlen(json_buf), HAL_MAX_DELAY);
 }

@@ -20,5 +20,6 @@ extern char json_buf[4096];
 
 void send_bal_status(uint8_t tIC, cell_asic *ic);
 void send_temp_status(void);
+void send_charger_status(void);
 
 #endif /* INC_GUI_TEST_H_ */

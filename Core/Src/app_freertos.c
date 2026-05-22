@@ -396,6 +396,7 @@ void chargingFunction(void const * argument)
 	  while (bms_state == BMS_CHARGING) {
 		  // Waits for ISR Notifications, w/ 50 ms timeout.
 		  charging_loop();
+		  send_charger_status();
 	  }
   }
   /* USER CODE END chargingFunction */

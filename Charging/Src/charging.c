@@ -12,6 +12,8 @@ volatile CHARGING_STATE charging_state = CHG_IDLE;
 static uint32_t charger_tx_count;
 static uint32_t last_charger_tx_time = 0;
 
+volatile uint8_t pilot_switch_state = 0;
+
 void charging_loop() {
 	uint32_t events;
     xTaskNotifyWait(0, UINT32_MAX, &events, 50);
@@ -22,6 +24,8 @@ void charging_loop() {
     uint32_t cp_period;
     uint32_t cp_pulse;
     uint32_t last_cp_tick;
+
+    pilot_switch_state = HAL_GPIO_ReadPin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin);
 
     // CRITICAL REGION
     taskENTER_CRITICAL();
@@ -48,7 +52,7 @@ void charging_loop() {
 
     switch (charging_state) {
     	case CHG_IDLE:
-    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
     		sendChargerRequest(0, 0, 1);
     		if (proximity_pilot_state == STATE_PP_CONNECTED &&
     				control_pilot_state == STATE_CP_PWM_PRESENT) {
@@ -61,7 +65,7 @@ void charging_loop() {
     			charging_state = CHG_IDLE;
     			break;
     		}
-    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
+    		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
     		charging_state = CHG_ACTIVE;
     		break;
 
@@ -102,12 +106,12 @@ void charging_loop() {
         	break;
 
         case CHG_ELCON_FAULT:
-			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
 			sendChargerRequest(0,0,1);
 			break;
 
         case CHG_COMPLETE:
-			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+			HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_SET);
 			sendChargerRequest(0,0,1);
 			break;
     }

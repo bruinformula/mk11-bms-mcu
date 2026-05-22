@@ -64,7 +64,7 @@ STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
 	float duty_cycle = ((float)pulse * 100.0f) / period;
 	float freq = (float)TIMER_CLOCK / period;
 
-	if (freq < 990.0f || freq > 1000.0f) return STATE_CP_FAULT;
+	if (freq < 800.0f || freq > 1200.0f) return STATE_CP_FAULT;
 	if (duty_cycle < 5.0f || duty_cycle > 95.0f) return STATE_CP_FAULT;
 
 	if (duty_cycle <= 85.0f) {

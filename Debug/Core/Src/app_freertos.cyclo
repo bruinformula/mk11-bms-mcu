@@ -8,4 +8,4 @@
 ../Core/Src/app_freertos.c:332:6:currLimitFunction	2
 ../Core/Src/app_freertos.c:354:6:balancingFunction	3
 ../Core/Src/app_freertos.c:389:6:chargingFunction	2
-../Core/Src/app_freertos.c:411:6:socFunction	3
+../Core/Src/app_freertos.c:412:6:socFunction	3
