@@ -6,7 +6,7 @@
  */
 
 
-#include "prchg.h"
+#include "../../Runtime/Inc/prchg.h"
 
 volatile float inverter_dc_volts;
 static uint32_t precharge_start_time = 0;
@@ -20,6 +20,8 @@ void configurePrchgTxMsg() {
 
 // Triggered by CAN Request from VCU; check fdcan.c.
 void prechargeStart() {
+	if (bms_state != BMS_PRECHARGING) return;
+
 	if (precharge_state == PRECHARGE_IDLE || precharge_state == PRECHARGE_FAIL) {
 		// Able to re-attempt precharge in these states.
 		HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_SET);

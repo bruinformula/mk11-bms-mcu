@@ -8,7 +8,7 @@
 #ifndef INC_SAFETY_HANDLER_H_
 #define INC_SAFETY_HANDLER_H_
 
-#define NUM_FAULT_TYPES 5
+#define NUM_FAULT_TYPES 6
 
 #include "gpio.h"
 #include "bms_state.h"

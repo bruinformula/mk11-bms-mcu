@@ -8,14 +8,15 @@
 #ifndef INC_BMS_STATE_H_
 #define INC_BMS_STATE_H_
 
-#include <can_datalogging.h>
-#include <curr_limiting.h>
 #include "gpio.h"
 #include "usart.h"
-#include "prchg.h"
 #include "charging.h"
 #include "balancing.h"
 #include "adBms_Application.h"
+#include "prchg.h"
+#include "curr_limiting.h"
+#include "gui.h"
+#include "can_datalogging.h"
 
 typedef enum {
 	BMS_IDLE = 0,
@@ -31,7 +32,6 @@ extern volatile BMS_STATE bms_state;
 
 void determine_operating_state();
 void reset_operating_state(BMS_STATE prev_state);
-void processGUI_Cmd();
 void wakeup_tasks();
 void change_baud_rate_500();
 void change_baud_rate_250();

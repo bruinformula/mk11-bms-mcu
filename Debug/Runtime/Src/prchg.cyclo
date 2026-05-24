@@ -1,0 +1,3 @@
+../Runtime/Src/prchg.c:17:6:configurePrchgTxMsg	1
+../Runtime/Src/prchg.c:22:6:prechargeStart	4
+../Runtime/Src/prchg.c:34:6:precharge_loop	5

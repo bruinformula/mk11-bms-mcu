@@ -9,55 +9,6 @@
 
 volatile BMS_STATE bms_state = BMS_IDLE;
 
-#define RX_BUF_SIZE 32
-static uint8_t uart_rx_buffer[RX_BUF_SIZE];
-static char serial_cmd_buffer[RX_BUF_SIZE];
-
-void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
-	if (huart->Instance == LPUART1) {
-		uint16_t copy_len = (len < RX_BUF_SIZE - 1) ? len : (RX_BUF_SIZE - 1);
-		memcpy(serial_cmd_buffer, uart_rx_buffer, copy_len);
-	    serial_cmd_buffer[copy_len] = '\0';
-
-	    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-	    xTaskNotifyFromISR(serialCmdTaskHandle, 0, eIncrement, &xHigherPriorityTaskWoken);
-
-	    HAL_UARTEx_ReceiveToIdle_DMA(&hlpuart1, uart_rx_buffer, RX_BUF_SIZE);
-	    __HAL_DMA_DISABLE_IT(hlpuart1.hdmarx, DMA_IT_HT);
-
-	    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-	}
-}
-
-void processGUI_Cmd() {
-	char *newline = strchr(serial_cmd_buffer, '\n');
-	if (newline) *newline = '\0';
-
-	char *carriage = strchr(serial_cmd_buffer, '\r');
-	if (carriage) *carriage = '\0';
-
-	if (bms_state == BMS_WAIT_FOR_GUI) {
-		if (strcmp(serial_cmd_buffer, "ENTER_CHG_MODE") == 0) {
-			enter_charging_mode();
-	    } else if (strcmp(serial_cmd_buffer, "ENTER_BAL_MODE") == 0) {
-	    	enter_balancing_mode();
-	    }
-	} else if (bms_state == BMS_CHARGING) {
-		// TODO: UNTESTED
-		if (strcmp(serial_cmd_buffer, "EXIT_CHG_MODE") == 0) {
-			exit_charging_mode();
-		}
-	} else if (bms_state == BMS_BALANCING) {
-		// TODO: Untested
-		if (strcmp(serial_cmd_buffer, "EXIT_BAL_MODE") == 0) {
-			exit_balancing_mode();
-		} else if (strncmp(serial_cmd_buffer, "START_BAL", 9) == 0) {
-			int percent = atoi(&serial_cmd_buffer[10]);
-			startBalancingLoop(percent);
-		}
-	}
-}
-
 void determine_operating_state() {
 	// Based on Power Signal Logic.
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
@@ -95,7 +46,7 @@ void reset_operating_state(BMS_STATE prev_state) {
 void wakeup_tasks() {
 	switch(bms_state) {
 		case BMS_WAIT_FOR_GUI:
-			// NO CORRESPONDING TASKS TO WAKE
+			// NO CORRESPONDING TASKS TO WAKE!
 			break;
 		case BMS_BALANCING:
 			xTaskNotify(balancingTaskHandle, 0, eNoAction);

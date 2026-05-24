@@ -29,7 +29,7 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-#include "prchg.h"
+#include "../../Runtime/Inc/prchg.h"
 #include "charging.h"
 #include "elcon_charger.h"
 #include "cmsis_os.h"

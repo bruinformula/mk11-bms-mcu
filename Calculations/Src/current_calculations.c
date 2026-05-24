@@ -32,7 +32,7 @@ void calculateCurrent() {
 	// FAULT HANDLING
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
-	if (current_context.current_sensor_val > OVERCURRENT_THRESHOLD) {
+	if (fabsf(current_context.current_sensor_val) > OVERCURRENT_THRESHOLD) {
 		faults_set |= FAULT_OVERCURRENT;
 	} else {
 		faults_clear |= FAULT_OVERCURRENT;

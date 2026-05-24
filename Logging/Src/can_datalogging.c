@@ -58,6 +58,7 @@ void sendTemp() {
 }
 
 void sendSoc_Curr_Pack() {
+	// Note; slight mix of old and new data are possible.
 	soc_curr_pack_df.data.curr = (current_context.current_sensor_val*100);
 	soc_curr_pack_df.data.soc = (soc*100);
 	soc_curr_pack_df.data.pack_voltage = (voltage_context.estimated_pack_voltage*100);

@@ -29,8 +29,9 @@
 #include "voltage_calculations.h"
 #include "thermistor.h"
 #include "current_calculations.h"
-#include "prchg.h"
 #include "curr_limiting.h"
+#include "prchg.h"
+#include "gui.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -153,7 +154,7 @@ void MX_FREERTOS_Init(void) {
   currTaskHandle = osThreadCreate(osThread(currTask), NULL);
 
   /* definition and creation of dataloggingTask */
-  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityBelowNormal, 0, 512);
+  osThreadDef(dataloggingTask, dataloggingFunction, osPriorityBelowNormal, 0, 1024);
   dataloggingTaskHandle = osThreadCreate(osThread(dataloggingTask), NULL);
 
   /* definition and creation of prchgTask */
@@ -289,6 +290,12 @@ void dataloggingFunction(void const * argument)
 	sendVoltage();
 	sendTemp();
 	sendSoc_Curr_Pack();
+
+	taskENTER_CRITICAL();
+	int json_len = build_bms_json();
+	taskEXIT_CRITICAL();
+	send_bms_json(json_len);
+
     osDelay(1000);
   }
   /* USER CODE END dataloggingFunction */

@@ -8,6 +8,7 @@
 #ifndef INC_ELCON_CHARGER_H_
 #define INC_ELCON_CHARGER_H_
 
+#include "bms_state.h"
 #include "fdcan.h"
 #include "cmsis_os.h"
 #include "freertos_handles.h"
@@ -66,5 +67,6 @@ void configureChargeTxMsg();
 void parseChargerBroadcast();
 void sendChargerRequest(float max_charging_voltage, float max_charging_current, bool stop_charging);
 bool chargerFaultDetected();
+bool startingStateOffOnly();
 
 #endif /* INC_ELCON_CHARGER_H_ */

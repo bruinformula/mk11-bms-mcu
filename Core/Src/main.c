@@ -32,14 +32,13 @@
 #include "adBms_Application.h"
 #include "elcon_charger.h"
 #include "j_plug.h"
-#include "prchg.h"
 #include "current_calculations.h"
 #include "thermistor.h"
 #include "voltage_calculations.h"
 #include "current_calculations.h"
 #include "balancing.h"
 #include "bms_state.h"
-#include "gui_test.h"
+#include "prchg.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

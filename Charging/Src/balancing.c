@@ -37,12 +37,15 @@ void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
 }
 
 void startBalancingLoop(int percent) {
-	if (percent < 0) balance_percent = 0;
-	if (percent > 100) balance_percent = 100;
-	balance_percent = (uint8_t)percent;
-	balance_pwm = (uint8_t)((percent*15)/100);
+	if (bms_state != BMS_BALANCING) return;
 
-	if (percent > 0 && balance_pwm == 0) {
+	if (percent <= 0) balance_percent = 0;
+	else if (percent > 100) balance_percent = 100;
+	else balance_percent = percent;
+
+	balance_pwm = (uint8_t)((balance_percent*15)/100);
+
+	if (balance_percent > 0 && balance_pwm == 0) {
 		// Prevent non-zero balancing if user requested low percentage.
 		// i.e. % ranging from 1-15.
 		balance_pwm = 1;

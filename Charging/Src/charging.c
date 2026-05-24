@@ -40,11 +40,9 @@ void charging_loop() {
     	control_pilot_state = readControlPilot(cp_period, cp_pulse);
     }
 
-    // TODO: ELCON seems to have intermittent fault on startup --> Figure out what this fault is.
-    // Add some sort of debouncing to prevent latching of this intermittent fault.
-    // if (events & EVT_ELCON_FAULT) {
-    	// charging_state = CHG_ELCON_FAULT;
-    // }
+     if (events & EVT_ELCON_FAULT) {
+    	 charging_state = CHG_ELCON_FAULT;
+     }
 
     switch (charging_state) {
     	case CHG_IDLE:

@@ -207,9 +207,8 @@ void BMS_CAN_RxHandler() {
 	switch (msg_id) {
 
 	case ELCON_CHARGER_RX_ID:
-		if (bms_state != BMS_CHARGING) break;
 		parseChargerBroadcast();
-		if (scheduler_running && chargerFaultDetected()) {
+		if (scheduler_running && chargerFaultDetected() && !startingStateOffOnly()) {
 		    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 			xTaskNotifyFromISR(chargingTaskHandle, EVT_ELCON_FAULT, eSetBits, &xHigherPriorityTaskWoken);
 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
@@ -217,7 +216,6 @@ void BMS_CAN_RxHandler() {
 		break;
 
 	case PRECHARGE_REQUEST_RX_ID:
-		if (bms_state != BMS_PRECHARGING) break;
 		prechargeStart();
 		break;
 
