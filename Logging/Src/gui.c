@@ -7,6 +7,10 @@
 
 #include <gui.h>
 #include "bms_state.h"
+#include "balancing.h"
+#include "elcon_charger.h"
+#include <limits.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -145,31 +149,28 @@ static int append_json(char **cursor, size_t *remaining, const char *format, ...
 	return 0;
 }
 
-static int append_json_fixed(char **cursor, size_t *remaining, float value, uint32_t scale) {
-	int32_t scaled = (int32_t)((value * (float)scale) + ((value >= 0.0f) ? 0.5f : -0.5f));
-	uint32_t magnitude = (scaled < 0) ? (uint32_t)(-scaled) : (uint32_t)scaled;
-	uint32_t whole = magnitude / scale;
-	uint32_t fraction = magnitude % scale;
+static int append_json_scaled_int(char **cursor, size_t *remaining, float value, uint32_t scale) {
+	if (!isfinite(value)) {
+		return append_json(cursor, remaining, "null");
+	}
 
-	if (scaled < 0 && whole == 0) {
-		return append_json(cursor, remaining, "-0.%0*lu", (scale == 1000U) ? 3 : 2, (unsigned long)fraction);
+	float scaled_value = value * (float)scale;
+	if (scaled_value > (float)INT32_MAX || scaled_value < (float)INT32_MIN) {
+		return append_json(cursor, remaining, "null");
 	}
-	if (scaled < 0) {
-		return append_json(cursor, remaining, "-%lu.%0*lu", (unsigned long)whole,
-				(scale == 1000U) ? 3 : 2, (unsigned long)fraction);
-	}
-	return append_json(cursor, remaining, "%lu.%0*lu", (unsigned long)whole,
-			(scale == 1000U) ? 3 : 2, (unsigned long)fraction);
+
+	int32_t scaled = (int32_t)(scaled_value + ((scaled_value >= 0.0f) ? 0.5f : -0.5f));
+	return append_json(cursor, remaining, "%ld", (long)scaled);
 }
 
-static int append_float_matrix(char **cursor, size_t *remaining, const char *name,
+static int append_scaled_matrix(char **cursor, size_t *remaining, const char *name,
 		volatile float values[TOTAL_IC][CELLS_PER_IC]) {
 	if (append_json(cursor, remaining, "\"%s\":[", name) != 0) return -1;
 	for (size_t ic = 0; ic < TOTAL_IC; ++ic) {
 		if (append_json(cursor, remaining, "%s[", (ic == 0) ? "" : ",") != 0) return -1;
 		for (size_t cell = 0; cell < CELLS_PER_IC; ++cell) {
 			if (cell > 0 && append_json(cursor, remaining, ",") != 0) return -1;
-			if (append_json_fixed(cursor, remaining, values[ic][cell], 1000U) != 0) return -1;
+			if (append_json_scaled_int(cursor, remaining, values[ic][cell], 100U) != 0) return -1;
 		}
 		if (append_json(cursor, remaining, "]") != 0) return -1;
 	}
@@ -193,68 +194,86 @@ int build_bms_json() {
 			(fault_register.reg & FAULT_ISOSPI_DISCONNECT) ? "true" : "false") != 0) return -1;
 
 	if (append_json(&cursor, &remaining, "\"voltage\":{") != 0) return -1;
-	if (append_json(&cursor, &remaining, "\"pack_v\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, voltage_context.estimated_pack_voltage, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"avg_cell_v\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, voltage_context.avg_cell_voltage, 1000U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"lowest_cell_v\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, voltage_context.lowest_cell_voltage, 1000U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"highest_cell_v\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, voltage_context.highest_cell_voltage, 1000U) != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"pack_v_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, voltage_context.estimated_pack_voltage, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"avg_cell_v_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, voltage_context.avg_cell_voltage, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"lowest_cell_v_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, voltage_context.lowest_cell_voltage, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"highest_cell_v_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, voltage_context.highest_cell_voltage, 100U) != 0) return -1;
 	if (append_json(&cursor, &remaining, ",\"num_valid_cells\":%d,", voltage_context.num_valid_cell_voltages) != 0) return -1;
-	if (append_float_matrix(&cursor, &remaining, "cells_v", voltage_context.voltage_conversions) != 0) return -1;
+	if (append_scaled_matrix(&cursor, &remaining, "cells_v_x100", voltage_context.voltage_conversions) != 0) return -1;
 	if (append_json(&cursor, &remaining, "},\"temperature\":{") != 0) return -1;
-	if (append_json(&cursor, &remaining, "\"avg_cell_c\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, temp_context.avg_cell_temp, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"lowest_cell_c\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, temp_context.lowest_cell_temp, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"highest_cell_c\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, temp_context.highest_cell_temp, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"avg_cell_c_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, temp_context.avg_cell_temp, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"lowest_cell_c_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, temp_context.lowest_cell_temp, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"highest_cell_c_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, temp_context.highest_cell_temp, 100U) != 0) return -1;
 	if (append_json(&cursor, &remaining, ",\"num_valid_cells\":%d,", temp_context.num_valid_cell_temps) != 0) return -1;
-	if (append_float_matrix(&cursor, &remaining, "cells_c", temp_context.temp_conversions) != 0) return -1;
+	if (append_scaled_matrix(&cursor, &remaining, "cells_c_x100", temp_context.temp_conversions) != 0) return -1;
 	if (append_json(&cursor, &remaining, "},\"current\":{") != 0) return -1;
-	if (append_json(&cursor, &remaining, "\"pack_a\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, current_context.current_sensor_val, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"low_sensor_a\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, current_context.current_sensor_low, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, ",\"high_sensor_a\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, current_context.current_sensor_high, 100U) != 0) return -1;
-	if (append_json(&cursor, &remaining, "},\"soc_pct\":") != 0) return -1;
-	if (append_json_fixed(&cursor, &remaining, soc * 100.0f, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"pack_a_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, current_context.current_sensor_val, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"low_sensor_a_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, current_context.current_sensor_low, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"high_sensor_a_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, current_context.current_sensor_high, 100U) != 0) return -1;
+	if (append_json(&cursor, &remaining, "},\"soc_pct_x100\":") != 0) return -1;
+	if (append_json_scaled_int(&cursor, &remaining, soc, 100U) != 0) return -1;
 
 	if (append_json(&cursor, &remaining, ",\"specialized\":{") != 0) return -1;
 	switch (bms_state) {
 		case BMS_PRECHARGING:
 		case BMS_DRIVE:
-			if (append_json(&cursor, &remaining, "\"precharge_state\":\"%s\",\"inverter_dc_v\":",
+			if (append_json(&cursor, &remaining, "\"precharge_state\":\"%s\",\"inverter_dc_v_x100\":",
 					precharge_state_to_string(precharge_state)) != 0) return -1;
-			if (append_json_fixed(&cursor, &remaining, inverter_dc_volts, 100U) != 0) return -1;
+			if (append_json_scaled_int(&cursor, &remaining, inverter_dc_volts, 100U) != 0) return -1;
 			if (bms_state == BMS_DRIVE) {
-				if (append_json(&cursor, &remaining, ",\"dcl_a\":") != 0) return -1;
-				if (append_json_fixed(&cursor, &remaining, dcl, 100U) != 0) return -1;
-				if (append_json(&cursor, &remaining, ",\"ccl_a\":") != 0) return -1;
-				if (append_json_fixed(&cursor, &remaining, ccl, 100U) != 0) return -1;
+				if (append_json(&cursor, &remaining, ",\"dcl_a_x100\":") != 0) return -1;
+				if (append_json_scaled_int(&cursor, &remaining, dcl, 100U) != 0) return -1;
+				if (append_json(&cursor, &remaining, ",\"ccl_a_x100\":") != 0) return -1;
+				if (append_json_scaled_int(&cursor, &remaining, ccl, 100U) != 0) return -1;
 			}
 			break;
 		case BMS_CHARGING:
 			if (append_json(&cursor, &remaining,
 					"\"charging_state\":\"%s\",\"control_pilot\":\"%s\",\"proximity_pilot\":\"%s\","
 					"\"cp_period_us\":%lu,\"cp_pulse_us\":%lu,\"pp_adc\":%u,\"charger_fault\":%s,"
-					"\"advertised_amps_ac\":",
+					"\"charger_starting_state_off_only\":%s,\"charger_status_raw\":%u,"
+					"\"charger_status\":{\"hardware_fail\":%s,\"over_temp_protection\":%s,"
+					"\"input_voltage_fault\":%s,\"starting_state_off\":%s,\"communication_timeout\":%s},"
+					"\"charger_output_v_x100\":%lu,\"charger_output_a_x100\":%lu,"
+					"\"advertised_amps_ac_x100\":",
 					charging_state_to_string(charging_state),
 					control_pilot_state_to_string(control_pilot_state),
 					proximity_pilot_state_to_string(proximity_pilot_state),
 					(unsigned long)j1772_context.control_pilot_period,
 					(unsigned long)j1772_context.control_pilot_pulse,
 					j1772_context.proximity_pilot_adc,
-					chargerFaultDetected() ? "true" : "false") != 0) return -1;
-			if (append_json_fixed(&cursor, &remaining, advertised_amps_ac, 100U) != 0) return -1;
-			if (append_json(&cursor, &remaining, ",\"advertised_amps_dc\":") != 0) return -1;
-			if (append_json_fixed(&cursor, &remaining, advertised_amps_dc, 100U) != 0) return -1;
+					chargerFaultDetected() ? "true" : "false",
+					startingStateOffOnly() ? "true" : "false",
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.raw,
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.bits.hardware_fail ? "true" : "false",
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.bits.over_temp_protection ? "true" : "false",
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.bits.input_voltage_fault ? "true" : "false",
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.bits.starting_state_off ? "true" : "false",
+					elcon_charger_context.chgmsg_18FF50E5_DF.data.status_flags.bits.communication_timeout ? "true" : "false",
+					(unsigned long)elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_voltage * 10UL,
+					(unsigned long)elcon_charger_context.chgmsg_18FF50E5_DF.data.charger_output_current * 10UL) != 0) return -1;
+			if (append_json_scaled_int(&cursor, &remaining, advertised_amps_ac, 100U) != 0) return -1;
+			if (append_json(&cursor, &remaining, ",\"advertised_amps_dc_x100\":") != 0) return -1;
+			if (append_json_scaled_int(&cursor, &remaining, advertised_amps_dc, 100U) != 0) return -1;
 			break;
 		case BMS_BALANCING:
-			if (append_json(&cursor, &remaining, "\"balance_state\":\"%s\"",
-					balance_state_to_string(balance_state)) != 0) return -1;
+			if (append_json(&cursor, &remaining,
+					"\"balance_state\":\"%s\",\"balance_percent\":%u,"
+					"\"balance_pwm\":%u,\"num_unbalanced_cells\":%d",
+					balance_state_to_string(balance_state),
+					balance_percent,
+					balance_pwm,
+					num_unbalanced_cells) != 0) return -1;
 			break;
 		default:
 			if (append_json(&cursor, &remaining, "\"state_detail\":\"none\"") != 0) return -1;

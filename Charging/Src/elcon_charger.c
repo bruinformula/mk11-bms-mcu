@@ -7,7 +7,7 @@
 
 #include "elcon_charger.h"
 
-static ELCON_CHARGER_CONTEXT elcon_charger_context;
+ELCON_CHARGER_CONTEXT elcon_charger_context;
 
 void configureChargeTxMsg() {
 	configureFDCAN_TxMessage_EXTD(&elcon_charger_context.TxHeader_1806E5F4, ELCON_CHARGER_TX_ID);

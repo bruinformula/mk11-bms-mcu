@@ -9,30 +9,19 @@
 
 static float voltage_conversions_snapshot[TOTAL_IC][CELLS_PER_IC];
 static float local_lowest_cell_voltage;
-static int num_unbalanced_cells;
-static uint8_t balance_percent;
-static uint8_t balance_pwm;
 static uint32_t phase_start_time;
 volatile BalanceState balance_state = BALANCE_IDLE;
+volatile int num_unbalanced_cells;
+volatile uint8_t balance_percent;
+volatile uint8_t balance_pwm;
 
 void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
-	uint8_t byte;
+	ic[ic_num].tx_cfgb.dcc |= (1 << cell_num);
+
 	if (cell_num < PWMA) {
-		byte = cell_num/2;
-		if ((cell_num %2 == 0)) {
-			ic[ic_num].PwmA.pwma[byte] |= balance_pwm;
-		} else {
-			ic[ic_num].PwmA.pwma[byte] |= (balance_pwm << 4);
-		}
+		ic[ic_num].PwmA.pwma[cell_num] = balance_pwm;
 	} else {
-		// PWMB Range.
-		uint8_t cell_num_temp = cell_num-12;
-		byte = cell_num_temp/2;
-		if ((cell_num_temp %2 == 0)) {
-			ic[ic_num].PwmB.pwmb[byte] |= balance_pwm;
-		} else {
-			ic[ic_num].PwmB.pwmb[byte] |= (balance_pwm << 4);
-		}
+		ic[ic_num].PwmB.pwmb[cell_num - 12] = balance_pwm;
 	}
 }
 

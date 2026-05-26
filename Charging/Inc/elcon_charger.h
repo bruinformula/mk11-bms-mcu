@@ -63,6 +63,8 @@ typedef struct ELCON_CHARGER_CONTEXT {
 	msg_18FF50E5 chgmsg_18FF50E5_DF;
 } ELCON_CHARGER_CONTEXT;
 
+extern ELCON_CHARGER_CONTEXT elcon_charger_context;
+
 void configureChargeTxMsg();
 void parseChargerBroadcast();
 void sendChargerRequest(float max_charging_voltage, float max_charging_current, bool stop_charging);

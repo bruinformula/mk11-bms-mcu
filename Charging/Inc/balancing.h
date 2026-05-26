@@ -16,9 +16,9 @@
 #include "cmsis_os.h"
 #include "freertos_handles.h"
 
-#define BALANCE_VOLTAGE_THRESHOLD 0.001
-#define BALANCE_BLEED_PERIOD 60000
-#define BALANCE_WAIT_PERIOD 60000
+#define BALANCE_VOLTAGE_THRESHOLD 0.005
+#define BALANCE_BLEED_PERIOD 120000
+#define BALANCE_WAIT_PERIOD 20000
 
 typedef enum {
 	BALANCE_IDLE,
@@ -28,6 +28,9 @@ typedef enum {
 	BALANCE_COMPLETE
 } BalanceState;
 extern volatile BalanceState balance_state;
+extern volatile int num_unbalanced_cells;
+extern volatile uint8_t balance_percent;
+extern volatile uint8_t balance_pwm;
 
 void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num);
 void startBalancingLoop(int balance_percent);

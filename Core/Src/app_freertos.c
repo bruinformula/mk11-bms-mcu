@@ -248,7 +248,7 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	service_shutdown_power_signal();
+//	service_shutdown_power_signal();
 	BMS_CheckFaultRegister();
     osDelay(50);
   }
