@@ -19,25 +19,38 @@ void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
 	// Enable the Discharge FET in the config register.
 	ic[ic_num].tx_cfgb.dcc |= (1 << cell_num);
 
-	uint8_t byte;
+	// Write PWM directly to individual cell slots (no division or bit-shifting)
 	if (cell_num < PWMA) {
-		byte = cell_num/2;
-		if ((cell_num %2 == 0)) {
-			ic[ic_num].PwmA.pwma[byte] |= balance_pwm;
-		} else {
-			ic[ic_num].PwmA.pwma[byte] |= (balance_pwm << 4);
-		}
+		ic[ic_num].PwmA.pwma[cell_num] = balance_pwm;
 	} else {
-		// PWMB Range.
-		uint8_t cell_num_temp = cell_num-12;
-		byte = cell_num_temp/2;
-		if ((cell_num_temp %2 == 0)) {
-			ic[ic_num].PwmB.pwmb[byte] |= balance_pwm;
-		} else {
-			ic[ic_num].PwmB.pwmb[byte] |= (balance_pwm << 4);
-		}
+		ic[ic_num].PwmB.pwmb[cell_num - 12] = balance_pwm;
 	}
 }
+
+
+//void set_cell_pwm(cell_asic* ic, uint8_t ic_num, uint8_t cell_num) {
+//	// Enable the Discharge FET in the config register.
+//	ic[ic_num].tx_cfgb.dcc |= (1 << cell_num);
+//
+//	uint8_t byte;
+//	if (cell_num < PWMA) {
+//		byte = cell_num/2;
+//		if ((cell_num %2 == 0)) {
+//			ic[ic_num].PwmA.pwma[byte] |= balance_pwm;
+//		} else {
+//			ic[ic_num].PwmA.pwma[byte] |= (balance_pwm << 4);
+//		}
+//	} else {
+//		// PWMB Range.
+//		uint8_t cell_num_temp = cell_num-12;
+//		byte = cell_num_temp/2;
+//		if ((cell_num_temp %2 == 0)) {
+//			ic[ic_num].PwmB.pwmb[byte] |= balance_pwm;
+//		} else {
+//			ic[ic_num].PwmB.pwmb[byte] |= (balance_pwm << 4);
+//		}
+//	}
+//}
 
 void startBalancingLoop(int percent) {
 	if (bms_state != BMS_BALANCING) return;
@@ -106,6 +119,8 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
             adBms6830_write_config(tIC, ic);
+            adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+            adBmsWriteData(tIC, ic, WRPWM2, Pwm, B);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
@@ -123,6 +138,8 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
             adBms6830_write_config(tIC, ic);
+            adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+            adBmsWriteData(tIC, ic, WRPWM2, Pwm, B);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_WAIT_PERIOD) {
@@ -138,6 +155,8 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 			}
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
 			adBms6830_write_config(tIC, ic);
+			adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+			adBmsWriteData(tIC, ic, WRPWM2, Pwm, B);
 			osMutexRelease(SPI_MUTEXHandle);
 			balance_state = BALANCE_IDLE;
 			break;

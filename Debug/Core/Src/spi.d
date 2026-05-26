@@ -1,8 +1,8 @@
 Core/Src/spi.o: ../Core/Src/spi.c \
- /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/spi.h \
- /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/main.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/spi.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h \
- /Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
+ C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h \
  ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h \
@@ -36,10 +36,10 @@ Core/Src/spi.o: ../Core/Src/spi.c \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_tim_ex.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart.h \
  ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_uart_ex.h
-/Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/spi.h:
-/Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/main.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/spi.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/main.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal.h:
-/Users/oreoturkey/Documents/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
+C:/Users/Ratch/STM32CubeIDE/workspace_1.18.1/mk11-bms-mcu/Core/Inc/stm32g4xx_hal_conf.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_rcc.h:
 ../Drivers/STM32G4xx_HAL_Driver/Inc/stm32g4xx_hal_def.h:
 ../Drivers/CMSIS/Device/ST/STM32G4xx/Include/stm32g4xx.h:

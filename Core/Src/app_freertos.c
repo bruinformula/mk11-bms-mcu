@@ -247,8 +247,8 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	service_shutdown_power_signal();
-	BMS_CheckFaultRegister();
+	//service_shutdown_power_signal();
+	//BMS_CheckFaultRegister();
 
 	// Failsafe: if the UART listener dies for any reason, restart it.
 	if (hlpuart1.RxState == HAL_UART_STATE_READY || hlpuart1.ErrorCode != HAL_UART_ERROR_NONE) {
@@ -354,10 +354,16 @@ void currLimitFunction(void const * argument)
 void balancingFunction(void const * argument)
 {
   /* USER CODE BEGIN balancingFunction */
+
+  for (size_t i = 0; i < TOTAL_IC; ++i) {
+	  IC[i].tx_cfgb.dcto = 7; // Set discharge timeout watchdog on the chips
+  }
+	  bms_state = BMS_BALANCING;
+	  startBalancingLoop(100);
   /* Infinite loop */
   for(;;)
   {
-	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
+	  //ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_BALANCING) {
 		  balancingLoop(TOTAL_IC, IC);
 		  send_bal_status(TOTAL_IC, IC);
@@ -373,6 +379,8 @@ void balancingFunction(void const * argument)
 	  }
 	  osMutexWait(SPI_MUTEXHandle, osWaitForever);
 	  adBms6830_write_config(TOTAL_IC, IC);
+	  adBmsWriteData(TOTAL_IC, IC, WRPWM1, Pwm, A);
+	  adBmsWriteData(TOTAL_IC, IC, WRPWM2, Pwm, B);
 	  osMutexRelease(SPI_MUTEXHandle);
 	  balance_state = BALANCE_IDLE;
   }

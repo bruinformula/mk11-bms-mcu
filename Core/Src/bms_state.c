@@ -61,11 +61,19 @@ void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart) {
 }
 
 void determine_operating_state() {
-	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
-		bms_state = BMS_WAIT_FOR_GUI;
-	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
-		enter_precharge_mode();
-	}
+	enter_balancing_mode();
+	startBalancingLoop(100);
+
+	//LIVE EXPRESSION TRACKER:
+	//IC[0].tx_cfgb.dcc to view what cell is discharge enabled and right click to see Hex or Binary
+	//IC[0].PWMA.pwma to view individual cell duty cycles, 15 means max
+	//voltage_context.voltage_conversions delta_cell_voltage
+
+//	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
+//		bms_state = BMS_WAIT_FOR_GUI;
+//	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
+//		enter_precharge_mode();
+//	}
 	// UART listener is always active from boot — no need to start it here.
 }
 

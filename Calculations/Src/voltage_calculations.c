@@ -5,7 +5,11 @@ static float local_voltage_conversions[TOTAL_IC][CELLS_PER_IC];
 
 void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
     float local_lowest = INFINITY;
+    int local_lowest_ic = -1;
+    int local_lowest_index = -1;
     float local_highest = -INFINITY;
+    int local_highest_ic = -1;
+    int local_highest_index = -1;
     float local_avg = 0.0f;
     float local_estimated_pack = 0.0f;
     int local_valid_cells = TOTAL_CELLS;
@@ -27,10 +31,14 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 
 			if (cell_voltage < local_lowest) {
 				local_lowest = cell_voltage;
+				local_lowest_ic = (int)i;
+				local_lowest_index = (int)j;
 			}
 
 			if (cell_voltage > local_highest) {
 				local_highest = cell_voltage;
+				local_highest_ic = (int)i;
+				local_highest_index = (int)j;
 			}
 
 			measured_pack += cell_voltage;
@@ -49,7 +57,11 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 	osMutexWait(VOLTAGE_MUTEXHandle, osWaitForever);
 	voltage_context.num_valid_cell_voltages = local_valid_cells;
 	voltage_context.lowest_cell_voltage = local_lowest;
+	voltage_context.lowest_cell_ic = local_lowest_ic;
+	voltage_context.lowest_cell_index = local_lowest_index;
 	voltage_context.highest_cell_voltage = local_highest;
+	voltage_context.highest_cell_ic = local_highest_ic;
+	voltage_context.highest_cell_index = local_highest_index;
 	voltage_context.avg_cell_voltage = local_avg;
 	voltage_context.estimated_pack_voltage = local_estimated_pack;
 	memcpy(voltage_context.voltage_conversions, local_voltage_conversions, sizeof(local_voltage_conversions));

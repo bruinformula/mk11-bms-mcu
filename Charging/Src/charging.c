@@ -88,12 +88,16 @@ void charging_loop() {
             		if (scaling_factor < 0.0f) scaling_factor = 0.0f;
             		else if (scaling_factor > 1.0f) scaling_factor = 1.0f;
 
+//            		sendChargerRequest(CHARGER_VOLTAGE,
+//            				advertised_amps_dc -
+//							((advertised_amps_dc - MIN_CHARGING_CURRENT) * scaling_factor),
+//							0);
             		sendChargerRequest(CHARGER_VOLTAGE,
-            				advertised_amps_dc -
-							((advertised_amps_dc - MIN_CHARGING_CURRENT) * scaling_factor),
-							0);
+            		            				1,
+            									0);
             	} else {
-            		sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+            		//sendChargerRequest(CHARGER_VOLTAGE, advertised_amps_dc, 0);
+            		sendChargerRequest(CHARGER_VOLTAGE, 1, 0);
             	}
 
         		last_charger_tx_time = HAL_GetTick();

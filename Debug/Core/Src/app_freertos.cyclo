@@ -6,6 +6,6 @@
 ../Core/Src/app_freertos.c:289:6:dataloggingFunction	1
 ../Core/Src/app_freertos.c:310:6:prchgFunction	2
 ../Core/Src/app_freertos.c:332:6:currLimitFunction	2
-../Core/Src/app_freertos.c:354:6:balancingFunction	3
-../Core/Src/app_freertos.c:389:6:chargingFunction	2
-../Core/Src/app_freertos.c:411:6:socFunction	3
+../Core/Src/app_freertos.c:354:6:balancingFunction	4
+../Core/Src/app_freertos.c:397:6:chargingFunction	2
+../Core/Src/app_freertos.c:419:6:socFunction	3

@@ -22,8 +22,12 @@
 typedef struct VOLTAGE_CONTEXT {
 	float estimated_pack_voltage;
 	float lowest_cell_voltage;
+	int lowest_cell_ic;
+	int lowest_cell_index;
 	float avg_cell_voltage;
 	float highest_cell_voltage;
+	int highest_cell_ic;
+	int highest_cell_index;
 	float voltage_conversions[TOTAL_IC][CELLS_PER_IC];
 	int num_valid_cell_voltages;
 } VOLTAGE_CONTEXT;
