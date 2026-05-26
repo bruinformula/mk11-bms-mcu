@@ -196,7 +196,10 @@ void voltageFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	computeAllVoltages(TOTAL_IC, IC);
+	// Freeze voltage updates during active discharge to avoid reading depressed cell voltages
+	if (balance_state != BALANCE_DISCHARGE) {
+		computeAllVoltages(TOTAL_IC, IC);
+	}
 	printVoltages(TOTAL_IC, IC, Cell);
 	if (!first_run) {
 		first_run = true;
