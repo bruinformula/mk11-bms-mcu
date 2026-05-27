@@ -12,4 +12,4 @@
 ../Core/Src/bms_state.c:144:6:exit_precharge_mode	4	static
 ../Core/Src/bms_state.c:148:6:exit_drive_mode	4	static
 ../Core/Src/bms_state.c:155:6:exit_charging_mode	8	static
-../Core/Src/bms_state.c:165:6:exit_balancing_mode	16	static
+../Core/Src/bms_state.c:170:6:exit_balancing_mode	16	static

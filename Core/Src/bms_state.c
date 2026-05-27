@@ -154,6 +154,11 @@ void exit_drive_mode() {
 
 void exit_charging_mode() {
 	charging_state = CHG_IDLE;
+	
+	// Open AIRs to disconnect battery!
+	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+	
 	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
     // change_baud_rate_500();
 	// Keep Baud Rate at 250 Kbps for debugging reasons!

@@ -45,19 +45,24 @@ bool isControlPilotTimedOut(uint32_t tick) {
 }
 
 STATE_PP readProximityPilot(uint16_t adc) {
-	float pp_voltage = (adc/4095.0f)*3.3f;
-	if (fabsf(pp_voltage - 2.9f) < PP_VOLTAGE_EPSILON) {
+	// Not Connected: ~3580
+	if (adc > 3000) {
 		return STATE_PP_NOT_CONNECTED;
-	} else if (fabsf(pp_voltage - 1.8f) < PP_VOLTAGE_EPSILON) {
+	} 
+	// Button Pressed: ~2200
+	else if (adc > 1700) {
 		return STATE_PP_BUTTON_PRESSED;
-	} else if (fabsf(pp_voltage - 0.9f) < PP_VOLTAGE_EPSILON) {
+	} 
+	// Fully Connected: ~1215
+	else if (adc > 800) {
 		return STATE_PP_CONNECTED;
 	}
+	
 	return STATE_PP_UNKNOWN;
 }
 
-float advertised_amps_ac;
-float advertised_amps_dc;
+float advertised_amps_ac = 0.0f;
+float advertised_amps_dc = 1.0f;
 STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
 	if (period == 0) return STATE_CP_FAULT;
 
@@ -72,8 +77,6 @@ STATE_CP readControlPilot(uint32_t period, uint32_t pulse) {
 	} else {
 		advertised_amps_ac = ((duty_cycle-64.0f)*2.5f);
 	}
-
-	advertised_amps_dc = (WALL_V_AC * advertised_amps_ac * EFFICIENCY)/MAX_PACK_V_DC;
 
     return STATE_CP_PWM_PRESENT;
 }

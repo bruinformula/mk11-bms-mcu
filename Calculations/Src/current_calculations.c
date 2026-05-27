@@ -15,8 +15,8 @@ void calculateCurrent() {
 	taskENTER_CRITICAL();
 	current_context.current_sensor_low_voltage = (current_context.current_sensor_low_adc/4095.0)*3.3;
 	current_context.current_sensor_high_voltage = (current_context.current_sensor_high_adc/4095.0)*3.3;
-	current_context.current_sensor_low = ((float) current_context.current_sensor_low_adc) * 0.01877f - 37.412f;
-	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc) * 0.2159f - 429.326f;
+	current_context.current_sensor_low = ((float) current_context.current_sensor_low_adc) * 0.01872f - 37.364f;
+	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc) * 0.2174f - 433.79f;
 	taskEXIT_CRITICAL();
 
 	if (!using_high_range && fabsf(current_context.current_sensor_low) > 30.0f) {

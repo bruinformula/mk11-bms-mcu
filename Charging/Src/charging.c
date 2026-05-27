@@ -40,22 +40,20 @@ void charging_loop() {
     	control_pilot_state = readControlPilot(cp_period, cp_pulse);
     }
 
-     if (events & EVT_ELCON_FAULT) {
-    	 charging_state = CHG_ELCON_FAULT;
-     }
+//if (events & EVT_ELCON_FAULT) {
+    //	 charging_state = CHG_ELCON_FAULT;
+   //  }
 
     switch (charging_state) {
     	case CHG_IDLE:
     		HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
     		sendChargerRequest(0, 0, 1);
-    		if (proximity_pilot_state == STATE_PP_CONNECTED &&
-    				control_pilot_state == STATE_CP_PWM_PRESENT) {
+    		if (proximity_pilot_state == STATE_PP_CONNECTED) {
     			charging_state = CHG_WAITING;
     		}
     		break;
     	case CHG_WAITING:
-    		if (proximity_pilot_state != STATE_PP_CONNECTED ||
-    				control_pilot_state != STATE_CP_PWM_PRESENT) {
+    		if (proximity_pilot_state != STATE_PP_CONNECTED) {
     			charging_state = CHG_IDLE;
     			break;
     		}
@@ -64,8 +62,7 @@ void charging_loop() {
     		break;
 
         case CHG_ACTIVE:
-        	if (proximity_pilot_state != STATE_PP_CONNECTED ||
-        			control_pilot_state != STATE_CP_PWM_PRESENT) {
+        	if (proximity_pilot_state != STATE_PP_CONNECTED) {
         		charging_state = CHG_IDLE;
         	    break;
         	}
@@ -77,7 +74,7 @@ void charging_loop() {
         	} else {
         		// Charger expects CAN every 1 second, MUST be rate limited.
         		// Output voltage/current seemed to oscillate between 0 and actual value without rate limiting.
-            	if (HAL_GetTick() - last_charger_tx_time < 1000) break;
+            	if (HAL_GetTick() - last_charger_tx_time < 250) break;
 
             	if (current_highest_cell_voltage > RAMP_CELL_VOLTAGE_CHARGING_THRESHOLD) {
             		float scaling_factor = (current_highest_cell_voltage - RAMP_CELL_VOLTAGE_CHARGING_THRESHOLD)

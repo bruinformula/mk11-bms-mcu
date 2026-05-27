@@ -6,6 +6,7 @@
  */
 
 #include "safety_handler.h"
+#include "elcon_charger.h"
 
 static FDCAN_TxHeaderTypeDef Shutdown_Lost_TxHeader;
 static uint8_t Shutdown_Lost_TxData[8];
@@ -55,6 +56,10 @@ void apply_shutdown_power_state(bool shutdown_asserted) {
 		// NOTE: Precharge Relay would only ever be closed for precharging.
 		// Still, we assert that it is open.
 		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
+
+		// Stop the Elcon Charger via CAN, but leave J1772 Pilot Switch ON
+		// so the EVSE continues providing AC power to the charger's DCDC!
+		sendChargerRequest(0, 0, 1);
 
 		reset_operating_state(bms_state);
 		if (bms_state != BMS_INTERNAL_FAULT) {

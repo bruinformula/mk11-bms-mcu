@@ -53,6 +53,7 @@
 /* USER CODE BEGIN Variables */
 volatile bool temp_ready;
 volatile bool voltage_ready;
+volatile uint8_t pilot_switch_state = 0;
 /* USER CODE END Variables */
 osThreadId voltageTaskHandle;
 osThreadId tempTaskHandle;
@@ -201,7 +202,10 @@ void voltageFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-	computeAllVoltages(TOTAL_IC, IC);
+	// Freeze voltage updates during active discharge to avoid reading depressed cell voltages
+	if (balance_state != BALANCE_DISCHARGE) {
+		computeAllVoltages(TOTAL_IC, IC);
+	}
 	if (!first_run) {
 		first_run = true;
 		voltage_ready = true;
@@ -248,8 +252,23 @@ void safetyFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-//	service_shutdown_power_signal();
+	service_shutdown_power_signal();
 	BMS_CheckFaultRegister();
+
+	// Auto-Start Charging based on J1772 Plug
+	if (bms_state == BMS_IDLE || bms_state == BMS_WAIT_FOR_GUI) {
+		if (readProximityPilot(j1772_context.proximity_pilot_adc) == STATE_PP_CONNECTED) {
+			enter_charging_mode();
+		}
+	} else if (bms_state == BMS_CHARGING) {
+		if (readProximityPilot(j1772_context.proximity_pilot_adc) == STATE_PP_NOT_CONNECTED) {
+			exit_charging_mode();
+			bms_state = BMS_IDLE;
+		}
+	}
+
+    pilot_switch_state = HAL_GPIO_ReadPin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin);
+
     osDelay(50);
   }
   /* USER CODE END safetyFunction */
