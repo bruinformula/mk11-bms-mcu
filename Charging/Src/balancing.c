@@ -58,6 +58,12 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 
             num_unbalanced_cells = 0;
             for (size_t i = 0; i < tIC; ++i) {
+                memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
+                memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+                ic[i].tx_cfgb.dcc = 0;
+            }
+
+            for (size_t i = 0; i < tIC; ++i) {
                 for (size_t j = 0; j < CELLS_PER_IC; ++j) {
                     if (voltage_conversions_snapshot[i][j] > local_lowest_cell_voltage + BALANCE_VOLTAGE_THRESHOLD) {
                     	set_cell_pwm(ic, i, j);
@@ -77,13 +83,16 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		case BALANCE_DISCHARGE:
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
-            adBms6830_write_read_config(tIC, ic);
+            adBms6830_write_config(tIC, ic);
+            adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+            adBmsWriteData(tIC, ic, WRPWM2, Pwm, B);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_BLEED_PERIOD) {
             	for (size_t i = 0; i < tIC; ++i) {
             		memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
             		memset(ic[i].PwmB.pwmb, 0x00, sizeof(ic[i].PwmB.pwmb));
+            		ic[i].tx_cfgb.dcc = 0;
             	}
                 balance_state = BALANCE_WAIT;
                 phase_start_time = HAL_GetTick();
@@ -93,7 +102,9 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
 		case BALANCE_WAIT:
 			// CRITICAL REGION
 			osMutexWait(SPI_MUTEXHandle, osWaitForever);
-            adBms6830_write_read_config(tIC, ic);
+            adBms6830_write_config(tIC, ic);
+            adBmsWriteData(tIC, ic, WRPWM1, Pwm, A);
+            adBmsWriteData(tIC, ic, WRPWM2, Pwm, B);
             osMutexRelease(SPI_MUTEXHandle);
 
             if (HAL_GetTick() - phase_start_time >= BALANCE_WAIT_PERIOD) {
