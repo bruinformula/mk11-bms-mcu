@@ -12,8 +12,7 @@ volatile BMS_STATE bms_state = BMS_IDLE;
 void determine_operating_state() {
 	// Based on Power Signal Logic.
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
-//		enter_wait_for_gui_mode();
-		enter_charging_mode();
+		enter_wait_for_gui_mode();
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
 		enter_precharge_mode();
 	}
