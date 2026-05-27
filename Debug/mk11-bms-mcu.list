@@ -7,15 +7,15 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
   1 .text         0001bd5c  080001e0  080001e0  000011e0  2**4
                   CONTENTS, ALLOC, LOAD, READONLY, CODE
-  2 .rodata       00001e38  0801bf40  0801bf40  0001cf40  2**3
+  2 .rodata       00001e88  0801bf40  0801bf40  0001cf40  2**3
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  3 .ARM.exidx    00000008  0801dd78  0801dd78  0001ed78  2**2
+  3 .ARM.exidx    00000008  0801ddc8  0801ddc8  0001edc8  2**2
                   CONTENTS, ALLOC, LOAD, READONLY, DATA
-  4 .data         0000021c  20000000  0801dd80  0001f000  2**2
+  4 .data         0000021c  20000000  0801ddd0  0001f000  2**2
                   CONTENTS, ALLOC, LOAD, DATA
-  5 .bss          0000c474  2000021c  0801df9c  0001f21c  2**2
+  5 .bss          0000c474  2000021c  0801dfec  0001f21c  2**2
                   ALLOC
-  6 ._user_heap_stack 00000600  2000c690  0801df9c  0001f690  2**0
+  6 ._user_heap_stack 00000600  2000c690  0801dfec  0001f690  2**0
                   ALLOC
   7 .ARM.attributes 00000030  00000000  00000000  0001f21c  2**0
                   CONTENTS, READONLY
@@ -1380,7 +1380,7 @@ uint8_t *data /* Array of data that will be used to calculate  a PEC */
  80010ac:	46bd      	mov	sp, r7
  80010ae:	f85d 7b04 	ldr.w	r7, [sp], #4
  80010b2:	4770      	bx	lr
- 80010b4:	0801ca00 	.word	0x0801ca00
+ 80010b4:	0801ca54 	.word	0x0801ca54
 
 080010b8 <pec10_calc>:
 
@@ -13163,9 +13163,9 @@ static float ocv_lookup_soc(float avg_temp, float cell_voltage) {
  80072a6:	bf00      	nop
  80072a8:	42700000 	.word	0x42700000
  80072ac:	7fc00000 	.word	0x7fc00000
- 80072b0:	0801cc00 	.word	0x0801cc00
- 80072b4:	0801cdac 	.word	0x0801cdac
- 80072b8:	0801cc18 	.word	0x0801cc18
+ 80072b0:	0801cc54 	.word	0x0801cc54
+ 80072b4:	0801ce00 	.word	0x0801ce00
+ 80072b8:	0801cc6c 	.word	0x0801cc6c
 
 080072bc <get_initial_soc>:
 
@@ -13461,8 +13461,8 @@ float voltageToTemp(float V) {
  800752c:	401c28f6 	.word	0x401c28f6
  8007530:	3fa66666 	.word	0x3fa66666
  8007534:	7fc00000 	.word	0x7fc00000
- 8007538:	0801d724 	.word	0x0801d724
- 800753c:	0801d7a8 	.word	0x0801d7a8
+ 8007538:	0801d778 	.word	0x0801d778
+ 800753c:	0801d7fc 	.word	0x0801d7fc
 
 08007540 <computeAllTemps>:
 
@@ -20988,7 +20988,7 @@ LoopForever:
   ldr r1, =_edata
  800a4a4:	2000021c 	.word	0x2000021c
   ldr r2, =_sidata
- 800a4a8:	0801dd80 	.word	0x0801dd80
+ 800a4a8:	0801ddd0 	.word	0x0801ddd0
   ldr r2, =_sbss
  800a4ac:	2000021c 	.word	0x2000021c
   ldr r4, =_ebss
@@ -28188,7 +28188,7 @@ HAL_StatusTypeDef HAL_FDCAN_GetRxMessage(FDCAN_HandleTypeDef *hfdcan, uint32_t R
  800cdec:	46bd      	mov	sp, r7
  800cdee:	f85d 7b04 	ldr.w	r7, [sp], #4
  800cdf2:	4770      	bx	lr
- 800cdf4:	0801d844 	.word	0x0801d844
+ 800cdf4:	0801d898 	.word	0x0801d898
 
 0800cdf8 <HAL_FDCAN_ActivateNotification>:
   *           - FDCAN_IT_TX_ABORT_COMPLETE
@@ -29536,7 +29536,7 @@ static void FDCAN_CopyMessageToRAM(const FDCAN_HandleTypeDef *hfdcan, const FDCA
  800d4c0:	46bd      	mov	sp, r7
  800d4c2:	f85d 7b04 	ldr.w	r7, [sp], #4
  800d4c6:	4770      	bx	lr
- 800d4c8:	0801d844 	.word	0x0801d844
+ 800d4c8:	0801d898 	.word	0x0801d898
 
 0800d4cc <HAL_GPIO_Init>:
   * @param  GPIO_Init pointer to a GPIO_InitTypeDef structure that contains
@@ -32081,7 +32081,7 @@ HAL_StatusTypeDef HAL_RCC_ClockConfig(RCC_ClkInitTypeDef  *RCC_ClkInitStruct, ui
  800e3e0:	40022000 	.word	0x40022000
  800e3e4:	40021000 	.word	0x40021000
  800e3e8:	04c4b400 	.word	0x04c4b400
- 800e3ec:	0801d82c 	.word	0x0801d82c
+ 800e3ec:	0801d880 	.word	0x0801d880
  800e3f0:	20000044 	.word	0x20000044
  800e3f4:	20000048 	.word	0x20000048
 
@@ -32262,7 +32262,7 @@ uint32_t HAL_RCC_GetPCLK1Freq(void)
  800e4f4:	4618      	mov	r0, r3
  800e4f6:	bd80      	pop	{r7, pc}
  800e4f8:	40021000 	.word	0x40021000
- 800e4fc:	0801d83c 	.word	0x0801d83c
+ 800e4fc:	0801d890 	.word	0x0801d890
 
 0800e500 <HAL_RCC_GetPCLK2Freq>:
   * @note   Each time PCLK2 changes, this function must be called to update the
@@ -32289,7 +32289,7 @@ uint32_t HAL_RCC_GetPCLK2Freq(void)
  800e520:	4618      	mov	r0, r3
  800e522:	bd80      	pop	{r7, pc}
  800e524:	40021000 	.word	0x40021000
- 800e528:	0801d83c 	.word	0x0801d83c
+ 800e528:	0801d890 	.word	0x0801d890
 
 0800e52c <HAL_RCC_GetClockConfig>:
   *         will be configured.
@@ -43862,7 +43862,7 @@ HAL_StatusTypeDef UART_SetConfig(UART_HandleTypeDef *huart)
  8012a12:	bf00      	nop
  8012a14:	40008000 	.word	0x40008000
  8012a18:	00f42400 	.word	0x00f42400
- 8012a1c:	0801d854 	.word	0x0801d854
+ 8012a1c:	0801d8a8 	.word	0x0801d8a8
       }
       else
       {
@@ -45928,8 +45928,8 @@ static void UARTEx_SetNbDataToProcess(UART_HandleTypeDef *huart)
  801359c:	f85d 7b04 	ldr.w	r7, [sp], #4
  80135a0:	4770      	bx	lr
  80135a2:	bf00      	nop
- 80135a4:	0801d86c 	.word	0x0801d86c
- 80135a8:	0801d874 	.word	0x0801d874
+ 80135a4:	0801d8c0 	.word	0x0801d8c0
+ 80135a8:	0801d8c8 	.word	0x0801d8c8
 
 080135ac <configureVoltage_TxMsg>:
 
@@ -47150,7 +47150,7 @@ int build_bms_json() {
  8013f1a:	d002      	beq.n	8013f22 <build_bms_json+0xf6>
  8013f1c:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8013f20:	e3d0      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, "\"pack_v_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"estimated_pack_voltage_x100\":") != 0) return -1;
  8013f22:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8013f26:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  8013f2a:	4a7e      	ldr	r2, [pc, #504]	@ (8014124 <build_bms_json+0x2f8>)
@@ -47175,7 +47175,7 @@ int build_bms_json() {
  8013f5c:	d002      	beq.n	8013f64 <build_bms_json+0x138>
  8013f5e:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8013f62:	e3af      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"avg_cell_v_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"average_cell_voltage_x100\":") != 0) return -1;
  8013f64:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8013f68:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  8013f6c:	4a6f      	ldr	r2, [pc, #444]	@ (801412c <build_bms_json+0x300>)
@@ -47200,7 +47200,7 @@ int build_bms_json() {
  8013f9e:	d002      	beq.n	8013fa6 <build_bms_json+0x17a>
  8013fa0:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8013fa4:	e38e      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"lowest_cell_v_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"lowest_cell_voltage_x100\":") != 0) return -1;
  8013fa6:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8013faa:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  8013fae:	4a60      	ldr	r2, [pc, #384]	@ (8014130 <build_bms_json+0x304>)
@@ -47225,7 +47225,7 @@ int build_bms_json() {
  8013fe0:	d002      	beq.n	8013fe8 <build_bms_json+0x1bc>
  8013fe2:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8013fe6:	e36d      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"highest_cell_v_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"highest_cell_voltage_x100\":") != 0) return -1;
  8013fe8:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8013fec:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  8013ff0:	4a50      	ldr	r2, [pc, #320]	@ (8014134 <build_bms_json+0x308>)
@@ -47262,7 +47262,7 @@ int build_bms_json() {
  8014042:	d002      	beq.n	801404a <build_bms_json+0x21e>
  8014044:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8014048:	e33c      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_scaled_matrix(&cursor, &remaining, "cells_v_x100", voltage_context.voltage_conversions) != 0) return -1;
+	if (append_scaled_matrix(&cursor, &remaining, "cells_x100", voltage_context.voltage_conversions) != 0) return -1;
  801404a:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  801404e:	f107 0034 	add.w	r0, r7, #52	@ 0x34
  8014052:	4b3a      	ldr	r3, [pc, #232]	@ (801413c <build_bms_json+0x310>)
@@ -47284,7 +47284,7 @@ int build_bms_json() {
  801407a:	d002      	beq.n	8014082 <build_bms_json+0x256>
  801407c:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8014080:	e320      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, "\"avg_cell_c_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"average_cell_temperature_x100\":") != 0) return -1;
  8014082:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8014086:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  801408a:	4a2f      	ldr	r2, [pc, #188]	@ (8014148 <build_bms_json+0x31c>)
@@ -47309,7 +47309,7 @@ int build_bms_json() {
  80140bc:	d002      	beq.n	80140c4 <build_bms_json+0x298>
  80140be:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  80140c2:	e2ff      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"lowest_cell_c_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"lowest_cell_temperature_x100\":") != 0) return -1;
  80140c4:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  80140c8:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  80140cc:	4a20      	ldr	r2, [pc, #128]	@ (8014150 <build_bms_json+0x324>)
@@ -47344,17 +47344,17 @@ int build_bms_json() {
  8014120:	0801c608 	.word	0x0801c608
  8014124:	0801c614 	.word	0x0801c614
  8014128:	20001fac 	.word	0x20001fac
- 801412c:	0801c624 	.word	0x0801c624
- 8014130:	0801c638 	.word	0x0801c638
- 8014134:	0801c650 	.word	0x0801c650
- 8014138:	0801c668 	.word	0x0801c668
+ 801412c:	0801c634 	.word	0x0801c634
+ 8014130:	0801c654 	.word	0x0801c654
+ 8014134:	0801c674 	.word	0x0801c674
+ 8014138:	0801c694 	.word	0x0801c694
  801413c:	20001fbc 	.word	0x20001fbc
- 8014140:	0801c680 	.word	0x0801c680
- 8014144:	0801c690 	.word	0x0801c690
- 8014148:	0801c6a4 	.word	0x0801c6a4
+ 8014140:	0801c6ac 	.word	0x0801c6ac
+ 8014144:	0801c6b8 	.word	0x0801c6b8
+ 8014148:	0801c6cc 	.word	0x0801c6cc
  801414c:	20001c7c 	.word	0x20001c7c
- 8014150:	0801c6b8 	.word	0x0801c6b8
-	if (append_json(&cursor, &remaining, ",\"highest_cell_c_x100\":") != 0) return -1;
+ 8014150:	0801c6f0 	.word	0x0801c6f0
+	if (append_json(&cursor, &remaining, ",\"highest_cell_temperature_x100\":") != 0) return -1;
  8014154:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8014158:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  801415c:	4abf      	ldr	r2, [pc, #764]	@ (801445c <build_bms_json+0x630>)
@@ -47391,7 +47391,7 @@ int build_bms_json() {
  80141ae:	d002      	beq.n	80141b6 <build_bms_json+0x38a>
  80141b0:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  80141b4:	e286      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_scaled_matrix(&cursor, &remaining, "cells_c_x100", temp_context.temp_conversions) != 0) return -1;
+	if (append_scaled_matrix(&cursor, &remaining, "cells_x100", temp_context.temp_conversions) != 0) return -1;
  80141b6:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  80141ba:	f107 0034 	add.w	r0, r7, #52	@ 0x34
  80141be:	4baa      	ldr	r3, [pc, #680]	@ (8014468 <build_bms_json+0x63c>)
@@ -47413,7 +47413,7 @@ int build_bms_json() {
  80141e6:	d002      	beq.n	80141ee <build_bms_json+0x3c2>
  80141e8:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  80141ec:	e26a      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, "\"pack_a_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, "\"pack_current_x100\":") != 0) return -1;
  80141ee:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  80141f2:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  80141f6:	4a9f      	ldr	r2, [pc, #636]	@ (8014474 <build_bms_json+0x648>)
@@ -47438,7 +47438,7 @@ int build_bms_json() {
  8014228:	d002      	beq.n	8014230 <build_bms_json+0x404>
  801422a:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  801422e:	e249      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"low_sensor_a_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"low_sensor_current_x100\":") != 0) return -1;
  8014230:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8014234:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  8014238:	4a90      	ldr	r2, [pc, #576]	@ (801447c <build_bms_json+0x650>)
@@ -47463,7 +47463,7 @@ int build_bms_json() {
  801426a:	d002      	beq.n	8014272 <build_bms_json+0x446>
  801426c:	f04f 33ff 	mov.w	r3, #4294967295	@ 0xffffffff
  8014270:	e228      	b.n	80146c4 <build_bms_json+0x898>
-	if (append_json(&cursor, &remaining, ",\"high_sensor_a_x100\":") != 0) return -1;
+	if (append_json(&cursor, &remaining, ",\"high_sensor_current_x100\":") != 0) return -1;
  8014272:	f107 0130 	add.w	r1, r7, #48	@ 0x30
  8014276:	f107 0334 	add.w	r3, r7, #52	@ 0x34
  801427a:	4a81      	ldr	r2, [pc, #516]	@ (8014480 <build_bms_json+0x654>)
@@ -47677,26 +47677,26 @@ int build_bms_json() {
  8014456:	4b1a      	ldr	r3, [pc, #104]	@ (80144c0 <build_bms_json+0x694>)
  8014458:	62fb      	str	r3, [r7, #44]	@ 0x2c
  801445a:	e035      	b.n	80144c8 <build_bms_json+0x69c>
- 801445c:	0801c6d0 	.word	0x0801c6d0
+ 801445c:	0801c714 	.word	0x0801c714
  8014460:	20001c7c 	.word	0x20001c7c
- 8014464:	0801c668 	.word	0x0801c668
+ 8014464:	0801c694 	.word	0x0801c694
  8014468:	20001c88 	.word	0x20001c88
- 801446c:	0801c6e8 	.word	0x0801c6e8
- 8014470:	0801c6f8 	.word	0x0801c6f8
- 8014474:	0801c708 	.word	0x0801c708
+ 801446c:	0801c6ac 	.word	0x0801c6ac
+ 8014470:	0801c738 	.word	0x0801c738
+ 8014474:	0801c748 	.word	0x0801c748
  8014478:	20001c5c 	.word	0x20001c5c
- 801447c:	0801c718 	.word	0x0801c718
- 8014480:	0801c730 	.word	0x0801c730
- 8014484:	0801c748 	.word	0x0801c748
+ 801447c:	0801c760 	.word	0x0801c760
+ 8014480:	0801c77c 	.word	0x0801c77c
+ 8014484:	0801c79c 	.word	0x0801c79c
  8014488:	20001c78 	.word	0x20001c78
- 801448c:	0801c75c 	.word	0x0801c75c
+ 801448c:	0801c7b0 	.word	0x0801c7b0
  8014490:	2000266c 	.word	0x2000266c
  8014494:	2000c541 	.word	0x2000c541
- 8014498:	0801c770 	.word	0x0801c770
+ 8014498:	0801c7c4 	.word	0x0801c7c4
  801449c:	2000c50c 	.word	0x2000c50c
- 80144a0:	0801c7a0 	.word	0x0801c7a0
+ 80144a0:	0801c7f4 	.word	0x0801c7f4
  80144a4:	2000c4d8 	.word	0x2000c4d8
- 80144a8:	0801c7b0 	.word	0x0801c7b0
+ 80144a8:	0801c804 	.word	0x0801c804
  80144ac:	2000c4dc 	.word	0x2000c4dc
  80144b0:	20002482 	.word	0x20002482
  80144b4:	200024c0 	.word	0x200024c0
@@ -47965,17 +47965,17 @@ int build_bms_json() {
  80146d0:	0801c554 	.word	0x0801c554
  80146d4:	0801c54c 	.word	0x0801c54c
  80146d8:	2000248c 	.word	0x2000248c
- 80146dc:	0801c7c0 	.word	0x0801c7c0
+ 80146dc:	0801c814 	.word	0x0801c814
  80146e0:	200024d4 	.word	0x200024d4
- 80146e4:	0801c964 	.word	0x0801c964
+ 80146e4:	0801c9b8 	.word	0x0801c9b8
  80146e8:	200024d8 	.word	0x200024d8
  80146ec:	20002478 	.word	0x20002478
  80146f0:	20002480 	.word	0x20002480
  80146f4:	20002481 	.word	0x20002481
  80146f8:	2000247c 	.word	0x2000247c
- 80146fc:	0801c980 	.word	0x0801c980
- 8014700:	0801c9d8 	.word	0x0801c9d8
- 8014704:	0801c9f0 	.word	0x0801c9f0
+ 80146fc:	0801c9d4 	.word	0x0801c9d4
+ 8014700:	0801ca2c 	.word	0x0801ca2c
+ 8014704:	0801ca44 	.word	0x0801ca44
  8014708:	20002acc 	.word	0x20002acc
 
 0801470c <send_bms_json>:
@@ -51502,7 +51502,7 @@ void vTaskStartScheduler( void )
  801589c:	bd80      	pop	{r7, pc}
  801589e:	bf00      	nop
  80158a0:	20003bf0 	.word	0x20003bf0
- 80158a4:	0801c9f8 	.word	0x0801c9f8
+ 80158a4:	0801ca4c 	.word	0x0801ca4c
  80158a8:	08015e75 	.word	0x08015e75
  80158ac:	20003acc 	.word	0x20003acc
  80158b0:	200001cc 	.word	0x200001cc
@@ -56160,7 +56160,7 @@ void calculateDCL(float highest_cell_temp) {
  801729a:	3708      	adds	r7, #8
  801729c:	46bd      	mov	sp, r7
  801729e:	bd80      	pop	{r7, pc}
- 80172a0:	0801d8e4 	.word	0x0801d8e4
+ 80172a0:	0801d938 	.word	0x0801d938
  80172a4:	2000c4d8 	.word	0x2000c4d8
 
 080172a8 <calculateCCL>:
@@ -56183,7 +56183,7 @@ void calculateCCL(float highest_cell_temp) {
  80172ca:	3708      	adds	r7, #8
  80172cc:	46bd      	mov	sp, r7
  80172ce:	bd80      	pop	{r7, pc}
- 80172d0:	0801d87c 	.word	0x0801d87c
+ 80172d0:	0801d8d0 	.word	0x0801d8d0
  80172d4:	2000c4dc 	.word	0x2000c4dc
 
 080172d8 <configureDCL_CCL_TxMsg>:
@@ -56979,11 +56979,11 @@ void precharge_loop() {
  80179a0:	e7ee      	b.n	8017980 <_printf_float+0x2a4>
  80179a2:	bf00      	nop
  80179a4:	7fefffff 	.word	0x7fefffff
- 80179a8:	0801d950 	.word	0x0801d950
- 80179ac:	0801d94c 	.word	0x0801d94c
- 80179b0:	0801d958 	.word	0x0801d958
- 80179b4:	0801d954 	.word	0x0801d954
- 80179b8:	0801d95c 	.word	0x0801d95c
+ 80179a8:	0801d9a4 	.word	0x0801d9a4
+ 80179ac:	0801d9a0 	.word	0x0801d9a0
+ 80179b0:	0801d9ac 	.word	0x0801d9ac
+ 80179b4:	0801d9a8 	.word	0x0801d9a8
+ 80179b8:	0801d9b0 	.word	0x0801d9b0
  80179bc:	6da3      	ldr	r3, [r4, #88]	@ 0x58
  80179be:	f8dd a028 	ldr.w	sl, [sp, #40]	@ 0x28
  80179c2:	4553      	cmp	r3, sl
@@ -57617,8 +57617,8 @@ void precharge_loop() {
  8017f9c:	2500      	movs	r5, #0
  8017f9e:	f104 0619 	add.w	r6, r4, #25
  8017fa2:	e7f5      	b.n	8017f90 <_printf_i+0x220>
- 8017fa4:	0801d95e 	.word	0x0801d95e
- 8017fa8:	0801d96f 	.word	0x0801d96f
+ 8017fa4:	0801d9b2 	.word	0x0801d9b2
+ 8017fa8:	0801d9c3 	.word	0x0801d9c3
 
 08017fac <_scanf_float>:
  8017fac:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -58013,8 +58013,8 @@ void precharge_loop() {
  80183ba:	2700      	movs	r7, #0
  80183bc:	e62e      	b.n	801801c <_scanf_float+0x70>
  80183be:	bf00      	nop
- 80183c0:	0801d980 	.word	0x0801d980
- 80183c4:	0801db21 	.word	0x0801db21
+ 80183c0:	0801d9d4 	.word	0x0801d9d4
+ 80183c4:	0801db75 	.word	0x0801db75
 
 080183c8 <__malloc_lock>:
  80183c8:	4801      	ldr	r0, [pc, #4]	@ (80183d0 <__malloc_lock+0x8>)
@@ -58547,8 +58547,8 @@ void precharge_loop() {
  80188a8:	e782      	b.n	80187b0 <_strtod_l+0x190>
  80188aa:	f04f 0c01 	mov.w	ip, #1
  80188ae:	e7f8      	b.n	80188a2 <_strtod_l+0x282>
- 80188b0:	0801db38 	.word	0x0801db38
- 80188b4:	0801d985 	.word	0x0801d985
+ 80188b0:	0801db8c 	.word	0x0801db8c
+ 80188b4:	0801d9d9 	.word	0x0801d9d9
  80188b8:	7ff00000 	.word	0x7ff00000
  80188bc:	9a19      	ldr	r2, [sp, #100]	@ 0x64
  80188be:	1c51      	adds	r1, r2, #1
@@ -58838,13 +58838,13 @@ void precharge_loop() {
  8018b94:	f04f 0b00 	mov.w	fp, #0
  8018b98:	6013      	str	r3, [r2, #0]
  8018b9a:	e76b      	b.n	8018a74 <_strtod_l+0x454>
- 8018b9c:	0801d959 	.word	0x0801d959
- 8018ba0:	0801db24 	.word	0x0801db24
- 8018ba4:	0801d951 	.word	0x0801d951
- 8018ba8:	0801d992 	.word	0x0801d992
- 8018bac:	0801db21 	.word	0x0801db21
- 8018bb0:	0801dcb0 	.word	0x0801dcb0
- 8018bb4:	0801dc88 	.word	0x0801dc88
+ 8018b9c:	0801d9ad 	.word	0x0801d9ad
+ 8018ba0:	0801db78 	.word	0x0801db78
+ 8018ba4:	0801d9a5 	.word	0x0801d9a5
+ 8018ba8:	0801d9e6 	.word	0x0801d9e6
+ 8018bac:	0801db75 	.word	0x0801db75
+ 8018bb0:	0801dd00 	.word	0x0801dd00
+ 8018bb4:	0801dcd8 	.word	0x0801dcd8
  8018bb8:	7ff00000 	.word	0x7ff00000
  8018bbc:	7ca00000 	.word	0x7ca00000
  8018bc0:	7fefffff 	.word	0x7fefffff
@@ -59130,7 +59130,7 @@ void precharge_loop() {
  8018e6e:	2322      	movs	r3, #34	@ 0x22
  8018e70:	6013      	str	r3, [r2, #0]
  8018e72:	e603      	b.n	8018a7c <_strtod_l+0x45c>
- 8018e74:	0801db50 	.word	0x0801db50
+ 8018e74:	0801dba0 	.word	0x0801dba0
  8018e78:	fffffc02 	.word	0xfffffc02
  8018e7c:	39500000 	.word	0x39500000
  8018e80:	7ff00000 	.word	0x7ff00000
@@ -59556,7 +59556,7 @@ void precharge_loop() {
  80192dc:	d1f6      	bne.n	80192cc <_strtol_l.isra.0+0xd8>
  80192de:	f8c8 1000 	str.w	r1, [r8]
  80192e2:	e794      	b.n	801920e <_strtol_l.isra.0+0x1a>
- 80192e4:	0801db79 	.word	0x0801db79
+ 80192e4:	0801dbc9 	.word	0x0801dbc9
 
 080192e8 <_strtol_r>:
  80192e8:	f7ff bf84 	b.w	80191f4 <_strtol_l.isra.0>
@@ -60289,15 +60289,15 @@ void precharge_loop() {
  801999c:	3fc68a28 	.word	0x3fc68a28
  80199a0:	509f79fb 	.word	0x509f79fb
  80199a4:	3fd34413 	.word	0x3fd34413
- 80199a8:	0801d99c 	.word	0x0801d99c
- 80199ac:	0801d9b3 	.word	0x0801d9b3
+ 80199a8:	0801d9f0 	.word	0x0801d9f0
+ 80199ac:	0801da07 	.word	0x0801da07
  80199b0:	7ff00000 	.word	0x7ff00000
- 80199b4:	0801d95d 	.word	0x0801d95d
+ 80199b4:	0801d9b1 	.word	0x0801d9b1
  80199b8:	3ff80000 	.word	0x3ff80000
- 80199bc:	0801dcb0 	.word	0x0801dcb0
- 80199c0:	0801da0b 	.word	0x0801da0b
- 80199c4:	0801d998 	.word	0x0801d998
- 80199c8:	0801d95c 	.word	0x0801d95c
+ 80199bc:	0801dd00 	.word	0x0801dd00
+ 80199c0:	0801da5f 	.word	0x0801da5f
+ 80199c4:	0801d9ec 	.word	0x0801d9ec
+ 80199c8:	0801d9b0 	.word	0x0801d9b0
  80199cc:	f8d9 301c 	ldr.w	r3, [r9, #28]
  80199d0:	6018      	str	r0, [r3, #0]
  80199d2:	9b03      	ldr	r3, [sp, #12]
@@ -60526,8 +60526,8 @@ void precharge_loop() {
  8019c50:	e9cd 0104 	strd	r0, r1, [sp, #16]
  8019c54:	e7c4      	b.n	8019be0 <_dtoa_r+0x508>
  8019c56:	bf00      	nop
- 8019c58:	0801dcb0 	.word	0x0801dcb0
- 8019c5c:	0801dc88 	.word	0x0801dc88
+ 8019c58:	0801dd00 	.word	0x0801dd00
+ 8019c5c:	0801dcd8 	.word	0x0801dcd8
  8019c60:	3ff00000 	.word	0x3ff00000
  8019c64:	40240000 	.word	0x40240000
  8019c68:	401c0000 	.word	0x401c0000
@@ -61156,8 +61156,8 @@ void precharge_loop() {
  801a268:	f000 ff42 	bl	801b0f0 <__multadd>
  801a26c:	9002      	str	r0, [sp, #8]
  801a26e:	e7eb      	b.n	801a248 <_dtoa_r+0xb70>
- 801a270:	0801da0b 	.word	0x0801da0b
- 801a274:	0801d98f 	.word	0x0801d98f
+ 801a270:	0801da5f 	.word	0x0801da5f
+ 801a274:	0801d9e3 	.word	0x0801d9e3
 
 0801a278 <_free_r>:
  801a278:	b538      	push	{r3, r4, r5, lr}
@@ -61597,9 +61597,9 @@ void precharge_loop() {
  801a686:	2b00      	cmp	r3, #0
  801a688:	d1dd      	bne.n	801a646 <__gethex+0x26a>
  801a68a:	e7ee      	b.n	801a66a <__gethex+0x28e>
- 801a68c:	0801d985 	.word	0x0801d985
- 801a690:	0801da0b 	.word	0x0801da0b
- 801a694:	0801da1c 	.word	0x0801da1c
+ 801a68c:	0801d9d9 	.word	0x0801d9d9
+ 801a690:	0801da5f 	.word	0x0801da5f
+ 801a694:	0801da70 	.word	0x0801da70
  801a698:	1e6f      	subs	r7, r5, #1
  801a69a:	f1b9 0f00 	cmp.w	r9, #0
  801a69e:	d130      	bne.n	801a702 <__gethex+0x326>
@@ -61734,7 +61734,7 @@ void precharge_loop() {
  801a7f2:	42b0      	cmp	r0, r6
  801a7f4:	dbe7      	blt.n	801a7c6 <__gethex+0x3ea>
  801a7f6:	e7f0      	b.n	801a7da <__gethex+0x3fe>
- 801a7f8:	0801da0b 	.word	0x0801da0b
+ 801a7f8:	0801da5f 	.word	0x0801da5f
 
 0801a7fc <L_shift>:
  801a7fc:	f1c2 0208 	rsb	r2, r2, #8
@@ -62176,11 +62176,11 @@ void precharge_loop() {
  801ac10:	4638      	mov	r0, r7
  801ac12:	f7fd f8ad 	bl	8017d70 <_printf_i>
  801ac16:	e7ed      	b.n	801abf4 <_svfiprintf_r+0x1c0>
- 801ac18:	0801da7c 	.word	0x0801da7c
- 801ac1c:	0801da86 	.word	0x0801da86
+ 801ac18:	0801dad0 	.word	0x0801dad0
+ 801ac1c:	0801dada 	.word	0x0801dada
  801ac20:	080176dd 	.word	0x080176dd
  801ac24:	0801a97f 	.word	0x0801a97f
- 801ac28:	0801da82 	.word	0x0801da82
+ 801ac28:	0801dad6 	.word	0x0801dad6
 
 0801ac2c <__sfputc_r>:
  801ac2c:	6893      	ldr	r3, [r2, #8]
@@ -62446,11 +62446,11 @@ void precharge_loop() {
  801ae94:	4630      	mov	r0, r6
  801ae96:	f7fc ff6b 	bl	8017d70 <_printf_i>
  801ae9a:	e7e4      	b.n	801ae66 <_vfiprintf_r+0x1e6>
- 801ae9c:	0801da7c 	.word	0x0801da7c
- 801aea0:	0801da86 	.word	0x0801da86
+ 801ae9c:	0801dad0 	.word	0x0801dad0
+ 801aea0:	0801dada 	.word	0x0801dada
  801aea4:	080176dd 	.word	0x080176dd
  801aea8:	0801ac5b 	.word	0x0801ac5b
- 801aeac:	0801da82 	.word	0x0801da82
+ 801aeac:	0801dad6 	.word	0x0801dad6
 
 0801aeb0 <__ascii_mbtowc>:
  801aeb0:	b082      	sub	sp, #8
@@ -62679,8 +62679,8 @@ void precharge_loop() {
  801b09c:	e9c0 3303 	strd	r3, r3, [r0, #12]
  801b0a0:	e7f7      	b.n	801b092 <_Balloc+0x66>
  801b0a2:	bf00      	nop
- 801b0a4:	0801d99c 	.word	0x0801d99c
- 801b0a8:	0801da8d 	.word	0x0801da8d
+ 801b0a4:	0801d9f0 	.word	0x0801d9f0
+ 801b0a8:	0801dae1 	.word	0x0801dae1
 
 0801b0ac <_Bfree>:
  801b0ac:	b570      	push	{r4, r5, r6, lr}
@@ -62708,8 +62708,8 @@ void precharge_loop() {
  801b0e0:	6021      	str	r1, [r4, #0]
  801b0e2:	f843 4022 	str.w	r4, [r3, r2, lsl #2]
  801b0e6:	bd70      	pop	{r4, r5, r6, pc}
- 801b0e8:	0801d99c 	.word	0x0801d99c
- 801b0ec:	0801da8d 	.word	0x0801da8d
+ 801b0e8:	0801d9f0 	.word	0x0801d9f0
+ 801b0ec:	0801dae1 	.word	0x0801dae1
 
 0801b0f0 <__multadd>:
  801b0f0:	e92d 41f0 	stmdb	sp!, {r4, r5, r6, r7, r8, lr}
@@ -62763,8 +62763,8 @@ void precharge_loop() {
  801b16c:	6125      	str	r5, [r4, #16]
  801b16e:	4620      	mov	r0, r4
  801b170:	e8bd 81f0 	ldmia.w	sp!, {r4, r5, r6, r7, r8, pc}
- 801b174:	0801da0b 	.word	0x0801da0b
- 801b178:	0801da8d 	.word	0x0801da8d
+ 801b174:	0801da5f 	.word	0x0801da5f
+ 801b178:	0801dae1 	.word	0x0801dae1
 
 0801b17c <__s2b>:
  801b17c:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
@@ -62825,8 +62825,8 @@ void precharge_loop() {
  801b200:	f7ff ff76 	bl	801b0f0 <__multadd>
  801b204:	e7ee      	b.n	801b1e4 <__s2b+0x68>
  801b206:	bf00      	nop
- 801b208:	0801da0b 	.word	0x0801da0b
- 801b20c:	0801da8d 	.word	0x0801da8d
+ 801b208:	0801da5f 	.word	0x0801da5f
+ 801b20c:	0801dae1 	.word	0x0801dae1
 
 0801b210 <__hi0bits>:
  801b210:	f5b0 3f80 	cmp.w	r0, #65536	@ 0x10000
@@ -62916,8 +62916,8 @@ void precharge_loop() {
  801b2c6:	6103      	str	r3, [r0, #16]
  801b2c8:	bd10      	pop	{r4, pc}
  801b2ca:	bf00      	nop
- 801b2cc:	0801da0b 	.word	0x0801da0b
- 801b2d0:	0801da8d 	.word	0x0801da8d
+ 801b2cc:	0801da5f 	.word	0x0801da5f
+ 801b2d0:	0801dae1 	.word	0x0801dae1
 
 0801b2d4 <__multiply>:
  801b2d4:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -63036,8 +63036,8 @@ void precharge_loop() {
  801b40a:	e79f      	b.n	801b34c <__multiply+0x78>
  801b40c:	3e01      	subs	r6, #1
  801b40e:	e7a1      	b.n	801b354 <__multiply+0x80>
- 801b410:	0801da0b 	.word	0x0801da0b
- 801b414:	0801da8d 	.word	0x0801da8d
+ 801b410:	0801da5f 	.word	0x0801da5f
+ 801b414:	0801dae1 	.word	0x0801dae1
 
 0801b418 <__pow5mult>:
  801b418:	e92d 43f8 	stmdb	sp!, {r3, r4, r5, r6, r7, r8, r9, lr}
@@ -63105,9 +63105,9 @@ void precharge_loop() {
  801b4b8:	4630      	mov	r0, r6
  801b4ba:	e8bd 83f8 	ldmia.w	sp!, {r3, r4, r5, r6, r7, r8, r9, pc}
  801b4be:	bf00      	nop
- 801b4c0:	0801dc7c 	.word	0x0801dc7c
- 801b4c4:	0801d99c 	.word	0x0801d99c
- 801b4c8:	0801da8d 	.word	0x0801da8d
+ 801b4c0:	0801dccc 	.word	0x0801dccc
+ 801b4c4:	0801d9f0 	.word	0x0801d9f0
+ 801b4c8:	0801dae1 	.word	0x0801dae1
 
 0801b4cc <__lshift>:
  801b4cc:	e92d 47f0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, lr}
@@ -63186,8 +63186,8 @@ void precharge_loop() {
  801b596:	d8f9      	bhi.n	801b58c <__lshift+0xc0>
  801b598:	e7ea      	b.n	801b570 <__lshift+0xa4>
  801b59a:	bf00      	nop
- 801b59c:	0801da0b 	.word	0x0801da0b
- 801b5a0:	0801da8d 	.word	0x0801da8d
+ 801b59c:	0801da5f 	.word	0x0801da5f
+ 801b5a0:	0801dae1 	.word	0x0801dae1
 
 0801b5a4 <__mcmp>:
  801b5a4:	690a      	ldr	r2, [r1, #16]
@@ -63323,8 +63323,8 @@ void precharge_loop() {
  801b6f6:	3f01      	subs	r7, #1
  801b6f8:	e7e7      	b.n	801b6ca <__mdiff+0xee>
  801b6fa:	bf00      	nop
- 801b6fc:	0801da0b 	.word	0x0801da0b
- 801b700:	0801da8d 	.word	0x0801da8d
+ 801b6fc:	0801da5f 	.word	0x0801da5f
+ 801b700:	0801dae1 	.word	0x0801dae1
 
 0801b704 <__ulp>:
  801b704:	b082      	sub	sp, #8
@@ -63474,8 +63474,8 @@ void precharge_loop() {
  801b882:	f7ff fcc5 	bl	801b210 <__hi0bits>
  801b886:	ebc0 1042 	rsb	r0, r0, r2, lsl #5
  801b88a:	e7e5      	b.n	801b858 <__d2b+0x74>
- 801b88c:	0801da0b 	.word	0x0801da0b
- 801b890:	0801da8d 	.word	0x0801da8d
+ 801b88c:	0801da5f 	.word	0x0801da5f
+ 801b890:	0801dae1 	.word	0x0801dae1
 
 0801b894 <__ratio>:
  801b894:	e92d 4ff0 	stmdb	sp!, {r4, r5, r6, r7, r8, r9, sl, fp, lr}
@@ -64048,9 +64048,9 @@ void precharge_loop() {
  801bd98:	e7f3      	b.n	801bd82 <__assert_func+0x12>
  801bd9a:	bf00      	nop
  801bd9c:	200001cc 	.word	0x200001cc
- 801bda0:	0801dae6 	.word	0x0801dae6
- 801bda4:	0801daf3 	.word	0x0801daf3
- 801bda8:	0801db21 	.word	0x0801db21
+ 801bda0:	0801db3a 	.word	0x0801db3a
+ 801bda4:	0801db47 	.word	0x0801db47
+ 801bda8:	0801db75 	.word	0x0801db75
 
 0801bdac <_malloc_usable_size_r>:
  801bdac:	f851 3c04 	ldr.w	r3, [r1, #-4]
