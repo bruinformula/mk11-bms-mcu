@@ -17,7 +17,7 @@
 #include "freertos_handles.h"
 
 #define BALANCE_VOLTAGE_THRESHOLD 0.005
-#define BALANCE_BLEED_PERIOD 120000
+#define BALANCE_BLEED_PERIOD 600000
 #define BALANCE_WAIT_PERIOD 20000
 
 typedef enum {

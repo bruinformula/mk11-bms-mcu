@@ -15195,7 +15195,7 @@ void balancingLoop(uint8_t tIC, cell_asic *ic) {
  8008234:	20002654 	.word	0x20002654
  8008238:	20000030 	.word	0x20000030
  800823c:	20000034 	.word	0x20000034
- 8008240:	0001d4bf 	.word	0x0001d4bf
+ 8008240:	000927bf 	.word	0x000927bf
 				memset(ic[i].PwmA.pwma, 0x00, sizeof(ic[i].PwmA.pwma));
  8008244:	68fb      	ldr	r3, [r7, #12]
  8008246:	f44f 7228 	mov.w	r2, #672	@ 0x2a0
