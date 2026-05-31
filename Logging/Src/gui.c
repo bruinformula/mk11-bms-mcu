@@ -35,6 +35,51 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t len) {
 	}
 }
 
+void return_to_gui_from_charging_mode() {
+	charging_state = CHG_IDLE;
+
+	HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+	sendChargerRequest(0, 0, 1);
+
+	// change_baud_rate_500();
+	// Keep Baud Rate at 250 Kbps for debugging reasons!
+	// Still want to use CAN even if we are not actively charging.
+	stopPWM_Capture();
+	// Control Pilot readings NOT necessary if charging is not active.
+
+	// OPEN AIRs!
+	// NOTE: exit_charging_mode() is called upon loss of shutdown power
+	// So, AIRs and Precharge Relay are opened from the general shutdown power loss handler.
+	// Here, we need to explicitly put it into return_to_gui_from_charging_mode().
+	HAL_GPIO_WritePin(POS_AIR_GND_GPIO_Port, POS_AIR_GND_Pin, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(NEG_AIR_GND_GPIO_Port, NEG_AIR_GND_Pin, GPIO_PIN_RESET);
+
+	enter_wait_for_gui_mode();
+}
+
+void return_to_gui_from_balancing_mode() {
+	balance_state = BALANCE_IDLE;
+	balance_percent = 0;
+	balance_pwm = 0;
+	num_unbalanced_cells = 0;
+
+	// Reset Discharge Current %, DCTO, and DCC bits.
+	for (size_t i = 0; i < TOTAL_IC; ++i) {
+		memset(IC[i].PwmA.pwma, 0x00, sizeof(IC[i].PwmA.pwma));
+		memset(IC[i].PwmB.pwmb, 0x00, sizeof(IC[i].PwmB.pwmb));
+		IC[i].tx_cfgb.dcc = 0;
+		IC[i].tx_cfgb.dcto = 0;
+	}
+
+	osMutexWait(SPI_MUTEXHandle, osWaitForever);
+	adBms6830_write_config(TOTAL_IC, IC);
+	adBmsWriteData(TOTAL_IC, IC, WRPWM1, Pwm, A);
+	adBmsWriteData(TOTAL_IC, IC, WRPWM2, Pwm, B);
+	osMutexRelease(SPI_MUTEXHandle);
+
+	enter_wait_for_gui_mode();
+}
+
 void processGUI_Cmd() {
 	char *newline = strchr(serial_cmd_buffer, '\n');
 	if (newline) *newline = '\0';
@@ -50,11 +95,11 @@ void processGUI_Cmd() {
 	    }
 	} else if (bms_state == BMS_CHARGING) {
 		if (strcmp(serial_cmd_buffer, "EXIT_CHG_MODE") == 0) {
-			// TODO
+			return_to_gui_from_charging_mode();
 		}
 	} else if (bms_state == BMS_BALANCING) {
 		if (strcmp(serial_cmd_buffer, "EXIT_BAL_MODE") == 0) {
-			// TODO
+			return_to_gui_from_balancing_mode();
 		} else if (strncmp(serial_cmd_buffer, "START_BAL", 9) == 0) {
 			int requested_percent = atoi(&serial_cmd_buffer[10]);
 			startBalancingLoop(requested_percent);

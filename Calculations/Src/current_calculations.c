@@ -9,8 +9,21 @@
 
 volatile CURRENT_CONTEXT current_context;
 static bool using_high_range = false;
+static bool current_filter_initialized = false;
+static float filtered_current_low = 0.0f;
+static float filtered_current_high = 0.0f;
+static uint8_t overcurrent_set_count = 0;
+static uint8_t overcurrent_clear_count = 0;
+
+#define CURRENT_FILTER_ALPHA        0.10f
+#define HIGH_RANGE_ENTER_CURRENT    30.0f
+#define HIGH_RANGE_EXIT_CURRENT     25.0f
+#define OVERCURRENT_SET_SAMPLES     5U
+#define OVERCURRENT_CLEAR_SAMPLES   10U
 
 void calculateCurrent() {
+	float selected_current;
+
 	// CRITICAL REGION
 	taskENTER_CRITICAL();
 	current_context.current_sensor_low_voltage = (current_context.current_sensor_low_adc/4095.0)*3.3;
@@ -19,22 +32,44 @@ void calculateCurrent() {
 	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc) * 0.2159f - 429.326f;
 	taskEXIT_CRITICAL();
 
-	if (!using_high_range && fabsf(current_context.current_sensor_low) > 30.0f) {
+	if (!current_filter_initialized) {
+		filtered_current_low = current_context.current_sensor_low;
+		filtered_current_high = current_context.current_sensor_high;
+		current_filter_initialized = true;
+	} else {
+		filtered_current_low += CURRENT_FILTER_ALPHA * (current_context.current_sensor_low - filtered_current_low);
+		filtered_current_high += CURRENT_FILTER_ALPHA * (current_context.current_sensor_high - filtered_current_high);
+	}
+
+	if (!using_high_range && fabsf(filtered_current_low) > HIGH_RANGE_ENTER_CURRENT) {
 		using_high_range = true;
-	} else if (using_high_range && fabsf(current_context.current_sensor_low) < 25.0f) {
+	} else if (using_high_range && fabsf(filtered_current_low) < HIGH_RANGE_EXIT_CURRENT) {
 		using_high_range = false;
 	}
 
-	current_context.current_sensor_val = using_high_range ?
-			current_context.current_sensor_high :
-			current_context.current_sensor_low;
+	selected_current = using_high_range ? filtered_current_high : filtered_current_low;
+
+	current_context.current_sensor_val = selected_current;
 
 	// FAULT HANDLING
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
-	if (fabsf(current_context.current_sensor_val) > OVERCURRENT_THRESHOLD) {
-		faults_set |= FAULT_OVERCURRENT;
+
+	if (fabsf(selected_current) > OVERCURRENT_THRESHOLD) {
+		if (overcurrent_set_count < OVERCURRENT_SET_SAMPLES) {
+			overcurrent_set_count++;
+		}
+		overcurrent_clear_count = 0;
 	} else {
+		if (overcurrent_clear_count < OVERCURRENT_CLEAR_SAMPLES) {
+			overcurrent_clear_count++;
+		}
+		overcurrent_set_count = 0;
+	}
+
+	if (overcurrent_set_count >= OVERCURRENT_SET_SAMPLES) {
+		faults_set |= FAULT_OVERCURRENT;
+	} else if (overcurrent_clear_count >= OVERCURRENT_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_OVERCURRENT;
 	}
 

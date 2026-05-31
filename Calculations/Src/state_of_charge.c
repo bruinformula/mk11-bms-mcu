@@ -52,7 +52,6 @@ static float ocv_lookup_soc(float avg_temp, float cell_voltage) {
 
 }
 
-// TODO: SOC TESTING
 float soc;
 
 void get_initial_soc() {
@@ -92,4 +91,10 @@ void coulomb_count(uint32_t dt_ms) {
 	float delta_soc = (current_context.current_sensor_val * dt_seconds)/NOMINAL_PACK_CAPACITY_AS;
 	delta_soc *= 100.0f;
 	soc -= delta_soc;
+
+	if (soc > 100.0f) {
+		soc = 100.0f;
+	} else if (soc < 0.0f) {
+		soc = 0.0f;
+	}
 }

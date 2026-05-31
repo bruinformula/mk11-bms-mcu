@@ -38,35 +38,35 @@ static float interpolateCurve(const CurvePoint *curve, int size, float x) {
 }
 
 static const CurvePoint CCL_Curve[CCL_CURVE_POINTS] = {
-	{0.0f,  0.0f},
-	{5.0f,  0.0f},
-	{10.0f, 10.0f},
-	{15.0f, 20.0f},
-	{20.0f, 30.0f},
-	{25.0f, 30.0f},
-	{30.0f, 30.0f},
-	{35.0f, 30.0f},
-	{40.0f, 20.0f},
-	{45.0f, 10.0f},
-	{50.0f, 5.0f},
-	{55.0f, 0.0f},
-	{60.0f, 0.0f}
+	{-20.0f, 0.0f},
+	{-10.0f, 0.0f},
+	{  0.0f, 0.0f},
+	{  5.0f, 5.0f},
+	{ 10.0f, 15.0f},
+	{ 15.0f, 25.0f},
+	{ 20.0f, 30.0f},
+	{ 25.0f, 30.0f},
+	{ 35.0f, 30.0f},
+	{ 40.0f, 20.0f},
+	{ 45.0f, 5.0f},
+	{ 50.0f, 0.0f},
+	{ 60.0f, 0.0f}
 };
 
 static const CurvePoint DCL_Curve[DCL_CURVE_POINTS] = {
-    {0.0f,  0.0f},
-    {5.0f,  40.0f},
-    {10.0f, 100.0f},
-    {15.0f, 180.0f},
-    {20.0f, 180.0f},
-    {25.0f, 180.0f},
-    {30.0f, 180.0f},
-    {35.0f, 180.0f},
-    {40.0f, 180.0f},
-    {45.0f, 180.0f},
-    {50.0f, 70.0f},
-    {55.0f, 10.0f},
-    {60.0f, 0.0f}
+	{-20.0f, 0.0f},
+	{-10.0f, 40.0f},
+	{  0.0f, 100.0f},
+	{ 10.0f, 160.0f},
+	{ 15.0f, 180.0f},
+	{ 25.0f, 180.0f},
+	{ 35.0f, 180.0f},
+	{ 45.0f, 160.0f},
+	{ 50.0f, 100.0f},
+	{ 55.0f, 40.0f},
+	{ 60.0f, 0.0f},
+	{ 65.0f, 0.0f},
+	{ 70.0f, 0.0f}
 };
 
 void calculateDCL(float highest_cell_temp) {
@@ -84,9 +84,8 @@ void configureDCL_CCL_TxMsg() {
 void sendDCL_CCL() {
 	if (bms_state != BMS_DRIVE) return;
 
-	float highest_cell_temp = temp_context.highest_cell_temp;
-	calculateDCL(highest_cell_temp);
-	calculateCCL(highest_cell_temp);
+	calculateDCL(temp_context.highest_cell_temp);
+	calculateCCL(temp_context.lowest_cell_temp);
 	dcl_ccl_df.data.pack_dcl = (uint16_t)(dcl*100);
 	dcl_ccl_df.data.pack_ccl = (uint16_t)(ccl*100);
 

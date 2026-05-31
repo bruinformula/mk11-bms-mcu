@@ -19,6 +19,8 @@
 extern uint8_t uart_rx_buffer[RX_BUF_SIZE];
 extern char serial_cmd_buffer[RX_BUF_SIZE];
 void processGUI_Cmd();
+void return_to_gui_from_charging_mode();
+void return_to_gui_from_balancing_mode();
 
 extern char json_buf[4096];
 int build_bms_json();

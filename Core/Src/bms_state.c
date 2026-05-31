@@ -154,28 +154,38 @@ void exit_drive_mode() {
 
 void exit_charging_mode() {
 	charging_state = CHG_IDLE;
-	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
+
+	HAL_GPIO_WritePin(J1772_PILOT_SWITCH_GPIO_Port, J1772_PILOT_SWITCH_Pin, GPIO_PIN_RESET);
+	sendChargerRequest(0, 0, 1);
+
     // change_baud_rate_500();
 	// Keep Baud Rate at 250 Kbps for debugging reasons!
 	// Still want to use CAN even if we are not actively charging.
      stopPWM_Capture();
 	// Control Pilot readings NOT necessary if charging is not active.
+
+ 	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
 }
 
 void exit_balancing_mode() {
 	balance_state = BALANCE_IDLE;
-	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
-	// Reset Discharge Current % to 0.
+	balance_percent = 0;
+	balance_pwm = 0;
+	num_unbalanced_cells = 0;
+
+	// Reset Discharge Current %, DCTO, and DCC bits.
 	for (size_t i = 0; i < TOTAL_IC; ++i) {
 		memset(IC[i].PwmA.pwma, 0x00, sizeof(IC[i].PwmA.pwma));
 		memset(IC[i].PwmB.pwmb, 0x00, sizeof(IC[i].PwmB.pwmb));
-	}
-	// Reset DCTO to zero.
-	for (size_t i = 0; i < TOTAL_IC; ++i) {
+		IC[i].tx_cfgb.dcc = 0;
 		IC[i].tx_cfgb.dcto = 0;
 	}
 
 	osMutexWait(SPI_MUTEXHandle, osWaitForever);
-	adBms6830_write_read_config(TOTAL_IC, IC);
+	adBms6830_write_config(TOTAL_IC, IC);
+	adBmsWriteData(TOTAL_IC, IC, WRPWM1, Pwm, A);
+	adBmsWriteData(TOTAL_IC, IC, WRPWM2, Pwm, B);
 	osMutexRelease(SPI_MUTEXHandle);
+
+	HAL_UART_DMAStop(&hlpuart1); // Prevent GUI Commands.
 }

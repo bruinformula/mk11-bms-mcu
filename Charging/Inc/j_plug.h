@@ -15,7 +15,7 @@
 #include "tim.h"
 #include "cmsis_os.h"
 
-#define PP_VOLTAGE_EPSILON 0.15
+#define PP_VOLTAGE_EPSILON 0.2
 #define TIMER_CLOCK 1000000 // 1 Mhz
 #define CP_TIMEOUT_MS 500
 #define EVT_CP_UPDATE (1 << 1)
