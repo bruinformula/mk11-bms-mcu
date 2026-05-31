@@ -6,7 +6,7 @@
  */
 
 
-#include "../../Runtime/Inc/prchg.h"
+#include "prchg.h"
 
 volatile float inverter_dc_volts;
 static uint32_t precharge_start_time = 0;

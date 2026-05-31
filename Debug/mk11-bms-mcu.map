@@ -13651,7 +13651,7 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
  .debug_macro   0x00034cff      0x64a ./Runtime/Src/curr_limiting.o
  .debug_macro   0x00035349      0x634 ./Runtime/Src/prchg.o
 
-.debug_line     0x00000000    0x3e746
+.debug_line     0x00000000    0x3e6e6
  .debug_line    0x00000000      0x628 ./ADBMS6830/lib/src/adBms6830CmdList.o
  .debug_line    0x00000628     0x15f6 ./ADBMS6830/lib/src/adBms6830GenericType.o
  .debug_line    0x00001c1e     0x2bb6 ./ADBMS6830/lib/src/adBms6830ParseCreate.o
@@ -13707,8 +13707,8 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
  .debug_line    0x00039bd5     0x1809 ./Middlewares/Third_Party/FreeRTOS/Source/tasks.o
  .debug_line    0x0003b3de      0x920 ./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o
  .debug_line    0x0003bcfe      0x983 ./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o
- .debug_line    0x0003c681     0x1094 ./Runtime/Src/curr_limiting.o
- .debug_line    0x0003d715     0x1031 ./Runtime/Src/prchg.o
+ .debug_line    0x0003c681     0x1060 ./Runtime/Src/curr_limiting.o
+ .debug_line    0x0003d6e1     0x1005 ./Runtime/Src/prchg.o
 
 .debug_str      0x00000000   0x129284
  .debug_str     0x00000000   0x129284 ./ADBMS6830/lib/src/adBms6830CmdList.o
@@ -13767,7 +13767,7 @@ LOAD /Applications/STM32CubeIDE.app/Contents/Eclipse/plugins/com.st.stm32cube.id
  .debug_str     0x00129284     0xd1b9 ./Middlewares/Third_Party/FreeRTOS/Source/tasks.o
  .debug_str     0x00129284     0xb989 ./Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F/port.o
  .debug_str     0x00129284     0xb591 ./Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.o
- .debug_str     0x00129284   0x118f59 ./Runtime/Src/curr_limiting.o
+ .debug_str     0x00129284   0x118f63 ./Runtime/Src/curr_limiting.o
  .debug_str     0x00129284   0x11908e ./Runtime/Src/prchg.o
 
 .comment        0x00000000       0x43

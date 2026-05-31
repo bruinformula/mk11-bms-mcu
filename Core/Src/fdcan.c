@@ -192,7 +192,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 	if (RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE)
 	{
 		if (HAL_FDCAN_GetRxMessage(hfdcan, FDCAN_RX_FIFO0, &BMS_RxHeader, BMS_RxData) != HAL_OK) {
-			// TODO
+			// TODO: Add handling for CAN Failure?
 		}
 
 		fdcan_rx_count++;

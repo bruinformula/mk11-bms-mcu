@@ -37,8 +37,8 @@ typedef struct CurvePoint {
 extern float dcl;
 extern float ccl;
 
-void calculateDCL(float highest_cell_temp);
-void calculateCCL(float highest_cell_temp);
+void calculateDCL(float cell_temp);
+void calculateCCL(float cell_temp);
 void configureDCL_CCL_TxMsg();
 void sendDCL_CCL();
 

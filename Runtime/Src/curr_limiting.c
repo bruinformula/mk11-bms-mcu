@@ -5,7 +5,7 @@
  *      Author: ishanchitale
  */
 
-#include "../../Runtime/Inc/curr_limiting.h"
+#include "curr_limiting.h"
 
 float dcl;
 float ccl;
@@ -69,12 +69,12 @@ static const CurvePoint DCL_Curve[DCL_CURVE_POINTS] = {
 	{ 70.0f, 0.0f}
 };
 
-void calculateDCL(float highest_cell_temp) {
-	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, highest_cell_temp);
+void calculateDCL(float cell_temp) {
+	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, cell_temp);
 }
 
-void calculateCCL(float highest_cell_temp) {
-	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, highest_cell_temp);
+void calculateCCL(float cell_temp) {
+	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, cell_temp);
 }
 
 void configureDCL_CCL_TxMsg() {

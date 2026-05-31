@@ -27,17 +27,17 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING, OCTETS
  11 .debug_macro  0003597d  00000000  00000000  00066018  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 12 .debug_line   0003e746  00000000  00000000  0009b995  2**0
+ 12 .debug_line   0003e6e6  00000000  00000000  0009b995  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_str    00129284  00000000  00000000  000da0db  2**0
+ 13 .debug_str    00129284  00000000  00000000  000da07b  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .comment      00000043  00000000  00000000  0020335f  2**0
+ 14 .comment      00000043  00000000  00000000  002032ff  2**0
                   CONTENTS, READONLY
- 15 .debug_rnglists 00001e8d  00000000  00000000  002033a2  2**0
+ 15 .debug_rnglists 00001e8d  00000000  00000000  00203342  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_frame  0000ba9c  00000000  00000000  00205230  2**2
+ 16 .debug_frame  0000ba9c  00000000  00000000  002051d0  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line_str 0000006d  00000000  00000000  00210ccc  2**0
+ 17 .debug_line_str 0000006d  00000000  00000000  00210c6c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -18537,7 +18537,7 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
  8009838:	2140      	movs	r1, #64	@ 0x40
  800983a:	6878      	ldr	r0, [r7, #4]
  800983c:	f003 fc28 	bl	800d090 <HAL_FDCAN_GetRxMessage>
-			// TODO
+			// TODO: Add handling for CAN Failure?
 		}
 
 		fdcan_rx_count++;
@@ -57602,12 +57602,12 @@ static float interpolateCurve(const CurvePoint *curve, int size, float x) {
 	{ 70.0f, 0.0f}
 };
 
-void calculateDCL(float highest_cell_temp) {
+void calculateDCL(float cell_temp) {
  8017c48:	b580      	push	{r7, lr}
  8017c4a:	b082      	sub	sp, #8
  8017c4c:	af00      	add	r7, sp, #0
  8017c4e:	ed87 0a01 	vstr	s0, [r7, #4]
-	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, highest_cell_temp);
+	dcl = interpolateCurve(DCL_Curve, DCL_CURVE_POINTS, cell_temp);
  8017c52:	ed97 0a01 	vldr	s0, [r7, #4]
  8017c56:	210d      	movs	r1, #13
  8017c58:	4805      	ldr	r0, [pc, #20]	@ (8017c70 <calculateDCL+0x28>)
@@ -57625,12 +57625,12 @@ void calculateDCL(float highest_cell_temp) {
 
 08017c78 <calculateCCL>:
 
-void calculateCCL(float highest_cell_temp) {
+void calculateCCL(float cell_temp) {
  8017c78:	b580      	push	{r7, lr}
  8017c7a:	b082      	sub	sp, #8
  8017c7c:	af00      	add	r7, sp, #0
  8017c7e:	ed87 0a01 	vstr	s0, [r7, #4]
-	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, highest_cell_temp);
+	ccl = interpolateCurve(CCL_Curve, CCL_CURVE_POINTS, cell_temp);
  8017c82:	ed97 0a01 	vldr	s0, [r7, #4]
  8017c86:	210d      	movs	r1, #13
  8017c88:	4805      	ldr	r0, [pc, #20]	@ (8017ca0 <calculateCCL+0x28>)
