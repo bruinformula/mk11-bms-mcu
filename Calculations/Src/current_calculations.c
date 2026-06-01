@@ -24,12 +24,11 @@ static uint8_t overcurrent_clear_count = 0;
 void calculateCurrent() {
 	float selected_current;
 
-	// CRITICAL REGION
 	taskENTER_CRITICAL();
-	current_context.current_sensor_low_voltage = (current_context.current_sensor_low_adc/4095.0)*3.3;
-	current_context.current_sensor_high_voltage = (current_context.current_sensor_high_adc/4095.0)*3.3;
-	current_context.current_sensor_low = ((float) current_context.current_sensor_low_adc) * 0.01877f - 37.412f;
-	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc) * 0.2159f - 429.326f;
+	current_context.current_sensor_low = ((float) current_context.current_sensor_low_adc)
+			* 0.01877f - 37.412f;
+	current_context.current_sensor_high = ((float) current_context.current_sensor_high_adc)
+			* 0.2159f - 429.326f;
 	taskEXIT_CRITICAL();
 
 	if (!current_filter_initialized) {
