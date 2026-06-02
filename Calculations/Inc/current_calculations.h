@@ -13,7 +13,7 @@
 #include "cmsis_os.h"
 #include "safety_handler.h"
 
-#define OVERCURRENT_THRESHOLD 180
+#define OVERCURRENT_THRESHOLD 200
 
 typedef struct CURRENT_CONTEXT{
 	uint16_t current_sensor_low_adc;

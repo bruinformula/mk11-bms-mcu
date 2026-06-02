@@ -19,25 +19,25 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   ALLOC
   7 .ARM.attributes 00000030  00000000  00000000  0002021c  2**0
                   CONTENTS, READONLY
-  8 .debug_info   0003b1bf  00000000  00000000  0002024c  2**0
+  8 .debug_info   0003b1cd  00000000  00000000  0002024c  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
-  9 .debug_abbrev 000083a9  00000000  00000000  0005b40b  2**0
+  9 .debug_abbrev 000083aa  00000000  00000000  0005b419  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 10 .debug_aranges 000027e0  00000000  00000000  000637b8  2**3
+ 10 .debug_aranges 000027e8  00000000  00000000  000637c8  2**3
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 11 .debug_macro  0003597d  00000000  00000000  00065f98  2**0
+ 11 .debug_macro  00035a1d  00000000  00000000  00065fb0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 12 .debug_line   0003e6ce  00000000  00000000  0009b915  2**0
+ 12 .debug_line   0003e6e6  00000000  00000000  0009b9cd  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 13 .debug_str    0012924d  00000000  00000000  000d9fe3  2**0
+ 13 .debug_str    001293ac  00000000  00000000  000da0b3  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 14 .comment      00000043  00000000  00000000  00203230  2**0
+ 14 .comment      00000043  00000000  00000000  0020345f  2**0
                   CONTENTS, READONLY
- 15 .debug_rnglists 00001e8d  00000000  00000000  00203273  2**0
+ 15 .debug_rnglists 00001e93  00000000  00000000  002034a2  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 16 .debug_frame  0000ba98  00000000  00000000  00205100  2**2
+ 16 .debug_frame  0000bab8  00000000  00000000  00205338  2**2
                   CONTENTS, READONLY, DEBUGGING, OCTETS
- 17 .debug_line_str 0000006d  00000000  00000000  00210b98  2**0
+ 17 .debug_line_str 0000006d  00000000  00000000  00210df0  2**0
                   CONTENTS, READONLY, DEBUGGING, OCTETS
 
 Disassembly of section .text:
@@ -12927,7 +12927,7 @@ void calculateCurrent() {
  8006ff8:	20001c74 	.word	0x20001c74
  8006ffc:	3dcccccd 	.word	0x3dcccccd
  8007000:	20001c6c 	.word	0x20001c6c
- 8007004:	43340000 	.word	0x43340000
+ 8007004:	43480000 	.word	0x43480000
  8007008:	20001c78 	.word	0x20001c78
  800700c:	20001c79 	.word	0x20001c79
 
@@ -16988,12 +16988,14 @@ void safetyFunction(void const * argument)
  8008ea2:	b082      	sub	sp, #8
  8008ea4:	af00      	add	r7, sp, #0
  8008ea6:	6078      	str	r0, [r7, #4]
-  /* USER CODE BEGIN safetyFunction */
+
   /* Infinite loop */
   for(;;)
   {
+#if BMS_MODE == BMS_MODE_DEFAULT
 	service_shutdown_power_signal();
  8008ea8:	f000 feda 	bl	8009c60 <service_shutdown_power_signal>
+#endif
 	BMS_CheckFaultRegister();
  8008eac:	f000 ffba 	bl	8009e24 <BMS_CheckFaultRegister>
     osDelay(50);
@@ -17043,13 +17045,16 @@ void dataloggingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+#if BMS_CAN_DATALOGGING_MODE == BMS_DATALOGGING_ENABLED
 	sendVoltage();
  8008edc:	f00a ff78 	bl	8013dd0 <sendVoltage>
 	sendTemp();
  8008ee0:	f00a ffd6 	bl	8013e90 <sendTemp>
 	sendSoc_Curr_Pack();
  8008ee4:	f00b f834 	bl	8013f50 <sendSoc_Curr_Pack>
+#endif
 
+#if BMS_JSON_DATALOGGING_MODE == BMS_DATALOGGING_ENABLED
 	taskENTER_CRITICAL();
  8008ee8:	f00e face 	bl	8017488 <vPortEnterCritical>
 	int json_len = build_bms_json();
@@ -17060,6 +17065,7 @@ void dataloggingFunction(void const * argument)
 	send_bms_json(json_len);
  8008ef6:	68f8      	ldr	r0, [r7, #12]
  8008ef8:	f00c f8ac 	bl	8015054 <send_bms_json>
+#endif
 
     osDelay(1000);
  8008efc:	f44f 707a 	mov.w	r0, #1000	@ 0x3e8
@@ -17321,7 +17327,7 @@ volatile BMS_STATE bms_state = BMS_IDLE;
 void determine_operating_state() {
  8009058:	b580      	push	{r7, lr}
  800905a:	af00      	add	r7, sp, #0
-	// Based on Power Signal Logic.
+	// Based on power signals.
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
  800905c:	f44f 7100 	mov.w	r1, #512	@ 0x200
  8009060:	f04f 4090 	mov.w	r0, #1207959552	@ 0x48000000
@@ -17396,9 +17402,6 @@ void reset_operating_state(BMS_STATE prev_state) {
     		break;
  80090d8:	e000      	b.n	80090dc <reset_operating_state+0x4c>
     	default:
-    		// TODO: Check for race conditions.
-    		// BMS_INTERNAL_FAULT or BMS_EXTERNAL_FAULT
-    		// Should never reach here, ideally...
     		break;
  80090da:	bf00      	nop
     }
@@ -17409,6 +17412,10 @@ void reset_operating_state(BMS_STATE prev_state) {
  80090e2:	bd80      	pop	{r7, pc}
 
 080090e4 <wakeup_tasks>:
+	// BMS_MODE_DEFAULT
+	// Startup is determined by shutdown power and power signals.
+#endif
+}
 
 void wakeup_tasks() {
  80090e4:	b580      	push	{r7, lr}

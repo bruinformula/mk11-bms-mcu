@@ -10,7 +10,7 @@
 volatile BMS_STATE bms_state = BMS_IDLE;
 
 void determine_operating_state() {
-	// Based on Power Signal Logic.
+	// Based on power signals.
 	if (HAL_GPIO_ReadPin(CHARGE_SIGNAL_GPIO_Port, CHARGE_SIGNAL_Pin) == GPIO_PIN_SET) {
 		enter_wait_for_gui_mode();
 	} else if (HAL_GPIO_ReadPin(READY_SIGNAL_GPIO_Port, READY_SIGNAL_Pin) == GPIO_PIN_SET) {
@@ -36,11 +36,26 @@ void reset_operating_state(BMS_STATE prev_state) {
     		exit_drive_mode();
     		break;
     	default:
-    		// TODO: Check for race conditions.
-    		// BMS_INTERNAL_FAULT or BMS_EXTERNAL_FAULT
-    		// Should never reach here, ideally...
     		break;
     }
+}
+
+void enter_configured_startup_mode() {
+#if BMS_MODE == BMS_MODE_ENTER_GUI
+	enter_wait_for_gui_mode();
+#elif BMS_MODE == BMS_MODE_ENTER_CHARGING
+	enter_charging_mode();
+#elif BMS_MODE == BMS_MODE_ENTER_BALANCING
+	enter_balancing_mode();
+#elif BMS_MODE == BMS_MODE_ENTER_PRECHARGE
+	enter_precharge_mode();
+#elif BMS_MODE == BMS_MODE_ENTER_DRIVE
+	precharge_state = PRECHARGE_SUCCESS;
+	enter_drive_mode();
+#else
+	// BMS_MODE_DEFAULT
+	// Startup is determined by shutdown power and power signals.
+#endif
 }
 
 void wakeup_tasks() {

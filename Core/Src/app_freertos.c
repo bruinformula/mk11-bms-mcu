@@ -32,6 +32,7 @@
 #include "curr_limiting.h"
 #include "prchg.h"
 #include "gui.h"
+#include "bms_state.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -245,10 +246,16 @@ void tempFunction(void const * argument)
 void safetyFunction(void const * argument)
 {
   /* USER CODE BEGIN safetyFunction */
+#if BMS_MODE != BMS_MODE_DEFAULT
+  enter_configured_startup_mode();
+#endif
+
   /* Infinite loop */
   for(;;)
   {
+#if BMS_MODE == BMS_MODE_DEFAULT
 	service_shutdown_power_signal();
+#endif
 	BMS_CheckFaultRegister();
     osDelay(50);
   }
@@ -287,14 +294,18 @@ void dataloggingFunction(void const * argument)
   /* Infinite loop */
   for(;;)
   {
+#if BMS_CAN_DATALOGGING_MODE == BMS_DATALOGGING_ENABLED
 	sendVoltage();
 	sendTemp();
 	sendSoc_Curr_Pack();
+#endif
 
+#if BMS_JSON_DATALOGGING_MODE == BMS_DATALOGGING_ENABLED
 	taskENTER_CRITICAL();
 	int json_len = build_bms_json();
 	taskEXIT_CRITICAL();
 	send_bms_json(json_len);
+#endif
 
     osDelay(1000);
   }
