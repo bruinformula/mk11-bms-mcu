@@ -66,11 +66,13 @@ void calculateCurrent() {
 		overcurrent_set_count = 0;
 	}
 
+#if BMS_FAULT_OVERCURRENT == BMS_FAULT_ENABLED
 	if (overcurrent_set_count >= OVERCURRENT_SET_SAMPLES) {
 		faults_set |= FAULT_OVERCURRENT;
 	} else if (overcurrent_clear_count >= OVERCURRENT_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_OVERCURRENT;
 	}
+#endif
 
 	if (faults_set) {
 		BMS_SetFault(faults_set);

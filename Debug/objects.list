@@ -5,6 +5,7 @@
 "./ADBMS6830/program/src/mcuWrapper.o"
 "./ADBMS6830/program/src/serialPrintResult.o"
 "./Calculations/Src/current_calculations.o"
+"./Calculations/Src/ocv_table.o"
 "./Calculations/Src/state_of_charge.o"
 "./Calculations/Src/thermistor.o"
 "./Calculations/Src/voltage_calculations.o"

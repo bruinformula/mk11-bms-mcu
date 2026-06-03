@@ -246,16 +246,11 @@ void tempFunction(void const * argument)
 void safetyFunction(void const * argument)
 {
   /* USER CODE BEGIN safetyFunction */
-#if BMS_MODE != BMS_MODE_DEFAULT
-  enter_configured_startup_mode();
-#endif
 
   /* Infinite loop */
   for(;;)
   {
-#if BMS_MODE == BMS_MODE_DEFAULT
 	service_shutdown_power_signal();
-#endif
 	BMS_CheckFaultRegister();
     osDelay(50);
   }

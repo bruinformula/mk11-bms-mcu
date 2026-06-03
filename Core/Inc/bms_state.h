@@ -18,18 +18,21 @@
 #include "gui.h"
 #include "can_datalogging.h"
 
-#define BMS_MODE_DEFAULT 0 // Startup is determined by shutdown power and power signals.
-#define BMS_MODE_ENTER_GUI 1
-#define BMS_MODE_ENTER_CHARGING 2
-#define BMS_MODE_ENTER_BALANCING 3
-#define BMS_MODE_ENTER_PRECHARGE 4
-#define BMS_MODE_ENTER_DRIVE 5
-#define BMS_MODE BMS_MODE_DEFAULT
-
+// BMS Logging Configuration
 #define BMS_DATALOGGING_DISABLED 0
 #define BMS_DATALOGGING_ENABLED 1
-#define BMS_JSON_DATALOGGING_MODE BMS_DATALOGGING_DISABLED
-#define BMS_CAN_DATALOGGING_MODE BMS_DATALOGGING_ENABLED
+#define BMS_JSON_DATALOGGING_MODE BMS_DATALOGGING_DISABLED // !!!!!!
+#define BMS_CAN_DATALOGGING_MODE BMS_DATALOGGING_ENABLED // !!!!!!
+
+// BMS Fault Handling Configuration
+#define BMS_FAULT_DISABLED 0
+#define BMS_FAULT_ENABLED 1
+#define BMS_FAULT_OVERVOLTAGE BMS_FAULT_ENABLED
+#define BMS_FAULT_UNDERVOLTAGE BMS_FAULT_ENABLED
+#define BMS_FAULT_OVERTEMP BMS_FAULT_ENABLED
+#define BMS_FAULT_UNDERTEMP BMS_FAULT_ENABLED
+#define BMS_FAULT_OVERCURRENT BMS_FAULT_ENABLED
+#define BMS_FAULT_IC_DISCONNECT BMS_FAULT_ENABLED
 
 typedef enum {
 	BMS_IDLE = 0,
@@ -45,7 +48,6 @@ extern volatile BMS_STATE bms_state;
 
 void determine_operating_state();
 void reset_operating_state(BMS_STATE prev_state);
-void enter_configured_startup_mode();
 void wakeup_tasks();
 void change_baud_rate_500();
 void change_baud_rate_250();

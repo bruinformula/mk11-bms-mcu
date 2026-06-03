@@ -36,7 +36,6 @@ typedef union PRECHARGE_COMPLETE_DF {
 		uint8_t reserved4;
 		uint8_t reserved5;
 		uint8_t reserved6;
-		uint8_t reserved7;
 	} data;
 	uint8_t array[8];
 } PRECHARGE_COMPLETE_DF;

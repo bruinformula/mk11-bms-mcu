@@ -42,9 +42,11 @@ void service_shutdown_power_signal(void)
     }
 }
 
+static volatile bool bms_fault_issued = false;
 void apply_shutdown_power_state(bool shutdown_asserted) {
 	if (shutdown_asserted) {
 		if (bms_state == BMS_IDLE || bms_state == BMS_INTERNAL_FAULT || bms_state == BMS_EXTERNAL_FAULT) {
+			bms_fault_issued = false; // Clamp back to false.
 			bms_state = BMS_IDLE;
 			determine_operating_state();
 		}
@@ -57,7 +59,9 @@ void apply_shutdown_power_state(bool shutdown_asserted) {
 		HAL_GPIO_WritePin(PRECHARGE_GPIO_Port, PRECHARGE_Pin, GPIO_PIN_RESET);
 
 		reset_operating_state(bms_state);
-		if (bms_state != BMS_INTERNAL_FAULT) {
+		if (bms_fault_issued) {
+			bms_state = BMS_INTERNAL_FAULT;
+		} else {
 			bms_state = BMS_EXTERNAL_FAULT;
 		}
 
@@ -96,8 +100,9 @@ void BMS_CheckFaultRegister() {
 	// CRITICAL REGION
 	osMutexWait(FAULT_MUTEXHandle, osWaitForever);
 	if (fault_register.reg != 0) {
+		// Issue BMS Fault!
+		bms_fault_issued = true;
 		HAL_GPIO_WritePin(BMS_FAULT_GPIO_Port, BMS_FAULT_Pin, GPIO_PIN_RESET);
-		bms_state = BMS_INTERNAL_FAULT;
 	} else {
 		// Shutdown Reset needs to be hit for fault to clear on Shutdown Board.
 		// Even if the pin is driven high (NO FAULT) on the BMS.

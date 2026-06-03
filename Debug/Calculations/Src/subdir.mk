@@ -6,18 +6,21 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
 ../Calculations/Src/current_calculations.c \
+../Calculations/Src/ocv_table.c \
 ../Calculations/Src/state_of_charge.c \
 ../Calculations/Src/thermistor.c \
 ../Calculations/Src/voltage_calculations.c 
 
 OBJS += \
 ./Calculations/Src/current_calculations.o \
+./Calculations/Src/ocv_table.o \
 ./Calculations/Src/state_of_charge.o \
 ./Calculations/Src/thermistor.o \
 ./Calculations/Src/voltage_calculations.o 
 
 C_DEPS += \
 ./Calculations/Src/current_calculations.d \
+./Calculations/Src/ocv_table.d \
 ./Calculations/Src/state_of_charge.d \
 ./Calculations/Src/thermistor.d \
 ./Calculations/Src/voltage_calculations.d 
@@ -30,7 +33,7 @@ Calculations/Src/%.o Calculations/Src/%.su Calculations/Src/%.cyclo: ../Calculat
 clean: clean-Calculations-2f-Src
 
 clean-Calculations-2f-Src:
-	-$(RM) ./Calculations/Src/current_calculations.cyclo ./Calculations/Src/current_calculations.d ./Calculations/Src/current_calculations.o ./Calculations/Src/current_calculations.su ./Calculations/Src/state_of_charge.cyclo ./Calculations/Src/state_of_charge.d ./Calculations/Src/state_of_charge.o ./Calculations/Src/state_of_charge.su ./Calculations/Src/thermistor.cyclo ./Calculations/Src/thermistor.d ./Calculations/Src/thermistor.o ./Calculations/Src/thermistor.su ./Calculations/Src/voltage_calculations.cyclo ./Calculations/Src/voltage_calculations.d ./Calculations/Src/voltage_calculations.o ./Calculations/Src/voltage_calculations.su
+	-$(RM) ./Calculations/Src/current_calculations.cyclo ./Calculations/Src/current_calculations.d ./Calculations/Src/current_calculations.o ./Calculations/Src/current_calculations.su ./Calculations/Src/ocv_table.cyclo ./Calculations/Src/ocv_table.d ./Calculations/Src/ocv_table.o ./Calculations/Src/ocv_table.su ./Calculations/Src/state_of_charge.cyclo ./Calculations/Src/state_of_charge.d ./Calculations/Src/state_of_charge.o ./Calculations/Src/state_of_charge.su ./Calculations/Src/thermistor.cyclo ./Calculations/Src/thermistor.d ./Calculations/Src/thermistor.o ./Calculations/Src/thermistor.su ./Calculations/Src/voltage_calculations.cyclo ./Calculations/Src/voltage_calculations.d ./Calculations/Src/voltage_calculations.o ./Calculations/Src/voltage_calculations.su
 
 .PHONY: clean-Calculations-2f-Src
 

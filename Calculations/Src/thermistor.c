@@ -114,23 +114,29 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	uint8_t faults_set = 0;
 	uint8_t faults_clear = 0;
 
+#if BMS_FAULT_IC_DISCONNECT == BMS_FAULT_ENABLED
 	if (any_ic_disconnect) {
 		faults_set |= FAULT_ISOSPI_DISCONNECT;
 	} else {
 		faults_clear |= FAULT_ISOSPI_DISCONNECT;
 	}
+#endif
 
+#if BMS_FAULT_OVERTEMP == BMS_FAULT_ENABLED
 	if (local_highest > OVER_TEMP_THRESHOLD) {
 		faults_set |= FAULT_OVERTEMP;
 	} else {
 		faults_clear |= FAULT_OVERTEMP;
 	}
+#endif
 
+#if BMS_FAULT_UNDERTEMP == BMS_FAULT_ENABLED
 	if (local_lowest < UNDER_TEMP_THRESHOLD) {
 		faults_set |= FAULT_UNDERTEMP;
 	} else {
 		faults_clear |= FAULT_UNDERTEMP;
 	}
+#endif
 
 	if (faults_set) {
 		BMS_SetFault(faults_set);

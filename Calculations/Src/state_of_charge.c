@@ -6,34 +6,12 @@ static float interpolate(float x0, float x1, float y0, float y1, float x) {
 }
 
 static float ocv_lookup_soc(float avg_temp, float cell_voltage) {
-	if (avg_temp < temp_axis[0] || avg_temp > temp_axis[NUM_TEMP - 1]) {
-		return NAN;
-	}
-
-	int t_low = 0;
-	int t_high = 0;
-
-    for (size_t i = 0; i < NUM_TEMP - 1; ++i) {
-        if (avg_temp >= temp_axis[i] && avg_temp <= temp_axis[i + 1]) {
-            t_low = i;
-            t_high = i + 1;
-            break;
-        }
-    }
-
-    float ocv_interp[NUM_SOC];
-    for (size_t j = 0; j < NUM_SOC; ++j) {
-    	ocv_interp[j] = interpolate(
-                temp_axis[t_low], temp_axis[t_high],
-                ocv_table[t_low][j], ocv_table[t_high][j],
-                avg_temp
-        );
-    }
+	(void)avg_temp;
 
     for (size_t k = 0; k < NUM_SOC - 1; ++k) {
 
-        float v1 = ocv_interp[k];
-        float v2 = ocv_interp[k + 1];
+        float v1 = ocv_table[0][k];
+        float v2 = ocv_table[0][k + 1];
 
         float min_v = fminf(v1, v2);
         float max_v = fmaxf(v1, v2);
