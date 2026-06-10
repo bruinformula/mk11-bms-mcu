@@ -16,7 +16,7 @@
 #include "cmsis_os.h"
 #include "freertos_handles.h"
 
-#define BMS_SHUTDOWN_LOST_TX_ID 0x6B5
+#define BMS_SHUTDOWN_LOST_TX_ID 0x6B6
 
 typedef struct {
     uint8_t overvoltage  : 1;

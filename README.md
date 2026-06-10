@@ -1,4 +1,4 @@
-# MK11 BMS MCU
+# Mk.11 High Voltage BMS
 
 Firmware for the Mk.11 High Voltage Battery Management System. Runs on an STM32 G474RE leveraging FreeRTOS and the ADBMS6830 IC Library.
 

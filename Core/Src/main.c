@@ -141,6 +141,7 @@ int main(void)
   configureSoc_Curr_Pack_TxMsg();
   configureChargeTxMsg();
   configurePrchgTxMsg();
+  configurePrchgIgnoreTxMsg();
   configureDCL_CCL_TxMsg();
   configureShutdownLostTxMsg();
   // CAN STARTUP
