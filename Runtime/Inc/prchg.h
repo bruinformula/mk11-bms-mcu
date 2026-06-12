@@ -20,6 +20,7 @@
 #include "cmsis_os.h"
 #include "bms_state.h"
 
+#define PRECHARGE_IGNORE_TX_ID 0x6B5
 #define PRECHARGE_COMPLETE_TX_ID 0x6B4
 #define PRECHARGE_REQUEST_RX_ID 0x6B3
 #define INVERTER_VOLTAGE_RX_ID 0xA7
@@ -50,6 +51,7 @@ extern volatile PRECHARGE_STATE precharge_state;
 
 extern volatile float inverter_dc_volts;
 
+void configurePrchgIgnoreTxMsg();
 void configurePrchgTxMsg();
 void prechargeStart();
 void precharge_loop();

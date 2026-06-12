@@ -12,7 +12,13 @@ volatile float inverter_dc_volts;
 static uint32_t precharge_start_time = 0;
 static FDCAN_TxHeaderTypeDef Precharge_Complete_TxHeader;
 static PRECHARGE_COMPLETE_DF Precharge_Complete_DF;
+
+static FDCAN_TxHeaderTypeDef Precharge_Ignore_TxHeader;
 volatile PRECHARGE_STATE precharge_state = PRECHARGE_IDLE;
+
+void configurePrchgIgnoreTxMsg() {
+	configureFDCAN_TxMessage_STD(&Precharge_Ignore_TxHeader, PRECHARGE_IGNORE_TX_ID);
+}
 
 void configurePrchgTxMsg() {
 	configureFDCAN_TxMessage_STD(&Precharge_Complete_TxHeader, PRECHARGE_COMPLETE_TX_ID);
@@ -20,7 +26,13 @@ void configurePrchgTxMsg() {
 
 // Triggered by CAN Request from VCU; check fdcan.c.
 void prechargeStart() {
-	if (bms_state != BMS_PRECHARGING) return;
+	if (bms_state != BMS_PRECHARGING) {
+		// Need to ignore precharge, while also notifying the VCU to avoid hard faulting it.
+		// Otherwise, VCU will "think" precharge timed out due to CAN or HV issue, and hard fault.
+		uint8_t dummy_data[8] = {0};
+		HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Precharge_Ignore_TxHeader, dummy_data);
+		return;
+	}
 
 	if (precharge_state == PRECHARGE_IDLE || precharge_state == PRECHARGE_FAIL) {
 		// Able to re-attempt precharge in these states.
