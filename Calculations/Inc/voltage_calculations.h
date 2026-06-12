@@ -15,8 +15,8 @@
 #include "freertos_handles.h"
 #include <math.h>
 
-#define OVER_VOLTAGE_THRESHOLD 4.20
-#define UNDER_VOLTAGE_THRESHOLD 2.40
+#define OVER_VOLTAGE_THRESHOLD 4.30
+#define UNDER_VOLTAGE_THRESHOLD 2.30
 #define BROKEN_CELL_VOLTAGE_THRESHOLD 1.60
 
 typedef struct VOLTAGE_CONTEXT {
