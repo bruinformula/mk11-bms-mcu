@@ -147,6 +147,10 @@ int main(void)
   // CAN STARTUP
   configureFilters();
   startCAN_Tx_Rx();
+
+  // ISHAN CHITALE - BRUIN FORMULA RACING, SOFTWARE LEAD 2025 - 2026
+  // RONIT BARMAN - BRUIN FORMULA RACING, BMS RE 2025 - 2026
+
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
