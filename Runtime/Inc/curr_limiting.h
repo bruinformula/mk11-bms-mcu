@@ -14,7 +14,7 @@
 #include "cmsis_os.h"
 
 #define DCL_CCL_TX_ID 0x202
-#define DCL_CURVE_POINTS 13
+#define DCL_CURVE_POINTS 17
 #define CCL_CURVE_POINTS 13
 
 typedef union DCL_CCL_DF {

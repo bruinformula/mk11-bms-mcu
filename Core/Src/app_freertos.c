@@ -344,7 +344,7 @@ void currLimitFunction(void const * argument)
   {
 	  ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 	  while (bms_state == BMS_DRIVE) {
-		  sendDCL_CCL();
+//		  sendDCL_CCL();
 		  osDelay(100);
 	  }
   }
