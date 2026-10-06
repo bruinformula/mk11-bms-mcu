@@ -9,6 +9,25 @@
 
 volatile TEMP_CONTEXT temp_context;
 static float local_temp_conversions[TOTAL_IC][CELLS_PER_IC];
+static float filtered_temp_conversions[TOTAL_IC][CELLS_PER_IC];
+static bool temp_filter_initialized = false;
+
+#if BMS_FAULT_IC_DISCONNECT == BMS_FAULT_ENABLED
+#define ISOSPI_DISCONNECT_SET_SAMPLES 3U
+#define ISOSPI_DISCONNECT_CLEAR_SAMPLES 5U
+
+static uint8_t isospi_disconnect_set_count = 0;
+static uint8_t isospi_disconnect_clear_count = 0;
+#endif
+#define OVERTEMP_SET_SAMPLES 3U
+#define OVERTEMP_CLEAR_SAMPLES 5U
+#define UNDERTEMP_SET_SAMPLES 3U
+#define UNDERTEMP_CLEAR_SAMPLES 5U
+
+static uint8_t overtemp_set_count = 0;
+static uint8_t overtemp_clear_count = 0;
+static uint8_t undertemp_set_count = 0;
+static uint8_t undertemp_clear_count = 0;
 
 static const float voltage_table[33] = {
 		2.44, 2.42, 2.40, 2.38, 2.35, 2.32, 2.27, 2.23, 2.17, 2.11, 2.05, 1.99, 1.92, 1.86, 1.8, 1.74, 1.68,
@@ -83,6 +102,15 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 
 			local_valid_cells++;
 
+			if (!temp_filter_initialized) {
+				filtered_temp_conversions[i][j] = cell_temp;
+			} else {
+				filtered_temp_conversions[i][j] += 0.10f * (cell_temp - filtered_temp_conversions[i][j]);
+			}
+
+			cell_temp = filtered_temp_conversions[i][j];
+			local_temp_conversions[i][j] = cell_temp;
+
 			if (cell_temp < local_lowest) {
 				local_lowest = cell_temp;
 			}
@@ -96,6 +124,7 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	}
 
 	if (local_valid_cells > 0) {
+		temp_filter_initialized = true;
 		local_avg = tempSum/(local_valid_cells);
 	} else {
 		local_avg = NAN;
@@ -116,24 +145,60 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 
 #if BMS_FAULT_IC_DISCONNECT == BMS_FAULT_ENABLED
 	if (any_ic_disconnect) {
-		faults_set |= FAULT_ISOSPI_DISCONNECT;
+		if (isospi_disconnect_set_count < ISOSPI_DISCONNECT_SET_SAMPLES) {
+			isospi_disconnect_set_count++;
+		}
+		isospi_disconnect_clear_count = 0;
 	} else {
+		if (isospi_disconnect_clear_count < ISOSPI_DISCONNECT_CLEAR_SAMPLES) {
+			isospi_disconnect_clear_count++;
+		}
+		isospi_disconnect_set_count = 0;
+	}
+
+	if (isospi_disconnect_set_count >= ISOSPI_DISCONNECT_SET_SAMPLES) {
+		faults_set |= FAULT_ISOSPI_DISCONNECT;
+	} else if (isospi_disconnect_clear_count >= ISOSPI_DISCONNECT_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_ISOSPI_DISCONNECT;
 	}
 #endif
 
 #if BMS_FAULT_OVERTEMP == BMS_FAULT_ENABLED
 	if (local_highest > OVER_TEMP_THRESHOLD) {
-		faults_set |= FAULT_OVERTEMP;
+		if (overtemp_set_count < OVERTEMP_SET_SAMPLES) {
+			overtemp_set_count++;
+		}
+		overtemp_clear_count = 0;
 	} else {
+		if (overtemp_clear_count < OVERTEMP_CLEAR_SAMPLES) {
+			overtemp_clear_count++;
+		}
+		overtemp_set_count = 0;
+	}
+
+	if (overtemp_set_count >= OVERTEMP_SET_SAMPLES) {
+		faults_set |= FAULT_OVERTEMP;
+	} else if (overtemp_clear_count >= OVERTEMP_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_OVERTEMP;
 	}
 #endif
 
 #if BMS_FAULT_UNDERTEMP == BMS_FAULT_ENABLED
 	if (local_lowest < UNDER_TEMP_THRESHOLD) {
-		faults_set |= FAULT_UNDERTEMP;
+		if (undertemp_set_count < UNDERTEMP_SET_SAMPLES) {
+			undertemp_set_count++;
+		}
+		undertemp_clear_count = 0;
 	} else {
+		if (undertemp_clear_count < UNDERTEMP_CLEAR_SAMPLES) {
+			undertemp_clear_count++;
+		}
+		undertemp_set_count = 0;
+	}
+
+	if (undertemp_set_count >= UNDERTEMP_SET_SAMPLES) {
+		faults_set |= FAULT_UNDERTEMP;
+	} else if (undertemp_clear_count >= UNDERTEMP_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_UNDERTEMP;
 	}
 #endif
