@@ -10,7 +10,7 @@
 volatile TEMP_CONTEXT temp_context;
 static float local_temp_conversions[TOTAL_IC][CELLS_PER_IC];
 static float filtered_temp_conversions[TOTAL_IC][CELLS_PER_IC];
-static bool temp_filter_initialized = false;
+static bool temp_filter_initialized[TOTAL_IC][CELLS_PER_IC];
 
 #if BMS_FAULT_IC_DISCONNECT == BMS_FAULT_ENABLED
 #define ISOSPI_DISCONNECT_SET_SAMPLES 3U
@@ -87,6 +87,7 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			any_ic_disconnect = true;
 			for (size_t j = 0; j < CELLS_PER_IC; ++j) {
 				local_temp_conversions[i][j] = NAN;
+				temp_filter_initialized[i][j] = false;
 			}
 			continue;
 		}
@@ -97,13 +98,15 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			local_temp_conversions[i][j] = cell_temp;
 
 			if (isnan(cell_temp)) {
+				temp_filter_initialized[i][j] = false;
 				continue;
 			}
 
 			local_valid_cells++;
 
-			if (!temp_filter_initialized) {
+			if (!temp_filter_initialized[i][j]) {
 				filtered_temp_conversions[i][j] = cell_temp;
+				temp_filter_initialized[i][j] = true;
 			} else {
 				filtered_temp_conversions[i][j] += 0.10f * (cell_temp - filtered_temp_conversions[i][j]);
 			}
@@ -124,7 +127,6 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 	}
 
 	if (local_valid_cells > 0) {
-		temp_filter_initialized = true;
 		local_avg = tempSum/(local_valid_cells);
 	} else {
 		local_avg = NAN;
@@ -169,10 +171,12 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			overtemp_set_count++;
 		}
 		overtemp_clear_count = 0;
-	} else {
+	} else if (local_valid_cells > 0 && !any_ic_disconnect) {
 		if (overtemp_clear_count < OVERTEMP_CLEAR_SAMPLES) {
 			overtemp_clear_count++;
 		}
+		overtemp_set_count = 0;
+	} else {
 		overtemp_set_count = 0;
 	}
 
@@ -189,10 +193,12 @@ void computeAllTemps(uint8_t tIC, cell_asic *ic) {
 			undertemp_set_count++;
 		}
 		undertemp_clear_count = 0;
-	} else {
+	} else if (local_valid_cells > 0 && !any_ic_disconnect) {
 		if (undertemp_clear_count < UNDERTEMP_CLEAR_SAMPLES) {
 			undertemp_clear_count++;
 		}
+		undertemp_set_count = 0;
+	} else {
 		undertemp_set_count = 0;
 	}
 

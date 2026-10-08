@@ -3,7 +3,7 @@
 volatile VOLTAGE_CONTEXT voltage_context;
 static float local_voltage_conversions[TOTAL_IC][CELLS_PER_IC];
 static float filtered_voltage_conversions[TOTAL_IC][CELLS_PER_IC];
-static bool voltage_filter_initialized = false;
+static bool voltage_filter_initialized[TOTAL_IC][CELLS_PER_IC];
 
 #define OVERVOLTAGE_SET_SAMPLES 5U
 #define OVERVOLTAGE_CLEAR_SAMPLES 10U
@@ -34,11 +34,13 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 
 			if (cell_voltage <= BROKEN_CELL_VOLTAGE_THRESHOLD) {
 				local_valid_cells--;
+				voltage_filter_initialized[i][j] = false;
 				continue;
 			}
 
-			if (!voltage_filter_initialized) {
+			if (!voltage_filter_initialized[i][j]) {
 				filtered_voltage_conversions[i][j] = cell_voltage;
+				voltage_filter_initialized[i][j] = true;
 			} else {
 				filtered_voltage_conversions[i][j] += 0.10f * (cell_voltage - filtered_voltage_conversions[i][j]);
 			}
@@ -59,7 +61,6 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 	}
 
 	if (local_valid_cells > 0) {
-		voltage_filter_initialized = true;
 		local_avg = measured_pack/local_valid_cells;
 		local_estimated_pack = measured_pack + local_avg*(TOTAL_CELLS - local_valid_cells);
 	} else {
@@ -87,10 +88,12 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 			overvoltage_set_count++;
 		}
 		overvoltage_clear_count = 0;
-	} else {
+	} else if (local_valid_cells > 0) {
 		if (overvoltage_clear_count < OVERVOLTAGE_CLEAR_SAMPLES) {
 			overvoltage_clear_count++;
 		}
+		overvoltage_set_count = 0;
+	} else {
 		overvoltage_set_count = 0;
 	}
 
@@ -109,10 +112,12 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 			undervoltage_set_count++;
 		}
 		undervoltage_clear_count = 0;
-	} else {
+	} else if (local_valid_cells > 0) {
 		if (undervoltage_clear_count < UNDERVOLTAGE_CLEAR_SAMPLES) {
 			undervoltage_clear_count++;
 		}
+		undervoltage_set_count = 0;
+	} else {
 		undervoltage_set_count = 0;
 	}
 
