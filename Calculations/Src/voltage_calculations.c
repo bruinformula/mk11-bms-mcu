@@ -2,6 +2,18 @@
 
 volatile VOLTAGE_CONTEXT voltage_context;
 static float local_voltage_conversions[TOTAL_IC][CELLS_PER_IC];
+static float filtered_voltage_conversions[TOTAL_IC][CELLS_PER_IC];
+static bool voltage_filter_initialized[TOTAL_IC][CELLS_PER_IC];
+
+#define OVERVOLTAGE_SET_SAMPLES 5U
+#define OVERVOLTAGE_CLEAR_SAMPLES 10U
+#define UNDERVOLTAGE_SET_SAMPLES 5U
+#define UNDERVOLTAGE_CLEAR_SAMPLES 10U
+
+static uint8_t overvoltage_set_count = 0;
+static uint8_t overvoltage_clear_count = 0;
+static uint8_t undervoltage_set_count = 0;
+static uint8_t undervoltage_clear_count = 0;
 
 void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
     float local_lowest = INFINITY;
@@ -22,18 +34,29 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 
 			if (cell_voltage <= BROKEN_CELL_VOLTAGE_THRESHOLD) {
 				local_valid_cells--;
+				voltage_filter_initialized[i][j] = false;
 				continue;
 			}
 
-			if (cell_voltage < local_lowest) {
-				local_lowest = cell_voltage;
+			if (!voltage_filter_initialized[i][j]) {
+				filtered_voltage_conversions[i][j] = cell_voltage;
+				voltage_filter_initialized[i][j] = true;
+			} else {
+				filtered_voltage_conversions[i][j] += 0.10f * (cell_voltage - filtered_voltage_conversions[i][j]);
 			}
 
-			if (cell_voltage > local_highest) {
-				local_highest = cell_voltage;
+			float v = filtered_voltage_conversions[i][j];
+			local_voltage_conversions[i][j] = v;
+
+			if (v < local_lowest) {
+				local_lowest = v;
 			}
 
-			measured_pack += cell_voltage;
+			if (v > local_highest) {
+				local_highest = v;
+			}
+
+			measured_pack += v;
 		}
 	}
 
@@ -61,8 +84,22 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 
 #if BMS_FAULT_OVERVOLTAGE == BMS_FAULT_ENABLED
 	if (local_highest > OVER_VOLTAGE_THRESHOLD) {
-		faults_set |= FAULT_OVERVOLTAGE;
+		if (overvoltage_set_count < OVERVOLTAGE_SET_SAMPLES) {
+			overvoltage_set_count++;
+		}
+		overvoltage_clear_count = 0;
+	} else if (local_valid_cells > 0) {
+		if (overvoltage_clear_count < OVERVOLTAGE_CLEAR_SAMPLES) {
+			overvoltage_clear_count++;
+		}
+		overvoltage_set_count = 0;
 	} else {
+		overvoltage_set_count = 0;
+	}
+
+	if (overvoltage_set_count >= OVERVOLTAGE_SET_SAMPLES) {
+		faults_set |= FAULT_OVERVOLTAGE;
+	} else if (overvoltage_clear_count >= OVERVOLTAGE_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_OVERVOLTAGE;
 	}
 #endif
@@ -71,8 +108,22 @@ void computeAllVoltages(uint8_t tIC, cell_asic *ic) {
 	// Assert this is a real under-voltage fault, NOT an ISOSPI Disconnect in which cell voltages read ~1.5V.
 	// ISOSPI Disconnect fault detection is handled in thermistor.c.
 	if (local_lowest < UNDER_VOLTAGE_THRESHOLD && local_lowest > BROKEN_CELL_VOLTAGE_THRESHOLD) {
-		faults_set |= FAULT_UNDERVOLTAGE;
+		if (undervoltage_set_count < UNDERVOLTAGE_SET_SAMPLES) {
+			undervoltage_set_count++;
+		}
+		undervoltage_clear_count = 0;
+	} else if (local_valid_cells > 0) {
+		if (undervoltage_clear_count < UNDERVOLTAGE_CLEAR_SAMPLES) {
+			undervoltage_clear_count++;
+		}
+		undervoltage_set_count = 0;
 	} else {
+		undervoltage_set_count = 0;
+	}
+
+	if (undervoltage_set_count >= UNDERVOLTAGE_SET_SAMPLES) {
+		faults_set |= FAULT_UNDERVOLTAGE;
+	} else if (undervoltage_clear_count >= UNDERVOLTAGE_CLEAR_SAMPLES) {
 		faults_clear |= FAULT_UNDERVOLTAGE;
 	}
 #endif

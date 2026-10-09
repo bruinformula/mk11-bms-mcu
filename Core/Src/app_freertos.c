@@ -207,7 +207,7 @@ void voltageFunction(void const * argument)
 		first_run = true;
 		voltage_ready = true;
 	}
-	osDelay(500);
+	osDelay(100);
   }
   /* USER CODE END voltageFunction */
 }
